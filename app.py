@@ -6,19 +6,19 @@ from email.mime.multipart import MIMEMultipart
 import time
 from datetime import datetime
 
-# 1. C?u hÏnh trang Web
+# 1. C?u h√¨nh trang Web
 st.set_page_config(page_title="BulkMail Pro Web", page_icon="??", layout="wide")
 
-st.title("?? BulkMail Pro ñ Email Marketing Web Tool")
-st.markdown("**?? C?NH B¡O:** Ch? s? d?ng cho danh s·ch email h?p ph·p v‡ cÛ s? cho phÈp. Ch?ng Spam!")
+st.title("?? BulkMail Pro ‚Äì Email Marketing Web Tool")
+st.markdown("**?? C?NH B√ÅO:** Ch? s? d?ng cho danh s√°ch email h?p ph√°p v√† c√≥ s? cho ph√©p. Ch?ng Spam!")
 
-# 2. Chia b? c?c l‡m 2 c?t
+# 2. Chia b? c?c l√†m 2 c?t
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.header("1. C?u hÏnh SMTP")
+    st.header("1. C?u h√¨nh SMTP")
     sender_email = st.text_input("Email g?i:")
-    app_password = st.text_input("App Password:", type="password", help="M?t kh?u ?ng d?ng 16 k˝ t? c?a Gmail")
+    app_password = st.text_input("App Password:", type="password", help="M?t kh?u ?ng d?ng 16 k√Ω t? c?a Gmail")
     
     c1, c2 = st.columns(2)
     with c1:
@@ -26,7 +26,7 @@ with col1:
     with c2:
         smtp_port = st.text_input("Port:", value="587")
 
-    st.header("2. T?i danh s·ch (.csv, .xlsx)")
+    st.header("2. T?i danh s√°ch (.csv, .xlsx)")
     uploaded_file = st.file_uploader("Ch?n file d? li?u c?a b?n", type=["csv", "xlsx"])
     
     df = None
@@ -39,29 +39,29 @@ with col1:
             
             df.columns = df.columns.str.strip().str.lower()
             if 'email' not in df.columns:
-                st.error("L?i: File t?i lÍn b?t bu?c ph?i cÛ c?t tÍn l‡ 'email'.")
+                st.error("L?i: File t?i l√™n b?t bu?c ph?i c√≥ c?t t√™n l√† 'email'.")
                 df = None
             else:
                 df = df.dropna(subset=['email'])
-                st.success(f"? –„ t?i {len(df)} liÍn h?. C·c bi?n cÛ th? d˘ng: {', '.join(df.columns)}")
-                st.dataframe(df.head(3)) # Hi?n th? tru?c 3 dÚng d? li?u
+                st.success(f"? √ê√£ t?i {len(df)} li√™n h?. C√°c bi?n c√≥ th? d√πng: {', '.join(df.columns)}")
+                st.dataframe(df.head(3)) # Hi?n th? tru?c 3 d√≤ng d? li?u
         except Exception as e:
             st.error(f"L?i d?c file: {e}")
 
 with col2:
     st.header("3. N?i dung Email")
-    subject = st.text_input("TiÍu d? (Subject):")
-    body = st.text_area("N?i dung (H? tr? HTML):\nD˘ng {{tÍn_c?t}} d? c· nh‚n hÛa.", height=200, 
-                        value="Ch‡o {{name}},\n\nN?i dung email c?a b?n vi?t ? d‚y...")
+    subject = st.text_input("Ti√™u d? (Subject):")
+    body = st.text_area("N?i dung (H? tr? HTML):\nD√πng {{t√™n_c?t}} d? c√° nh√¢n h√≥a.", height=200, 
+                        value="Ch√†o {{name}},\n\nN?i dung email c?a b?n vi?t ? d√¢y...")
 
-    st.header("4. C‡i d?t & Test")
-    delay = st.number_input("Delay gi?a c·c email (gi‚y):", min_value=1, max_value=60, value=5)
+    st.header("4. C√†i d?t & Test")
+    delay = st.number_input("Delay gi?a c√°c email (gi√¢y):", min_value=1, max_value=60, value=5)
     
     st.markdown("---")
     test_email = st.text_input("G?i test 1 email d?n:")
     if st.button("G?i Test"):
         if not sender_email or not app_password or not test_email:
-            st.warning("Vui lÚng di?n d? Email g?i, App Password v‡ Email nh?n test.")
+            st.warning("Vui l√≤ng di?n d? Email g?i, App Password v√† Email nh?n test.")
         else:
             try:
                 smtp = smtplib.SMTP(smtp_server, int(smtp_port))
@@ -76,21 +76,21 @@ with col2:
                 
                 smtp.send_message(msg)
                 smtp.quit()
-                st.success("? –„ g?i email test th‡nh cÙng!")
+                st.success("? √ê√£ g?i email test th√†nh c√¥ng!")
             except Exception as e:
                 st.error(f"? L?i g?i test: {e}")
 
 # 3. Khu v?c th?c thi
 st.markdown("---")
-st.header("?? 5. B?t d?u g?i h‡ng lo?t")
+st.header("?? 5. B?t d?u g?i h√†ng lo?t")
 
 if st.button("? Start Sending", type="primary"):
     if df is None or len(df) == 0:
-        st.error("Vui lÚng t?i lÍn danh s·ch email h?p l? tru?c!")
+        st.error("Vui l√≤ng t?i l√™n danh s√°ch email h?p l? tru?c!")
     elif not sender_email or not app_password or not subject or not body:
-        st.error("Vui lÚng di?n d?y d? thÙng tin SMTP, tiÍu d? v‡ n?i dung Email!")
+        st.error("Vui l√≤ng di?n d?y d? th√¥ng tin SMTP, ti√™u d? v√† n?i dung Email!")
     else:
-        # Kh?i t?o c·c th‡nh ph?n giao di?n d? c?p nh?t theo th?i gian th?c
+        # Kh?i t?o c√°c th√†nh ph?n giao di?n d? c?p nh?t theo th?i gian th?c
         progress_bar = st.progress(0)
         status_text = st.empty()
         log_area = st.empty()
@@ -111,7 +111,7 @@ if st.button("? Start Sending", type="primary"):
                 if not recipient_email or recipient_email.lower() == 'nan':
                     continue
 
-                # X? l˝ c· nh‚n hÛa (thay th? bi?n {{...}})
+                # X? l√Ω c√° nh√¢n h√≥a (thay th? bi?n {{...}})
                 p_subject = subject
                 p_body = body
                 for col in df.columns:
@@ -119,7 +119,7 @@ if st.button("? Start Sending", type="primary"):
                     p_subject = p_subject.replace(f"{{{{{col}}}}}", val)
                     p_body = p_body.replace(f"{{{{{col}}}}}", val)
 
-                # T?o thÙng di?p email
+                # T?o th√¥ng di?p email
                 msg = MIMEMultipart()
                 msg['From'] = sender_email
                 msg['To'] = recipient_email
@@ -129,34 +129,34 @@ if st.button("? Start Sending", type="primary"):
                 try:
                     smtp.send_message(msg)
                     sent_count += 1
-                    log_messages.append(f"? Th‡nh cÙng: {recipient_email}")
+                    log_messages.append(f"? Th√†nh c√¥ng: {recipient_email}")
                 except Exception as e:
                     error_count += 1
                     log_messages.append(f"? L?i ({recipient_email}): {str(e)}")
 
-                # C?p nh?t thanh ti?n trÏnh v‡ tr?ng th·i
+                # C?p nh?t thanh ti?n tr√¨nh v√† tr?ng th√°i
                 progress = (sent_count + error_count) / total_emails
                 progress_bar.progress(progress)
-                status_text.write(f"**–„ g?i:** {sent_count} | **L?i:** {error_count} | **T?ng:** {total_emails}")
+                status_text.write(f"**√ê√£ g?i:** {sent_count} | **L?i:** {error_count} | **T?ng:** {total_emails}")
                 
-                # Hi?n th? 5 log g?n nh?t lÍn m‡n hÏnh
+                # Hi?n th? 5 log g?n nh?t l√™n m√†n h√¨nh
                 log_area.text("\n".join(log_messages[-5:]))
 
-                # Delay d? tr·nh b? block (ngo?i tr? email cu?i c˘ng)
+                # Delay d? tr√°nh b? block (ngo?i tr? email cu?i c√πng)
                 if index < total_emails - 1:
                     time.sleep(delay)
 
             smtp.quit()
-            st.success(f"?? Ho‡n t?t qu· trÏnh g?i! Th‡nh cÙng: {sent_count} | L?i: {error_count}")
+            st.success(f"?? Ho√†n t?t qu√° tr√¨nh g?i! Th√†nh c√¥ng: {sent_count} | L?i: {error_count}")
             
-            # T?o n˙t t?i file log tr?c ti?p trÍn web
-            log_df = pd.DataFrame({"K?t qu? x? l˝ Email": log_messages})
+            # T?o n√∫t t?i file log tr?c ti?p tr√™n web
+            log_df = pd.DataFrame({"K?t qu? x? l√Ω Email": log_messages})
             st.download_button(
-                label="?? T?i file B·o c·o (Log)",
+                label="?? T?i file B√°o c√°o (Log)",
                 data=log_df.to_csv(index=False).encode('utf-8-sig'),
                 file_name=f"bulkmail_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
 
         except Exception as e:
-            st.error(f"? L?i k?t n?i SMTP: Xin ki?m tra l?i Email v‡ App Password. Chi ti?t l?i: {e}")
+            st.error(f"? L?i k?t n?i SMTP: Xin ki?m tra l?i Email v√† App Password. Chi ti?t l?i: {e}")
