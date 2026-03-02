@@ -2,9 +2,9 @@ import pandas as pd
 
 # D? li?u m?u
 data = {
-    "name": ["Nguy?n Van A", "Tr?n Th? B", "LÍ Van C"],
+    "name": ["Nguy?n Van A", "Tr?n Th? B", "L√™ Van C"],
     "email": ["email_thu_1@gmail.com", "email_thu_2@gmail.com", "email_thu_3@gmail.com"],
-    "company": ["CÙng ty ABC", "T?p do‡n XYZ", "Startup 123"],
+    "company": ["C√¥ng ty ABC", "T?p do√†n XYZ", "Startup 123"],
     "danh_xung": ["Anh", "Ch?", "Anh"]
 }
 
@@ -12,4 +12,4 @@ data = {
 df = pd.DataFrame(data)
 df.to_excel("danh_sach_mau.xlsx", index=False)
 
-print("? –„ t?o th‡nh cÙng file 'danh_sach_mau.xlsx' trong thu m?c hi?n t?i!")
+print("? √ê√£ t?o th√†nh c√¥ng file 'danh_sach_mau.xlsx' trong thu m?c hi?n t?i!")
