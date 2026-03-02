@@ -1,0 +1,162 @@
+import streamlit as st
+import pandas as pd
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import time
+from datetime import datetime
+
+# 1. C?u hình trang Web
+st.set_page_config(page_title="BulkMail Pro Web", page_icon="??", layout="wide")
+
+st.title("?? BulkMail Pro – Email Marketing Web Tool")
+st.markdown("**?? C?NH BÁO:** Ch? s? d?ng cho danh sách email h?p pháp và có s? cho phép. Ch?ng Spam!")
+
+# 2. Chia b? c?c làm 2 c?t
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.header("1. C?u hình SMTP")
+    sender_email = st.text_input("Email g?i:")
+    app_password = st.text_input("App Password:", type="password", help="M?t kh?u ?ng d?ng 16 ký t? c?a Gmail")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        smtp_server = st.text_input("SMTP Server:", value="smtp.gmail.com")
+    with c2:
+        smtp_port = st.text_input("Port:", value="587")
+
+    st.header("2. T?i danh sách (.csv, .xlsx)")
+    uploaded_file = st.file_uploader("Ch?n file d? li?u c?a b?n", type=["csv", "xlsx"])
+    
+    df = None
+    if uploaded_file is not None:
+        try:
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
+            
+            df.columns = df.columns.str.strip().str.lower()
+            if 'email' not in df.columns:
+                st.error("L?i: File t?i lên b?t bu?c ph?i có c?t tên là 'email'.")
+                df = None
+            else:
+                df = df.dropna(subset=['email'])
+                st.success(f"? Ðã t?i {len(df)} liên h?. Các bi?n có th? dùng: {', '.join(df.columns)}")
+                st.dataframe(df.head(3)) # Hi?n th? tru?c 3 dòng d? li?u
+        except Exception as e:
+            st.error(f"L?i d?c file: {e}")
+
+with col2:
+    st.header("3. N?i dung Email")
+    subject = st.text_input("Tiêu d? (Subject):")
+    body = st.text_area("N?i dung (H? tr? HTML):\nDùng {{tên_c?t}} d? cá nhân hóa.", height=200, 
+                        value="Chào {{name}},\n\nN?i dung email c?a b?n vi?t ? dây...")
+
+    st.header("4. Cài d?t & Test")
+    delay = st.number_input("Delay gi?a các email (giây):", min_value=1, max_value=60, value=5)
+    
+    st.markdown("---")
+    test_email = st.text_input("G?i test 1 email d?n:")
+    if st.button("G?i Test"):
+        if not sender_email or not app_password or not test_email:
+            st.warning("Vui lòng di?n d? Email g?i, App Password và Email nh?n test.")
+        else:
+            try:
+                smtp = smtplib.SMTP(smtp_server, int(smtp_port))
+                smtp.starttls()
+                smtp.login(sender_email, app_password)
+                
+                msg = MIMEMultipart()
+                msg['From'] = sender_email
+                msg['To'] = test_email
+                msg['Subject'] = "[TEST] " + subject
+                msg.attach(MIMEText(body, 'html'))
+                
+                smtp.send_message(msg)
+                smtp.quit()
+                st.success("? Ðã g?i email test thành công!")
+            except Exception as e:
+                st.error(f"? L?i g?i test: {e}")
+
+# 3. Khu v?c th?c thi
+st.markdown("---")
+st.header("?? 5. B?t d?u g?i hàng lo?t")
+
+if st.button("? Start Sending", type="primary"):
+    if df is None or len(df) == 0:
+        st.error("Vui lòng t?i lên danh sách email h?p l? tru?c!")
+    elif not sender_email or not app_password or not subject or not body:
+        st.error("Vui lòng di?n d?y d? thông tin SMTP, tiêu d? và n?i dung Email!")
+    else:
+        # Kh?i t?o các thành ph?n giao di?n d? c?p nh?t theo th?i gian th?c
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        log_area = st.empty()
+        
+        sent_count = 0
+        error_count = 0
+        total_emails = len(df)
+        log_messages = []
+
+        try:
+            # K?t n?i SMTP
+            smtp = smtplib.SMTP(smtp_server, int(smtp_port))
+            smtp.starttls()
+            smtp.login(sender_email, app_password)
+            
+            for index, row in df.iterrows():
+                recipient_email = str(row['email']).strip()
+                if not recipient_email or recipient_email.lower() == 'nan':
+                    continue
+
+                # X? lý cá nhân hóa (thay th? bi?n {{...}})
+                p_subject = subject
+                p_body = body
+                for col in df.columns:
+                    val = str(row[col]) if pd.notna(row[col]) else ""
+                    p_subject = p_subject.replace(f"{{{{{col}}}}}", val)
+                    p_body = p_body.replace(f"{{{{{col}}}}}", val)
+
+                # T?o thông di?p email
+                msg = MIMEMultipart()
+                msg['From'] = sender_email
+                msg['To'] = recipient_email
+                msg['Subject'] = p_subject
+                msg.attach(MIMEText(p_body, 'html'))
+
+                try:
+                    smtp.send_message(msg)
+                    sent_count += 1
+                    log_messages.append(f"? Thành công: {recipient_email}")
+                except Exception as e:
+                    error_count += 1
+                    log_messages.append(f"? L?i ({recipient_email}): {str(e)}")
+
+                # C?p nh?t thanh ti?n trình và tr?ng thái
+                progress = (sent_count + error_count) / total_emails
+                progress_bar.progress(progress)
+                status_text.write(f"**Ðã g?i:** {sent_count} | **L?i:** {error_count} | **T?ng:** {total_emails}")
+                
+                # Hi?n th? 5 log g?n nh?t lên màn hình
+                log_area.text("\n".join(log_messages[-5:]))
+
+                # Delay d? tránh b? block (ngo?i tr? email cu?i cùng)
+                if index < total_emails - 1:
+                    time.sleep(delay)
+
+            smtp.quit()
+            st.success(f"?? Hoàn t?t quá trình g?i! Thành công: {sent_count} | L?i: {error_count}")
+            
+            # T?o nút t?i file log tr?c ti?p trên web
+            log_df = pd.DataFrame({"K?t qu? x? lý Email": log_messages})
+            st.download_button(
+                label="?? T?i file Báo cáo (Log)",
+                data=log_df.to_csv(index=False).encode('utf-8-sig'),
+                file_name=f"bulkmail_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
+
+        except Exception as e:
+            st.error(f"? L?i k?t n?i SMTP: Xin ki?m tra l?i Email và App Password. Chi ti?t l?i: {e}")
