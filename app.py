@@ -3,22 +3,79 @@ import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 import time
 from datetime import datetime
+import streamlit.components.v1 as components
 
-# 1. C?u hình trang Web
-st.set_page_config(page_title="BulkMail Pro Web", page_icon="??", layout="wide")
+# 1. Cấu hình trang Web
+st.set_page_config(page_title="BulkMail Pro - Professional", page_icon="🔵", layout="wide")
 
-st.title("?? BulkMail Pro – Email Marketing Web Tool")
-st.markdown("**?? C?NH BÁO:** Ch? s? d?ng cho danh sách email h?p pháp và có s? cho phép. Ch?ng Spam!")
+# ==========================================
+# GIAO DIỆN CSS: TONE XANH NƯỚC BIỂN
+# ==========================================
+st.markdown("""
+<style>
+    /* Đổi màu nền chính của trang web sang xanh nhạt */
+    .stApp {
+        background-color: #F0F4F8; 
+    }
+    
+    /* Đổi màu tất cả các tiêu đề h1, h2, h3 sang xanh đậm */
+    h1, h2, h3 {
+        color: #003366 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* Tùy chỉnh nút bấm (Buttons) */
+    .stButton>button {
+        background-color: #0056b3 !important;
+        color: white !important;
+        border-radius: 6px;
+        border: none;
+        padding: 10px 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #003366 !important;
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+    }
+    
+    /* Làm nổi bật các khu vực kéo thả file */
+    .stDropzone {
+        border: 2px dashed #0056b3 !important;
+        background-color: #E6F0FA !important;
+    }
 
-# 2. Chia b? c?c làm 2 c?t
+    /* Các khung viền / cảnh báo */
+    div[data-testid="stAlert"] {
+        background-color: #E6F0FA;
+        color: #003366;
+        border-left: 5px solid #0056b3;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# NỘI DUNG CHÍNH CỦA APP
+# ==========================================
+
+st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
+st.info("💡 Hệ thống gửi email hàng loạt cá nhân hóa. Vui lòng sử dụng cho danh sách liên hệ hợp pháp.")
+
+# 2. Chia bố cục làm 2 cột
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.header("1. C?u hình SMTP")
-    sender_email = st.text_input("Email g?i:")
-    app_password = st.text_input("App Password:", type="password", help="M?t kh?u ?ng d?ng 16 ký t? c?a Gmail")
+    st.header("1. Cấu hình Máy chủ & Tài khoản")
+    
+    sender_name = st.text_input("Tên hiển thị người gửi (VD: Công ty ABC):")
+    sender_email = st.text_input("Email gửi:")
+    app_password = st.text_input("App Password:", type="password", help="Mật khẩu ứng dụng 16 ký tự của Gmail")
     
     c1, c2 = st.columns(2)
     with c1:
@@ -26,8 +83,8 @@ with col1:
     with c2:
         smtp_port = st.text_input("Port:", value="587")
 
-    st.header("2. T?i danh sách (.csv, .xlsx)")
-    uploaded_file = st.file_uploader("Ch?n file d? li?u c?a b?n", type=["csv", "xlsx"])
+    st.header("2. Dữ liệu Khách hàng (.csv, .xlsx)")
+    uploaded_file = st.file_uploader("Kéo thả file danh sách email vào đây", type=["csv", "xlsx"])
     
     df = None
     if uploaded_file is not None:
@@ -39,29 +96,37 @@ with col1:
             
             df.columns = df.columns.str.strip().str.lower()
             if 'email' not in df.columns:
-                st.error("L?i: File t?i lên b?t bu?c ph?i có c?t tên là 'email'.")
+                st.error("Lỗi: File tải lên bắt buộc phải có cột tên là 'email'.")
                 df = None
             else:
                 df = df.dropna(subset=['email'])
-                st.success(f"? Ðã t?i {len(df)} liên h?. Các bi?n có th? dùng: {', '.join(df.columns)}")
-                st.dataframe(df.head(3)) # Hi?n th? tru?c 3 dòng d? li?u
+                st.success(f"✅ Đã tải {len(df)} liên hệ. Các trường dữ liệu: {', '.join(df.columns)}")
+                st.dataframe(df.head(3), use_container_width=True)
         except Exception as e:
-            st.error(f"L?i d?c file: {e}")
+            st.error(f"Lỗi đọc file: {e}")
+
+    st.header("3. Đính kèm Tài liệu (Tùy chọn)")
+    uploaded_attachments = st.file_uploader("Chọn file đính kèm (cho phép nhiều file)", accept_multiple_files=True)
 
 with col2:
-    st.header("3. N?i dung Email")
-    subject = st.text_input("Tiêu d? (Subject):")
-    body = st.text_area("N?i dung (H? tr? HTML):\nDùng {{tên_c?t}} d? cá nhân hóa.", height=200, 
-                        value="Chào {{name}},\n\nN?i dung email c?a b?n vi?t ? dây...")
+    st.header("4. Biên soạn Nội dung")
+    subject = st.text_input("Tiêu đề (Subject):")
+    body = st.text_area("Nội dung (Hỗ trợ định dạng HTML) - Cú pháp biến: {{tên_cột}}", height=200, 
+                        value="Kính chào {{name}},<br><br>Nhập nội dung email của bạn tại đây...")
 
-    st.header("4. Cài d?t & Test")
-    delay = st.number_input("Delay gi?a các email (giây):", min_value=1, max_value=60, value=5)
+    # Khung xem trước HTML
+    with st.expander("👁️ Xem trước hiển thị Email (Live Preview)", expanded=False):
+        st.markdown("*Minh họa bố cục email (các biến sẽ được thay thế khi gửi thực tế):*")
+        components.html(body, height=250, scrolling=True)
+
+    st.header("5. Thiết lập Gửi & Kiểm tra")
+    delay = st.number_input("Khoảng nghỉ giữa 2 email (giây):", min_value=1, max_value=60, value=5)
     
     st.markdown("---")
-    test_email = st.text_input("G?i test 1 email d?n:")
-    if st.button("G?i Test"):
+    test_email = st.text_input("Địa chỉ Email nhận Test:")
+    if st.button("Thử nghiệm (Gửi Test)"):
         if not sender_email or not app_password or not test_email:
-            st.warning("Vui lòng di?n d? Email g?i, App Password và Email nh?n test.")
+            st.warning("Vui lòng điền đủ Email gửi, App Password và Email nhận test.")
         else:
             try:
                 smtp = smtplib.SMTP(smtp_server, int(smtp_port))
@@ -69,49 +134,68 @@ with col2:
                 smtp.login(sender_email, app_password)
                 
                 msg = MIMEMultipart()
-                msg['From'] = sender_email
+                msg['From'] = f"{sender_name} <{sender_email}>" if sender_name else sender_email
                 msg['To'] = test_email
                 msg['Subject'] = "[TEST] " + subject
                 msg.attach(MIMEText(body, 'html'))
                 
+                # Xử lý đính kèm cho bản Test
+                if uploaded_attachments:
+                    for file in uploaded_attachments:
+                        part = MIMEBase("application", "octet-stream")
+                        part.set_payload(file.getvalue())
+                        encoders.encode_base64(part)
+                        part.add_header("Content-Disposition", f"attachment; filename= {file.name}")
+                        msg.attach(part)
+
                 smtp.send_message(msg)
                 smtp.quit()
-                st.success("? Ðã g?i email test thành công!")
+                st.success("✅ Đã gửi email test thành công! Vui lòng kiểm tra hộp thư của bạn.")
             except Exception as e:
-                st.error(f"? L?i g?i test: {e}")
+                st.error(f"❌ Lỗi gửi test: {e}")
 
-# 3. Khu v?c th?c thi
+# 3. Khu vực thực thi gửi hàng loạt
 st.markdown("---")
-st.header("?? 5. B?t d?u g?i hàng lo?t")
+st.header("🚀 6. Kích hoạt Chiến dịch")
 
-if st.button("? Start Sending", type="primary"):
+if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_container_width=True):
     if df is None or len(df) == 0:
-        st.error("Vui lòng t?i lên danh sách email h?p l? tru?c!")
+        st.error("Vui lòng tải lên danh sách email hợp lệ trước!")
     elif not sender_email or not app_password or not subject or not body:
-        st.error("Vui lòng di?n d?y d? thông tin SMTP, tiêu d? và n?i dung Email!")
+        st.error("Vui lòng điền đầy đủ thông tin SMTP, tiêu đề và nội dung Email!")
     else:
-        # Kh?i t?o các thành ph?n giao di?n d? c?p nh?t theo th?i gian th?c
         progress_bar = st.progress(0)
         status_text = st.empty()
         log_area = st.empty()
         
         sent_count = 0
         error_count = 0
+        batch_count = 0
         total_emails = len(df)
         log_messages = []
 
+        attachments_data = []
+        if uploaded_attachments:
+            for file in uploaded_attachments:
+                attachments_data.append({
+                    "name": file.name,
+                    "data": file.getvalue()
+                })
+
         try:
-            # K?t n?i SMTP
-            smtp = smtplib.SMTP(smtp_server, int(smtp_port))
-            smtp.starttls()
-            smtp.login(sender_email, app_password)
+            def connect_smtp():
+                s = smtplib.SMTP(smtp_server, int(smtp_port))
+                s.starttls()
+                s.login(sender_email, app_password)
+                return s
+
+            smtp = connect_smtp()
             
             for index, row in df.iterrows():
                 recipient_email = str(row['email']).strip()
                 if not recipient_email or recipient_email.lower() == 'nan':
                     continue
 
-                # X? lý cá nhân hóa (thay th? bi?n {{...}})
                 p_subject = subject
                 p_body = body
                 for col in df.columns:
@@ -119,44 +203,55 @@ if st.button("? Start Sending", type="primary"):
                     p_subject = p_subject.replace(f"{{{{{col}}}}}", val)
                     p_body = p_body.replace(f"{{{{{col}}}}}", val)
 
-                # T?o thông di?p email
                 msg = MIMEMultipart()
-                msg['From'] = sender_email
+                msg['From'] = f"{sender_name} <{sender_email}>" if sender_name else sender_email
                 msg['To'] = recipient_email
                 msg['Subject'] = p_subject
                 msg.attach(MIMEText(p_body, 'html'))
 
+                for att in attachments_data:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(att["data"])
+                    encoders.encode_base64(part)
+                    part.add_header("Content-Disposition", f"attachment; filename= {att['name']}")
+                    msg.attach(part)
+
                 try:
                     smtp.send_message(msg)
                     sent_count += 1
-                    log_messages.append(f"? Thành công: {recipient_email}")
+                    batch_count += 1
+                    log_messages.append(f"✅ Thành công: {recipient_email}")
                 except Exception as e:
                     error_count += 1
-                    log_messages.append(f"? L?i ({recipient_email}): {str(e)}")
+                    log_messages.append(f"❌ Lỗi ({recipient_email}): {str(e)}")
 
-                # C?p nh?t thanh ti?n trình và tr?ng thái
                 progress = (sent_count + error_count) / total_emails
                 progress_bar.progress(progress)
-                status_text.write(f"**Ðã g?i:** {sent_count} | **L?i:** {error_count} | **T?ng:** {total_emails}")
-                
-                # Hi?n th? 5 log g?n nh?t lên màn hình
+                status_text.write(f"**Tiến độ:** Đã gửi: {sent_count} | Lỗi: {error_count} | Tổng số: {total_emails}")
                 log_area.text("\n".join(log_messages[-5:]))
 
-                # Delay d? tránh b? block (ngo?i tr? email cu?i cùng)
+                if batch_count >= 50:
+                    try:
+                        smtp.quit()
+                        status_text.write(f"Đang làm mới phiên kết nối SMTP để đảm bảo an toàn...")
+                        time.sleep(5)
+                        smtp = connect_smtp()
+                        batch_count = 0
+                    except Exception as e:
+                        log_messages.append(f"⚠️ Lỗi kết nối lại: {e}")
+
                 if index < total_emails - 1:
                     time.sleep(delay)
 
-            smtp.quit()
-            st.success(f"?? Hoàn t?t quá trình g?i! Thành công: {sent_count} | L?i: {error_count}")
-            
-            # T?o nút t?i file log tr?c ti?p trên web
-            log_df = pd.DataFrame({"K?t qu? x? lý Email": log_messages})
-            st.download_button(
-                label="?? T?i file Báo cáo (Log)",
-                data=log_df.to_csv(index=False).encode('utf-8-sig'),
-                file_name=f"bulkmail_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv"
-            )
+            try:
+                smtp.quit()
+            except: pass
 
-        except Exception as e:
-            st.error(f"? L?i k?t n?i SMTP: Xin ki?m tra l?i Email và App Password. Chi ti?t l?i: {e}")
+            st.success(f"🎉 CHIẾN DỊCH HOÀN TẤT! Đã gửi thành công {sent_count}/{total_emails} email.")
+            
+            log_df = pd.DataFrame({"Thời gian": [datetime.now().strftime('%Y-%m-%d %H:%M:%S')] * len(log_messages), 
+                                   "Kết quả": log_messages})
+            st.download_button(
+                label="📥 TẢI XUỐNG BÁO CÁO (CSV)",
+                data=log_df.to_csv(index=False).encode('utf-8-sig'),
+                file_name=f"BulkMail_Report_{datetime
