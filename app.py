@@ -12,51 +12,25 @@ import streamlit.components.v1 as components
 # 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Professional", page_icon="🔵", layout="wide")
 
+# Khởi tạo biến lưu trạng thái báo cáo (Sửa lỗi mất nút tải)
+if 'log_data' not in st.session_state:
+    st.session_state.log_data = None
+
 # ==========================================
 # GIAO DIỆN CSS: TONE XANH NƯỚC BIỂN
 # ==========================================
 st.markdown("""
 <style>
-    /* Đổi màu nền chính của trang web sang xanh nhạt */
-    .stApp {
-        background-color: #F0F4F8; 
-    }
-    
-    /* Đổi màu tất cả các tiêu đề h1, h2, h3 sang xanh đậm */
-    h1, h2, h3 {
-        color: #003366 !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    /* Tùy chỉnh nút bấm (Buttons) */
+    .stApp { background-color: #F0F4F8; }
+    h1, h2, h3 { color: #003366 !important; font-family: 'Segoe UI', Tahoma, sans-serif; }
     .stButton>button {
-        background-color: #0056b3 !important;
-        color: white !important;
-        border-radius: 6px;
-        border: none;
-        padding: 10px 24px;
-        font-weight: 600;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+        background-color: #0056b3 !important; color: white !important;
+        border-radius: 6px; border: none; padding: 10px 24px; font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;
     }
-    .stButton>button:hover {
-        background-color: #003366 !important;
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-        transform: translateY(-1px);
-    }
-    
-    /* Làm nổi bật các khu vực kéo thả file */
-    .stDropzone {
-        border: 2px dashed #0056b3 !important;
-        background-color: #E6F0FA !important;
-    }
-
-    /* Các khung viền / cảnh báo */
-    div[data-testid="stAlert"] {
-        background-color: #E6F0FA;
-        color: #003366;
-        border-left: 5px solid #0056b3;
-    }
+    .stButton>button:hover { background-color: #003366 !important; box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); transform: translateY(-1px); }
+    .stDropzone { border: 2px dashed #0056b3 !important; background-color: #E6F0FA !important; }
+    div[data-testid="stAlert"] { background-color: #E6F0FA; color: #003366; border-left: 5px solid #0056b3; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,7 +41,6 @@ st.markdown("""
 st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
 st.info("💡 Hệ thống gửi email hàng loạt cá nhân hóa. Vui lòng sử dụng cho danh sách liên hệ hợp pháp.")
 
-# 2. Chia bố cục làm 2 cột
 col1, col2 = st.columns([1, 1])
 
 with col1:
@@ -114,7 +87,6 @@ with col2:
     body = st.text_area("Nội dung (Hỗ trợ định dạng HTML) - Cú pháp biến: {{tên_cột}}", height=200, 
                         value="Kính chào {{name}},<br><br>Nhập nội dung email của bạn tại đây...")
 
-    # Khung xem trước HTML
     with st.expander("👁️ Xem trước hiển thị Email (Live Preview)", expanded=False):
         st.markdown("*Minh họa bố cục email (các biến sẽ được thay thế khi gửi thực tế):*")
         components.html(body, height=250, scrolling=True)
@@ -129,7 +101,10 @@ with col2:
             st.warning("Vui lòng điền đủ Email gửi, App Password và Email nhận test.")
         else:
             try:
-                smtp = smtplib.SMTP(smtp_server, int(smtp_port))
+                # Kiểm tra port
+                port_num = int(smtp_port.strip())
+                
+                smtp = smtplib.SMTP(smtp_server, port_num)
                 smtp.starttls()
                 smtp.login(sender_email, app_password)
                 
@@ -139,18 +114,19 @@ with col2:
                 msg['Subject'] = "[TEST] " + subject
                 msg.attach(MIMEText(body, 'html'))
                 
-                # Xử lý đính kèm cho bản Test
                 if uploaded_attachments:
                     for file in uploaded_attachments:
                         part = MIMEBase("application", "octet-stream")
                         part.set_payload(file.getvalue())
                         encoders.encode_base64(part)
-                        part.add_header("Content-Disposition", f"attachment; filename= {file.name}")
+                        part.add_header("Content-Disposition", "attachment", filename=file.name)
                         msg.attach(part)
 
                 smtp.send_message(msg)
                 smtp.quit()
                 st.success("✅ Đã gửi email test thành công! Vui lòng kiểm tra hộp thư của bạn.")
+            except ValueError:
+                st.error("❌ Lỗi: Port phải là một con số (VD: 587)")
             except Exception as e:
                 st.error(f"❌ Lỗi gửi test: {e}")
 
@@ -164,6 +140,7 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
     elif not sender_email or not app_password or not subject or not body:
         st.error("Vui lòng điền đầy đủ thông tin SMTP, tiêu đề và nội dung Email!")
     else:
+        st.session_state.log_data = None # Reset log cũ
         progress_bar = st.progress(0)
         status_text = st.empty()
         log_area = st.empty()
@@ -183,8 +160,10 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
                 })
 
         try:
+            port_num = int(smtp_port.strip())
+            
             def connect_smtp():
-                s = smtplib.SMTP(smtp_server, int(smtp_port))
+                s = smtplib.SMTP(smtp_server, port_num)
                 s.starttls()
                 s.login(sender_email, app_password)
                 return s
@@ -194,6 +173,8 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
             for index, row in df.iterrows():
                 recipient_email = str(row['email']).strip()
                 if not recipient_email or recipient_email.lower() == 'nan':
+                    # Bỏ qua dòng trống nhưng vẫn cập nhật thanh tiến trình
+                    total_emails -= 1 
                     continue
 
                 p_subject = subject
@@ -213,7 +194,7 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
                     part = MIMEBase("application", "octet-stream")
                     part.set_payload(att["data"])
                     encoders.encode_base64(part)
-                    part.add_header("Content-Disposition", f"attachment; filename= {att['name']}")
+                    part.add_header("Content-Disposition", "attachment", filename=att['name'])
                     msg.attach(part)
 
                 try:
@@ -225,8 +206,10 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
                     error_count += 1
                     log_messages.append(f"❌ Lỗi ({recipient_email}): {str(e)}")
 
-                progress = (sent_count + error_count) / total_emails
-                progress_bar.progress(progress)
+                if total_emails > 0:
+                    progress = (sent_count + error_count) / total_emails
+                    progress_bar.progress(min(progress, 1.0))
+                
                 status_text.write(f"**Tiến độ:** Đã gửi: {sent_count} | Lỗi: {error_count} | Tổng số: {total_emails}")
                 log_area.text("\n".join(log_messages[-5:]))
 
@@ -249,9 +232,21 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
 
             st.success(f"🎉 CHIẾN DỊCH HOÀN TẤT! Đã gửi thành công {sent_count}/{total_emails} email.")
             
+            # Lưu log vào session_state để không bị mất nút tải
             log_df = pd.DataFrame({"Thời gian": [datetime.now().strftime('%Y-%m-%d %H:%M:%S')] * len(log_messages), 
                                    "Kết quả": log_messages})
-            st.download_button(
-                label="📥 TẢI XUỐNG BÁO CÁO (CSV)",
-                data=log_df.to_csv(index=False).encode('utf-8-sig'),
-                file_name=f"BulkMail_Report_{datetime
+            st.session_state.log_data = log_df.to_csv(index=False).encode('utf-8-sig')
+
+        except ValueError:
+            st.error("❌ Lỗi cấu hình: Port phải là một con số (VD: 587)")
+        except Exception as e:
+            st.error(f"❌ Lỗi SMTP hệ thống: Xin kiểm tra lại Email và App Password. Chi tiết: {e}")
+
+# Hiển thị nút tải file Log bên ngoài vòng lặp (Dựa vào session state)
+if st.session_state.log_data is not None:
+    st.download_button(
+        label="📥 TẢI XUỐNG BÁO CÁO (CSV)",
+        data=st.session_state.log_data,
+        file_name=f"BulkMail_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+        mime="text/csv"
+    )
