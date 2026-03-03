@@ -86,12 +86,18 @@ with col2:
     st.header("5. Cấu hình Nâng cao & Telegram")
     delay = st.number_input("Khoảng nghỉ (giây):", min_value=1, max_value=60, value=5)
     
-    st.markdown("**🔔 Thông báo Telegram (Không bắt buộc):**")
+    st.markdown("**🔔 Thông báo Telegram (Đã được tự động kết nối bảo mật):**")
+    
+    # Tự động lấy dữ liệu từ két sắt Secrets, nếu không có thì để trống
+    default_token = st.secrets.get("TELE_TOKEN", "")
+    default_chat_id = st.secrets.get("TELE_CHAT_ID", "")
+
     t1, t2 = st.columns(2)
     with t1:
-        tele_token = st.text_input("Bot Token:")
+        # type="password" giúp che mã Token lại thành các dấu sao *****
+        tele_token = st.text_input("Bot Token:", value=default_token, type="password")
     with t2:
-        tele_chat_id = st.text_input("Chat ID:")
+        tele_chat_id = st.text_input("Chat ID:", value=default_chat_id)
 
 st.markdown("---")
 st.header("🚀 6. Kích hoạt Chiến dịch")
@@ -211,3 +217,4 @@ if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_containe
 
 if st.session_state.log_data is not None:
     st.download_button("📥 TẢI XUỐNG BÁO CÁO (CSV)", data=st.session_state.log_data, file_name="BulkMail_Report.csv", mime="text/csv")
+
