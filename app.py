@@ -9,8 +9,6 @@ from email import encoders
 import time
 from datetime import datetime
 import streamlit.components.v1 as components
-    except: return {}
-
 import requests
 import hashlib
 import random
@@ -29,6 +27,8 @@ SYS_PWD = st.secrets.get("APP_PASSWORD", "")
 def load_users():
     if not DB_URL: return {}
     try: return requests.get(DB_URL).json()
+    except: return {}
+
 def save_user(username, password_hash, email):
     if not DB_URL: return
     try: requests.post(DB_URL, json={"action": "register", "username": username, "password": password_hash, "email": email})
@@ -80,57 +80,16 @@ def send_recovery_email(to_email, username, new_password):
     except: return False
 
 # ==========================================
-# GIAO DIỆN CSS
-# ==========================================
-# ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (Sáng, Sang trọng)
 # ==========================================
 st.markdown("""
 <style>
-    /* 1. Nền tổng thể: Gradient xám trắng sang trọng và sạch sẽ */
-    .stApp { 
-        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
-    }
-    
-    /* 2. Font chữ tiêu đề: Chuyên nghiệp, màu xanh đen hoàng gia */
-    h1, h2, h3 { 
-        color: #1a365d !important; 
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-weight: 700;
-    }
-    
-    /* 3. Nút bấm: Đổ bóng 3D, Gradient xanh và hiệu ứng nổi lên khi di chuột */
-    .stButton>button { 
-        background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; 
-        color: white !important; 
-        border-radius: 8px; 
-        border: none; 
-        padding: 10px 24px; 
-        font-weight: 600; 
-        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
-        transition: all 0.3s ease;
-    }
-    .stButton>button:hover { 
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
-    }
-    
-    /* 4. Hộp Đăng nhập/Đăng ký: Hiệu ứng kính mờ (Glassmorphism) cực kỳ hiện đại */
-    .auth-box { 
-        max-width: 450px; 
-        margin: 50px auto; 
-        padding: 40px; 
-        background: rgba(255, 255, 255, 0.85); 
-        border-radius: 16px; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        backdrop-filter: blur(10px);
-    }
-    
-    /* 5. Bo góc nhẹ cho các ô nhập liệu (Input) */
-    .stTextInput>div>div>input {
-        border-radius: 6px;
-    }
+    .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
+    h1, h2, h3 { color: #1a365d !important; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 700; }
+    .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; border: none; padding: 10px 24px; font-weight: 600; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25); transition: all 0.3s ease; }
+    .stButton>button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35); }
+    .auth-box { max-width: 450px; margin: 50px auto; padding: 40px; background: rgba(255, 255, 255, 0.85); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); }
+    .stTextInput>div>div>input { border-radius: 6px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -143,10 +102,8 @@ if 'current_user' not in st.session_state: st.session_state['current_user'] = ""
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        st.image("logo_moi.png", width=150)  # Kích thước 150 pixel
-        st.title("BulkMail Pro")
+        st.title("🔵 BulkMail Pro")
         
         tab_login, tab_register, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên mật khẩu"])
         users_db = load_users()
@@ -213,7 +170,6 @@ else:
             st.session_state['current_user'] = ""
             st.rerun()
 
-    st.image("logo_moi.png", width=250)  # Kích thước to hơn một chút ở trang chính
     st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
     st.info("💡 Bạn đang ở giao diện gửi Email chính thức.")
 
@@ -231,7 +187,7 @@ else:
 
         st.header("2. Dữ liệu Khách hàng")
         
-        # --- BẮT ĐẦU TẠO FILE EXCEL MẪU TRÁNH LỖI GỘP CỘT ---
+        # --- NÚT TẢI FILE EXCEL MẪU ---
         df_sample = pd.DataFrame({
             "email": ["nguyenvana@gmail.com", "tranthib@yahoo.com"],
             "name": ["Nguyễn Văn A", "Trần Thị B"],
@@ -248,7 +204,6 @@ else:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             help="Bấm vào đây để tải file Excel mẫu. Sau đó điền email khách hàng của bạn vào và tải lên lại!"
         )
-        # --- KẾT THÚC TẠO FILE EXCEL MẪU ---
 
         uploaded_file = st.file_uploader("Kéo thả file .csv hoặc .xlsx", type=["csv", "xlsx"])
         
@@ -265,6 +220,7 @@ else:
             except Exception as e: st.error(f"Lỗi: {e}")
 
         uploaded_attachments = st.file_uploader("Chọn file đính kèm", accept_multiple_files=True)
+
     with col2:
         st.header("4. Biên soạn Nội dung")
         subject = st.text_input("Tiêu đề:")
@@ -280,7 +236,6 @@ else:
         with st.expander("🔔 Nhấn vào đây để nhận báo cáo qua Telegram (Tùy chọn)", expanded=False):
             st.info("Nhập API Telegram của riêng bạn để hệ thống báo cáo khi gửi xong.")
             
-            # Tải cấu hình đã lưu của khách hàng
             users_db = load_users()
             current_user_data = users_db.get(st.session_state['current_user'], {})
             saved_token = current_user_data.get("tele_token", "")
@@ -292,7 +247,6 @@ else:
             with t2:
                 tele_chat_id = st.text_input("Chat ID (Của bạn):", value=saved_chat_id)
             
-            # Nút lưu cấu hình
             if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
                 if save_config_api(st.session_state['current_user'], tele_token, tele_chat_id):
                     st.success("✅ Đã lưu cấu hình thành công! Lần đăng nhập sau sẽ được tự động điền.")
@@ -314,6 +268,18 @@ else:
             sent_count, error_count = 0, 0
             total_emails = len(df)
             log_messages = []
+            
+            # --- TELEGRAM: BÁO BẮT ĐẦU CHẠY ---
+            if tele_token and tele_chat_id:
+                try:
+                    start_msg = f"⏳ **Hệ thống đang khởi động...**\n👤 User: `{st.session_state['current_user']}`\n🎯 Mục tiêu: Gửi `{total_emails}` email."
+                    requests.post(
+                        f"https://api.telegram.org/bot{tele_token}/sendMessage", 
+                        data={"chat_id": tele_chat_id, "text": start_msg, "parse_mode": "Markdown"},
+                        timeout=5
+                    )
+                except Exception:
+                    pass
             
             try:
                 smtp = smtplib.SMTP(smtp_server, int(smtp_port.strip()))
@@ -354,62 +320,35 @@ else:
                 smtp.quit()
                 st.success(f"🎉 Hoàn tất! Đã gửi {sent_count}/{total_emails} email.")
                 
-                # Bắn Telegram cho khách hàng nếu họ có nhập
+                # --- TELEGRAM: BÁO KẾT THÚC ---
                 if tele_token and tele_chat_id:
                     try:
-                        st.info("Đang đẩy dữ liệu về Telegram của bạn...")
-                        msg_text = f"🚀 **Chiến dịch BulkMail của {st.session_state['current_user']} đã xong!**\n\n📊 **Tổng kết:**\n- Tổng số email: `{total_emails}`\n- ✅ Thành công: `{sent_count}`\n- ❌ Thất bại: `{error_count}`"
-                        
-                        # Thêm timeout=5 để chống nghẽn mạng và ép gửi nhanh
+                        msg_text = f"🚀 **Chiến dịch của {st.session_state['current_user']} đã XONG!**\n\n📊 **Tổng kết:**\n- Tổng số: `{total_emails}`\n- ✅ Thành công: `{sent_count}`\n- ❌ Thất bại: `{error_count}`"
                         requests.post(
                             f"https://api.telegram.org/bot{tele_token}/sendMessage", 
                             data={"chat_id": tele_chat_id, "text": msg_text, "parse_mode": "Markdown"},
-                            timeout=5)
-                        st.success("✅ Đã gửi báo cáo thành công qua Telegram của bạn!")
+                            timeout=5
+                        )
+                        st.success("✅ Đã gửi báo cáo tổng kết qua Telegram!")
                     except Exception as e:
-                        st.error(f"⚠️ Không thể gửi Telegram. Vui lòng kiểm tra lại Token/Chat ID. Lỗi: {e}")
+                        st.error(f"⚠️ Lỗi gửi Telegram: {e}")
 
             except Exception as e:
-                st.error(f"❌ Lỗi SMTP: {e}")
+                st.error(f"❌ Lỗi kết nối máy chủ gửi Mail (SMTP): {e}")
+
 # ==========================================
 # NÚT LIÊN HỆ NỔI GÓC DƯỚI BÊN PHẢI (ZALO & TELEGRAM)
 # ==========================================
 st.markdown("""
 <style>
-.floating-container {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    z-index: 999999;
-}
-.float-btn {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white; 
-}
-.float-btn:hover {
-    transform: scale(1.15) translateY(-5px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-.float-btn img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
+.floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
+.float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; background-color: white; }
+.float-btn:hover { transform: scale(1.15) translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+.float-btn img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 </style>
 
 <div class="floating-container">
-    <a href="https://zalo.me/SỐ_ĐIỆN_THOẠI_CỦA_BẠN" target="_blank" class="float-btn" title="Chat Zalo hỗ trợ">
+    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn" title="Chat Zalo hỗ trợ">
         <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" alt="Zalo">
     </a>
     <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" title="Chat Telegram hỗ trợ">
@@ -417,16 +356,3 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
