@@ -202,8 +202,17 @@ else:
         with st.expander("👁️ Xem trước hiển thị Email"):
             components.html(body, height=200, scrolling=True)
 
-        st.header("5. Cấu hình Nâng cao")
+        st.header("5. Cấu hình Nâng cao & Báo cáo")
         delay = st.number_input("Khoảng nghỉ (giây):", min_value=1, max_value=60, value=5)
+        
+        st.markdown("---")
+        with st.expander("🔔 Nhấn vào đây để nhận báo cáo qua Telegram (Tùy chọn)", expanded=False):
+            st.info("Nhập API Telegram của riêng bạn để hệ thống báo cáo khi gửi xong.")
+            t1, t2 = st.columns(2)
+            with t1:
+                tele_token = st.text_input("Bot Token (Của bạn):", type="password")
+            with t2:
+                tele_chat_id = st.text_input("Chat ID (Của bạn):")
 
     st.markdown("---")
     st.header("🚀 6. Kích hoạt Chiến dịch")
@@ -260,3 +269,4 @@ else:
                 st.success(f"🎉 Hoàn tất! Đã gửi {sent_count}/{total_emails} email.")
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
