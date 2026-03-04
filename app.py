@@ -212,6 +212,7 @@ else:
             st.session_state['current_user'] = ""
             st.rerun()
 
+    st.image("logo.png", width=250)  # Kích thước to hơn một chút ở trang chính
     st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
     st.info("💡 Bạn đang ở giao diện gửi Email chính thức.")
 
@@ -345,5 +346,6 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
 
