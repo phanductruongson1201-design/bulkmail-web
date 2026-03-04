@@ -214,11 +214,11 @@ else:
             with t2:
                 tele_chat_id = st.text_input("Chat ID (Của bạn):")
 
-    st.markdown("---")
+   st.markdown("---")
     st.header("🚀 6. Kích hoạt Chiến dịch")
 
     if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
-       if df is None or len(df) == 0:
+        if df is None or len(df) == 0:
             st.error("Vui lòng tải lên danh sách email!")
         elif not sender_email or not app_password or not subject or not body:
             st.error("Vui lòng điền đủ thông tin SMTP, tiêu đề và nội dung!")
@@ -281,4 +281,5 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
