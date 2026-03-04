@@ -103,6 +103,7 @@ if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+        st.image("TÊN_FILE_LOGO_CỦA_BẠN.png", width=150) # Logo ở trang đăng nhập nên để nhỏ hơn (150)
         st.title("🔵 BulkMail Pro")
         
         tab_login, tab_register, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên mật khẩu"])
@@ -357,4 +358,5 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
