@@ -81,13 +81,55 @@ def send_recovery_email(to_email, username, new_password):
 # ==========================================
 # GIAO DIỆN CSS
 # ==========================================
+# ==========================================
+# GIAO DIỆN CSS
+# ==========================================
 st.markdown("""
 <style>
-    .stApp { background-color: #F0F4F8; }
-    h1, h2, h3 { color: #003366 !important; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    .stButton>button { background-color: #0056b3 !important; color: white !important; border-radius: 6px; border: none; padding: 10px 24px; font-weight: 600; }
-    .stButton>button:hover { background-color: #003366 !important; }
-    .auth-box { max-width: 450px; margin: 40px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    /* 1. Nền tổng thể: Gradient xám trắng sang trọng và sạch sẽ */
+    .stApp { 
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
+    }
+    
+    /* 2. Font chữ tiêu đề: Chuyên nghiệp, màu xanh đen hoàng gia */
+    h1, h2, h3 { 
+        color: #1a365d !important; 
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-weight: 700;
+    }
+    
+    /* 3. Nút bấm: Đổ bóng 3D, Gradient xanh và hiệu ứng nổi lên khi di chuột */
+    .stButton>button { 
+        background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; 
+        color: white !important; 
+        border-radius: 8px; 
+        border: none; 
+        padding: 10px 24px; 
+        font-weight: 600; 
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover { 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
+    }
+    
+    /* 4. Hộp Đăng nhập/Đăng ký: Hiệu ứng kính mờ (Glassmorphism) cực kỳ hiện đại */
+    .auth-box { 
+        max-width: 450px; 
+        margin: 50px auto; 
+        padding: 40px; 
+        background: rgba(255, 255, 255, 0.85); 
+        border-radius: 16px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* 5. Bo góc nhẹ cho các ô nhập liệu (Input) */
+    .stTextInput>div>div>input {
+        border-radius: 6px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -301,3 +343,4 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
