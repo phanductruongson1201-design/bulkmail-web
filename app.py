@@ -40,6 +40,13 @@ def reset_password_api(username, email, new_password_hash):
         return res.get("status") == "success"
     except: return False
 
+def save_config_api(username, tele_token, tele_chat_id):
+    if not DB_URL: return False
+    try:
+        res = requests.post(DB_URL, json={"action": "update_config", "username": username, "tele_token": tele_token, "tele_chat_id": tele_chat_id}).json()
+        return res.get("status") == "success"
+    except: return False
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -207,11 +214,25 @@ else:
         st.markdown("---")
         with st.expander("🔔 Nhấn vào đây để nhận báo cáo qua Telegram (Tùy chọn)", expanded=False):
             st.info("Nhập API Telegram của riêng bạn để hệ thống báo cáo khi gửi xong.")
+            
+            # Tải cấu hình đã lưu của khách hàng
+            users_db = load_users()
+            current_user_data = users_db.get(st.session_state['current_user'], {})
+            saved_token = current_user_data.get("tele_token", "")
+            saved_chat_id = current_user_data.get("tele_chat_id", "")
+
             t1, t2 = st.columns(2)
             with t1:
-                tele_token = st.text_input("Bot Token (Của bạn):", type="password")
+                tele_token = st.text_input("Bot Token (Của bạn):", value=saved_token, type="password")
             with t2:
-                tele_chat_id = st.text_input("Chat ID (Của bạn):")
+                tele_chat_id = st.text_input("Chat ID (Của bạn):", value=saved_chat_id)
+            
+            # Nút lưu cấu hình
+            if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
+                if save_config_api(st.session_state['current_user'], tele_token, tele_chat_id):
+                    st.success("✅ Đã lưu cấu hình thành công! Lần đăng nhập sau sẽ được tự động điền.")
+                else:
+                    st.error("❌ Có lỗi xảy ra khi lưu. Vui lòng thử lại.")
 
     st.markdown("---")
     st.header("🚀 6. Kích hoạt Chiến dịch")
