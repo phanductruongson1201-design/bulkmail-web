@@ -169,7 +169,8 @@ else:
             st.session_state['logged_in'] = False
             st.session_state['current_user'] = ""
             st.rerun()
-
+    # --- CHÈN LOGO CỦA BẠN VÀO ĐÂY ---
+    st.image("logo_moi.png", width=300)
     st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
     st.info("💡 Bạn đang ở giao diện gửi Email chính thức.")
 
@@ -356,3 +357,4 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
