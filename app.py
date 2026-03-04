@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -230,16 +231,24 @@ else:
 
         st.header("2. Dữ liệu Khách hàng")
         
-        # --- BẮT ĐẦU PHẦN THÊM NÚT TẢI FILE MẪU ---
-        sample_csv = "email,name,danh_xung\nnguyenvana@gmail.com,Nguyễn Văn A,Anh\ntranthib@yahoo.com,Trần Thị B,Chị"
+        # --- BẮT ĐẦU TẠO FILE EXCEL MẪU TRÁNH LỖI GỘP CỘT ---
+        df_sample = pd.DataFrame({
+            "email": ["nguyenvana@gmail.com", "tranthib@yahoo.com"],
+            "name": ["Nguyễn Văn A", "Trần Thị B"],
+            "danh_xung": ["Anh", "Chị"]
+        })
+        buffer = io.BytesIO()
+        df_sample.to_excel(buffer, index=False)
+        buffer.seek(0)
+        
         st.download_button(
-            label="📥 Tải file danh sách mẫu (.csv)",
-            data=sample_csv.encode('utf-8-sig'), # utf-8-sig giúp Excel đọc tiếng Việt không bị lỗi font
-            file_name="danh_sach_email_mau.csv",
-            mime="text/csv",
-            help="Bấm vào đây để tải file mẫu. Sau đó điền email khách hàng của bạn vào và tải lên lại!"
+            label="📥 Tải file danh sách mẫu (.xlsx)",
+            data=buffer,
+            file_name="danh_sach_email_mau.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            help="Bấm vào đây để tải file Excel mẫu. Sau đó điền email khách hàng của bạn vào và tải lên lại!"
         )
-        # --- KẾT THÚC PHẦN THÊM NÚT TẢI FILE MẪU ---
+        # --- KẾT THÚC TẠO FILE EXCEL MẪU ---
 
         uploaded_file = st.file_uploader("Kéo thả file .csv hoặc .xlsx", type=["csv", "xlsx"])
         
@@ -256,7 +265,6 @@ else:
             except Exception as e: st.error(f"Lỗi: {e}")
 
         uploaded_attachments = st.file_uploader("Chọn file đính kèm", accept_multiple_files=True)
-
     with col2:
         st.header("4. Biên soạn Nội dung")
         subject = st.text_input("Tiêu đề:")
@@ -404,6 +412,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
