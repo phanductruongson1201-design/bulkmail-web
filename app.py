@@ -9,12 +9,67 @@ import time
 from datetime import datetime
 import streamlit.components.v1 as components
 import requests
+import hashlib
+import random
+import string
 
 # 1. Cấu hình trang Web
-st.set_page_config(page_title="BulkMail Pro - Professional", page_icon="🔵", layout="wide")
+st.set_page_config(page_title="BulkMail Pro - SaaS Edition", page_icon="🔵", layout="wide")
 
-if 'log_data' not in st.session_state:
-    st.session_state.log_data = None
+# ==========================================
+# API CƠ SỞ DỮ LIỆU & HỆ THỐNG
+# ==========================================
+DB_URL = st.secrets.get("DB_URL", "")
+SYS_EMAIL = st.secrets.get("SENDER_EMAIL", "")
+SYS_PWD = st.secrets.get("APP_PASSWORD", "")
+
+def load_users():
+    if not DB_URL: return {}
+    try: return requests.get(DB_URL).json()
+    except: return {}
+
+def save_user(username, password_hash, email):
+    if not DB_URL: return
+    try: requests.post(DB_URL, json={"action": "register", "username": username, "password": password_hash, "email": email})
+    except: pass
+
+def reset_password_api(username, email, new_password_hash):
+    if not DB_URL: return False
+    try:
+        res = requests.post(DB_URL, json={"action": "reset", "username": username, "email": email, "new_password": new_password_hash}).json()
+        return res.get("status") == "success"
+    except: return False
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def generate_random_password(length=8):
+    chars = string.ascii_letters + string.digits + "@#$"
+    return ''.join(random.choice(chars) for _ in range(length))
+
+def send_recovery_email(to_email, username, new_password):
+    if not SYS_EMAIL or not SYS_PWD: return False
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"BulkMail System <{SYS_EMAIL}>"
+        msg['To'] = to_email
+        msg['Subject'] = "Mật khẩu mới của bạn - BulkMail Pro"
+        
+        body = f"""
+        <h3>Chào {username},</h3>
+        <p>Bạn vừa yêu cầu cấp lại mật khẩu cho hệ thống BulkMail Pro.</p>
+        <p>Mật khẩu đăng nhập mới của bạn là: <b style="color:red; font-size:18px;">{new_password}</b></p>
+        <p>Vui lòng đăng nhập và bảo mật thông tin tài khoản.</p>
+        """
+        msg.attach(MIMEText(body, 'html'))
+        
+        s = smtplib.SMTP("smtp.gmail.com", 587)
+        s.starttls()
+        s.login(SYS_EMAIL, SYS_PWD)
+        s.send_message(msg)
+        s.quit()
+        return True
+    except: return False
 
 # ==========================================
 # GIAO DIỆN CSS
@@ -23,208 +78,185 @@ st.markdown("""
 <style>
     .stApp { background-color: #F0F4F8; }
     h1, h2, h3 { color: #003366 !important; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    .stButton>button {
-        background-color: #0056b3 !important; color: white !important;
-        border-radius: 6px; border: none; padding: 10px 24px; font-weight: 600;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;
-    }
-    .stButton>button:hover { background-color: #003366 !important; box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); transform: translateY(-1px); }
-    .stDropzone { border: 2px dashed #0056b3 !important; background-color: #E6F0FA !important; }
-    div[data-testid="stAlert"] { background-color: #E6F0FA; color: #003366; border-left: 5px solid #0056b3; }
+    .stButton>button { background-color: #0056b3 !important; color: white !important; border-radius: 6px; border: none; padding: 10px 24px; font-weight: 600; }
+    .stButton>button:hover { background-color: #003366 !important; }
+    .auth-box { max-width: 450px; margin: 40px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
-st.info("💡 Hệ thống gửi email hàng loạt cá nhân hóa. Tích hợp báo cáo tự động qua Telegram.")
+if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
+if 'current_user' not in st.session_state: st.session_state['current_user'] = ""
 
-col1, col2 = st.columns([1, 1])
+# ==========================================
+# HỆ THỐNG ĐĂNG NHẬP / ĐĂNG KÝ / QUÊN MẬT KHẨU
+# ==========================================
+if not st.session_state['logged_in']:
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+        st.title("🔵 BulkMail Pro")
+        
+        tab_login, tab_register, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên mật khẩu"])
+        users_db = load_users()
 
-with col1:
-    st.header("1. Cấu hình Máy chủ & Tài khoản")
-    sender_name = st.text_input("Tên hiển thị người gửi (VD: Công ty ABC):")
-    sender_email = st.text_input("Email gửi:")
-    app_password = st.text_input("App Password:", type="password")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        smtp_server = st.text_input("SMTP Server:", value="smtp.gmail.com")
-    with c2:
-        smtp_port = st.text_input("Port:", value="587")
+        with tab_login:
+            log_user = st.text_input("Tên đăng nhập", key="log_user")
+            log_pwd = st.text_input("Mật khẩu", type="password", key="log_pwd")
+            if st.button("Đăng nhập", type="primary", use_container_width=True):
+                # users_db giờ trả về dict: { "admin": {"password": "hash...", "email": "..."} }
+                if log_user in users_db and users_db[log_user].get("password") == hash_password(log_pwd):
+                    st.session_state['logged_in'] = True
+                    st.session_state['current_user'] = log_user
+                    st.rerun()
+                else:
+                    st.error("❌ Tài khoản hoặc mật khẩu không chính xác!")
 
-    st.header("2. Dữ liệu Khách hàng (.csv, .xlsx)")
-    uploaded_file = st.file_uploader("Kéo thả file danh sách email vào đây", type=["csv", "xlsx"])
-    
-    df = None
-    if uploaded_file is not None:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
+        with tab_register:
+            reg_user = st.text_input("Tên đăng nhập", key="reg_user")
+            reg_email = st.text_input("Email của bạn (Để khôi phục MK)", key="reg_email")
+            reg_pwd = st.text_input("Mật khẩu", type="password", key="reg_pwd")
+            reg_pwd2 = st.text_input("Nhập lại mật khẩu", type="password", key="reg_pwd2")
+            if st.button("Đăng ký ngay", type="primary", use_container_width=True, key="btn_reg"):
+                if not reg_user or not reg_pwd or not reg_email:
+                    st.warning("Vui lòng điền đủ thông tin.")
+                elif reg_user in users_db:
+                    st.error("⚠️ Tên đăng nhập đã tồn tại!")
+                elif reg_pwd != reg_pwd2:
+                    st.error("⚠️ Mật khẩu không khớp!")
+                else:
+                    save_user(reg_user, hash_password(reg_pwd), reg_email)
+                    st.success("🎉 Đăng ký thành công! Hãy chuyển sang Đăng nhập.")
+
+        with tab_forgot:
+            st.info("Hệ thống sẽ tạo mật khẩu mới và gửi về Email bạn đã đăng ký.")
+            fg_user = st.text_input("Tên đăng nhập của bạn", key="fg_user")
+            fg_email = st.text_input("Email đã đăng ký", key="fg_email")
             
-            df.columns = df.columns.str.strip().str.lower()
-            if 'email' not in df.columns:
-                st.error("Lỗi: File tải lên bắt buộc phải có cột 'email'.")
-                df = None
-            else:
-                df = df.dropna(subset=['email'])
-                st.success(f"✅ Đã tải {len(df)} liên hệ.")
-        except Exception as e:
-            st.error(f"Lỗi đọc file: {e}")
+            if st.button("Lấy lại mật khẩu", type="primary", use_container_width=True, key="btn_fg"):
+                if not fg_user or not fg_email:
+                    st.warning("Vui lòng nhập Tên đăng nhập và Email.")
+                elif fg_user not in users_db or users_db[fg_user].get("email") != fg_email:
+                    st.error("❌ Tên đăng nhập hoặc Email không khớp với dữ liệu hệ thống!")
+                else:
+                    with st.spinner("Đang xử lý và gửi email..."):
+                        new_pass = generate_random_password()
+                        if reset_password_api(fg_user, fg_email, hash_password(new_pass)):
+                            if send_recovery_email(fg_email, fg_user, new_pass):
+                                st.success(f"✅ Đã gửi mật khẩu mới vào hòm thư {fg_email}. Vui lòng kiểm tra (cả hộp thư Spam).")
+                            else:
+                                st.error("❌ Đã đổi mật khẩu nhưng gặp lỗi khi gửi Email. Báo cho Admin!")
+                        else:
+                            st.error("❌ Lỗi hệ thống khi cập nhật mật khẩu.")
+                            
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.header("3. Đính kèm Tài liệu (Tùy chọn)")
-    uploaded_attachments = st.file_uploader("Chọn file đính kèm", accept_multiple_files=True)
+# ==========================================
+# GIAO DIỆN CHÍNH (SAU KHI ĐĂNG NHẬP)
+# ==========================================
+else:
+    col_space, col_user, col_logout = st.columns([6, 2, 1])
+    with col_user: st.write(f"👤 Chào mừng, **{st.session_state['current_user']}**!")
+    with col_logout:
+        if st.button("🚪 Đăng xuất"):
+            st.session_state['logged_in'] = False
+            st.session_state['current_user'] = ""
+            st.rerun()
 
-with col2:
-    st.header("4. Biên soạn Nội dung")
-    subject = st.text_input("Tiêu đề (Subject):")
-    body = st.text_area("Nội dung (HTML) - Biến: {{tên_cột}}", height=150, value="Kính chào {{name}},<br><br>Nội dung...")
+    st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
+    st.info("💡 Bạn đang ở giao diện gửi Email chính thức.")
 
-    with st.expander("👁️ Xem trước hiển thị Email"):
-        components.html(body, height=200, scrolling=True)
+    col1, col2 = st.columns([1, 1])
 
-    st.header("5. Cấu hình Nâng cao & Báo cáo")
-    delay = st.number_input("Khoảng nghỉ giữa 2 email (giây):", min_value=1, max_value=60, value=5)
-    
+    with col1:
+        st.header("1. Cấu hình Máy chủ & Tài khoản")
+        sender_name = st.text_input("Tên hiển thị người gửi:")
+        sender_email = st.text_input("Email gửi của bạn:")
+        app_password = st.text_input("App Password của bạn:", type="password")
+        
+        c1, c2 = st.columns(2)
+        with c1: smtp_server = st.text_input("SMTP Server:", value="smtp.gmail.com")
+        with c2: smtp_port = st.text_input("Port:", value="587")
+
+        st.header("2. Dữ liệu Khách hàng")
+        uploaded_file = st.file_uploader("Kéo thả file .csv hoặc .xlsx", type=["csv", "xlsx"])
+        
+        df = None
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.endswith('.csv'): df = pd.read_csv(uploaded_file)
+                else: df = pd.read_excel(uploaded_file)
+                df.columns = df.columns.str.strip().str.lower()
+                if 'email' not in df.columns: st.error("Lỗi: File thiếu cột 'email'.")
+                else:
+                    df = df.dropna(subset=['email'])
+                    st.success(f"✅ Đã tải {len(df)} liên hệ.")
+            except Exception as e: st.error(f"Lỗi: {e}")
+
+        uploaded_attachments = st.file_uploader("Chọn file đính kèm", accept_multiple_files=True)
+
+    with col2:
+        st.header("4. Biên soạn Nội dung")
+        subject = st.text_input("Tiêu đề:")
+        body = st.text_area("Nội dung (HTML) - Biến: {{tên_cột}}", height=150, value="Kính chào {{name}},<br><br>...")
+
+        with st.expander("👁️ Xem trước hiển thị Email"):
+            components.html(body, height=200, scrolling=True)
+
+        st.header("5. Cấu hình Nâng cao")
+        delay = st.number_input("Khoảng nghỉ (giây):", min_value=1, max_value=60, value=5)
+
     st.markdown("---")
-    
-    # SỬ DỤNG EXPANDER ĐỂ ẨN/HIỆN MỤC TELEGRAM
-    with st.expander("🔔 Nhấn vào đây để kết nối báo cáo qua Telegram (Tùy chọn)", expanded=False):
-        st.markdown("*Hệ thống sẽ tự gửi tin nhắn và file Excel báo cáo khi chiến dịch hoàn tất nếu bạn điền thông tin bên dưới.*")
-        
-        # Tự động lấy dữ liệu từ két sắt Secrets (nếu có)
-        default_token = ""
-        default_chat_id = ""
-        try:
-            default_token = st.secrets.get("TELE_TOKEN", "")
-            default_chat_id = st.secrets.get("TELE_CHAT_ID", "")
-        except:
-            pass # Bỏ qua lỗi nếu chưa cài đặt secrets trên server
+    st.header("🚀 6. Kích hoạt Chiến dịch")
 
-        t1, t2 = st.columns(2)
-        with t1:
-            tele_token = st.text_input("Bot Token (Telegram):", value=default_token, type="password")
-        with t2:
-            tele_chat_id = st.text_input("Chat ID (Telegram):", value=default_chat_id)
-
-
-st.markdown("---")
-st.header("🚀 6. Kích hoạt Chiến dịch")
-
-if st.button("▶ BẮT ĐẦU GỬI HÀNG LOẠT", type="primary", use_container_width=True):
-    if df is None or len(df) == 0:
-        st.error("Vui lòng tải lên danh sách email hợp lệ trước!")
-    elif not sender_email or not app_password or not subject or not body:
-        st.error("Vui lòng điền đầy đủ thông tin SMTP, tiêu đề và nội dung Email!")
-    else:
-        st.session_state.log_data = None 
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        log_area = st.empty()
-        
-        sent_count, error_count, batch_count = 0, 0, 0
-        total_emails = len(df)
-        log_messages = []
-
-        attachments_data = [{"name": f.name, "data": f.getvalue()} for f in uploaded_attachments] if uploaded_attachments else []
-
-        try:
-            port_num = int(smtp_port.strip())
+    if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
+        if df is None or len(df) == 0:
+            st.error("Vui lòng tải lên danh sách email!")
+        elif not sender_email or not app_password or not subject or not body:
+            st.error("Vui lòng điền đủ thông tin SMTP, tiêu đề và nội dung!")
+        else:
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            log_area = st.empty()
+            sent_count, error_count = 0, 0
+            total_emails = len(df)
+            log_messages = []
             
-            def connect_smtp():
-                s = smtplib.SMTP(smtp_server, port_num)
-                s.starttls()
-                s.login(sender_email, app_password)
-                return s
-
-            smtp = connect_smtp()
-            
-            for index, row in df.iterrows():
-                recipient_email = str(row['email']).strip()
-                if not recipient_email or recipient_email.lower() == 'nan':
-                    total_emails -= 1 
-                    continue
-
-                p_subject, p_body = subject, body
-                for col in df.columns:
-                    val = str(row[col]) if pd.notna(row[col]) else ""
-                    p_subject = p_subject.replace(f"{{{{{col}}}}}", val)
-                    p_body = p_body.replace(f"{{{{{col}}}}}", val)
-
-                msg = MIMEMultipart()
-                msg['From'] = f"{sender_name} <{sender_email}>" if sender_name else sender_email
-                msg['To'] = recipient_email
-                msg['Subject'] = p_subject
-                msg.attach(MIMEText(p_body, 'html'))
-
-                for att in attachments_data:
-                    part = MIMEBase("application", "octet-stream")
-                    part.set_payload(att["data"])
-                    encoders.encode_base64(part)
-                    part.add_header("Content-Disposition", "attachment", filename=att['name'])
-                    msg.attach(part)
-
-                try:
-                    smtp.send_message(msg)
-                    sent_count += 1
-                    batch_count += 1
-                    log_messages.append(f"✅ Thành công: {recipient_email}")
-                except Exception as e:
-                    error_count += 1
-                    log_messages.append(f"❌ Lỗi ({recipient_email}): {str(e)}")
-
-                if total_emails > 0:
-                    progress_bar.progress(min((sent_count + error_count) / total_emails, 1.0))
+            try:
+                smtp = smtplib.SMTP(smtp_server, int(smtp_port.strip()))
+                smtp.starttls()
+                smtp.login(sender_email, app_password)
                 
-                status_text.write(f"**Tiến độ:** Đã gửi: {sent_count} | Lỗi: {error_count} | Tổng số: {total_emails}")
-                log_area.text("\n".join(log_messages[-5:]))
-
-                if batch_count >= 50:
+                for index, row in df.iterrows():
+                    recipient = str(row['email']).strip()
+                    if not recipient or recipient.lower() == 'nan':
+                        total_emails -= 1; continue
+                        
+                    p_subj, p_body = subject, body
+                    for col in df.columns:
+                        val = str(row[col]) if pd.notna(row[col]) else ""
+                        p_subj = p_subj.replace(f"{{{{{col}}}}}", val)
+                        p_body = p_body.replace(f"{{{{{col}}}}}", val)
+                        
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{sender_name} <{sender_email}>" if sender_name else sender_email
+                    msg['To'] = recipient
+                    msg['Subject'] = p_subj
+                    msg.attach(MIMEText(p_body, 'html'))
+                    
                     try:
-                        smtp.quit()
-                        time.sleep(5)
-                        smtp = connect_smtp()
-                        batch_count = 0
-                    except: pass
-
-                if index < total_emails - 1:
+                        smtp.send_message(msg)
+                        sent_count += 1
+                        log_messages.append(f"✅ Gửi thành công: {recipient}")
+                    except Exception as e:
+                        error_count += 1
+                        log_messages.append(f"❌ Lỗi ({recipient}): {str(e)}")
+                        
+                    progress_bar.progress(min((sent_count + error_count) / max(total_emails, 1), 1.0))
+                    status_text.write(f"Đã gửi: {sent_count} | Lỗi: {error_count} | Tổng: {total_emails}")
+                    log_area.text("\n".join(log_messages[-5:]))
                     time.sleep(delay)
-
-            try: smtp.quit()
-            except: pass
-
-            st.success(f"🎉 CHIẾN DỊCH HOÀN TẤT! Đã gửi thành công {sent_count}/{total_emails} email.")
-            
-            # Lưu log
-            log_df = pd.DataFrame({"Thời gian": [datetime.now().strftime('%Y-%m-%d %H:%M:%S')] * len(log_messages), "Kết quả": log_messages})
-            csv_data = log_df.to_csv(index=False).encode('utf-8-sig')
-            st.session_state.log_data = csv_data
-
-            # ==========================================
-            # GỬI THÔNG BÁO & FILE QUA TELEGRAM
-            # ==========================================
-            if tele_token and tele_chat_id:
-                try:
-                    st.info("Đang đẩy dữ liệu về Telegram...")
-                    # 1. Gửi tin nhắn tóm tắt
-                    msg_text = f"🚀 **Chiến dịch BulkMail Pro đã xong!**\n\n📊 **Tổng kết:**\n- Tổng số email: `{total_emails}`\n- ✅ Thành công: `{sent_count}`\n- ❌ Thất bại: `{error_count}`\n\n📁 *File báo cáo chi tiết được đính kèm bên dưới.*"
-                    requests.post(f"https://api.telegram.org/bot{tele_token}/sendMessage", 
-                                  data={"chat_id": tele_chat_id, "text": msg_text, "parse_mode": "Markdown"})
                     
-                    # 2. Gửi file CSV
-                    file_name = f"BulkMail_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                    requests.post(f"https://api.telegram.org/bot{tele_token}/sendDocument", 
-                                  data={"chat_id": tele_chat_id}, 
-                                  files={"document": (file_name, csv_data)})
-                    
-                    st.success("✅ Đã gửi báo cáo thành công qua Telegram!")
-                except Exception as e:
-                    st.error(f"⚠️ Không thể gửi Telegram. Lỗi: {e}")
-
-        except Exception as e:
-            st.error(f"❌ Lỗi SMTP hệ thống: {e}")
-
-if st.session_state.log_data is not None:
-    st.download_button("📥 TẢI XUỐNG BÁO CÁO (CSV)", data=st.session_state.log_data, file_name="BulkMail_Report.csv", mime="text/csv")
-
-
+                smtp.quit()
+                st.success(f"🎉 Hoàn tất! Đã gửi {sent_count}/{total_emails} email.")
+            except Exception as e:
+                st.error(f"❌ Lỗi SMTP: {e}")
