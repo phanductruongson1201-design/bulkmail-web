@@ -103,7 +103,6 @@ if not st.session_state['logged_in']:
             log_user = st.text_input("Tên đăng nhập", key="log_user")
             log_pwd = st.text_input("Mật khẩu", type="password", key="log_pwd")
             if st.button("Đăng nhập", type="primary", use_container_width=True):
-                # users_db giờ trả về dict: { "admin": {"password": "hash...", "email": "..."} }
                 if log_user in users_db and users_db[log_user].get("password") == hash_password(log_pwd):
                     st.session_state['logged_in'] = True
                     st.session_state['current_user'] = log_user
@@ -214,7 +213,7 @@ else:
             with t2:
                 tele_chat_id = st.text_input("Chat ID (Của bạn):")
 
-   st.markdown("---")
+    st.markdown("---")
     st.header("🚀 6. Kích hoạt Chiến dịch")
 
     if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
@@ -281,5 +280,3 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
-
-
