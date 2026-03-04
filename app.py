@@ -15,6 +15,19 @@ import string
 
 # 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - SaaS Edition", page_icon="🔵", layout="wide")
+# ==========================================
+# THANH BÊN (SIDEBAR) - HỖ TRỢ KHÁCH HÀNG
+# ==========================================
+with st.sidebar:
+    st.info("🎧 **Trung tâm Hỗ trợ**")
+    st.write("Bạn cần hướng dẫn sử dụng hoặc gặp sự cố trong quá trình gửi mail?")
+    
+    # Nút bấm chuyển hướng đến Zalo hoặc Fanpage
+    st.link_button("💬 Liên hệ Kỹ thuật viên", "https://zalo.me/SỐ_ĐIỆN_THOẠI_CỦA_BẠN", use_container_width=True)
+    st.link_button("🌐 Fanpage Tây Nguyên Phim", "https://www.facebook.com/taynguyenphimentertainment", use_container_width=True)
+    
+    st.markdown("---")
+    st.caption("© 2026 Bản quyền thuộc về Hệ thống BulkMail Pro.")
 
 # ==========================================
 # API CƠ SỞ DỮ LIỆU & HỆ THỐNG
@@ -346,6 +359,7 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
 
 
