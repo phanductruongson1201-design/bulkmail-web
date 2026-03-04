@@ -400,6 +400,60 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+# ==========================================
+# NÚT LIÊN HỆ NỔI GÓC DƯỚI BÊN PHẢI (ZALO & TELEGRAM)
+# ==========================================
+st.markdown("""
+<style>
+    /* Vùng chứa 2 nút nổi ở góc phải */
+    .floating-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 99999;
+    }
+    
+    /* Hiệu ứng hình dáng nút */
+    .float-btn {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: white; 
+    }
+    
+    /* Hiệu ứng búng lên khi di chuột vào */
+    .float-btn:hover {
+        transform: scale(1.15) translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    
+    /* Chỉnh ảnh logo vừa khít hình tròn */
+    .float-btn img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+</style>
+
+<div class="floating-container">
+    <a href="https://zalo.me/SỐ_ĐIỆN_THOẠI_CỦA_BẠN" target="_blank" class="float-btn" title="Chat Zalo hỗ trợ">
+        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" alt="Zalo">
+    </a>
+    
+    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" title="Chat Telegram hỗ trợ">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+    </a>
+</div>
+""", unsafe_allow_html=True)
 
 
 
