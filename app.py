@@ -364,8 +364,7 @@ else:
                         requests.post(
                             f"https://api.telegram.org/bot{tele_token}/sendMessage", 
                             data={"chat_id": tele_chat_id, "text": msg_text, "parse_mode": "Markdown"},
-                            timeout=5
-                        )
+                            timeout=5)
                         st.success("✅ Đã gửi báo cáo thành công qua Telegram của bạn!")
                     except Exception as e:
                         st.error(f"⚠️ Không thể gửi Telegram. Vui lòng kiểm tra lại Token/Chat ID. Lỗi: {e}")
@@ -418,6 +417,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
