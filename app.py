@@ -229,6 +229,18 @@ else:
         with c2: smtp_port = st.text_input("Port:", value="587")
 
         st.header("2. Dữ liệu Khách hàng")
+        
+        # --- BẮT ĐẦU PHẦN THÊM NÚT TẢI FILE MẪU ---
+        sample_csv = "email,name,danh_xung\nnguyenvana@gmail.com,Nguyễn Văn A,Anh\ntranthib@yahoo.com,Trần Thị B,Chị"
+        st.download_button(
+            label="📥 Tải file danh sách mẫu (.csv)",
+            data=sample_csv.encode('utf-8-sig'), # utf-8-sig giúp Excel đọc tiếng Việt không bị lỗi font
+            file_name="danh_sach_email_mau.csv",
+            mime="text/csv",
+            help="Bấm vào đây để tải file mẫu. Sau đó điền email khách hàng của bạn vào và tải lên lại!"
+        )
+        # --- KẾT THÚC PHẦN THÊM NÚT TẢI FILE MẪU ---
+
         uploaded_file = st.file_uploader("Kéo thả file .csv hoặc .xlsx", type=["csv", "xlsx"])
         
         df = None
@@ -392,6 +404,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
