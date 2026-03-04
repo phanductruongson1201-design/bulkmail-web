@@ -23,8 +23,8 @@ with st.sidebar:
     st.write("Bạn cần hướng dẫn sử dụng hoặc gặp sự cố trong quá trình gửi mail?")
     
     # Nút bấm chuyển hướng đến Zalo hoặc Fanpage
-    st.link_button("💬 Liên hệ Kỹ thuật viên", "https://zalo.me/SỐ_ĐIỆN_THOẠI_CỦA_BẠN", use_container_width=True)
-    st.link_button("🌐 Fanpage Tây Nguyên Phim", "https://www.facebook.com/taynguyenphimentertainment", use_container_width=True)
+    st.link_button("💬 Liên hệ Kỹ thuật viên", "https://zalo.me/0935748199", use_container_width=True)
+    st.link_button("🌐 Fanpage Tây Nguyên Phim", "https://www.facebook.com/phanson1201", use_container_width=True)
     
     st.markdown("---")
     st.caption("© 2026 Bản quyền thuộc về Hệ thống BulkMail Pro.")
@@ -359,6 +359,7 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
 
 
