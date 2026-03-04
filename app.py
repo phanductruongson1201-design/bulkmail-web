@@ -144,7 +144,7 @@ if not st.session_state['logged_in']:
     with col2:
         
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        st.image("logo.png", width=150)  # Kích thước 150 pixel
+        st.image("logo_moi.png", width=150)  # Kích thước 150 pixel
         st.title("BulkMail Pro")
         
         tab_login, tab_register, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên mật khẩu"])
@@ -212,7 +212,7 @@ else:
             st.session_state['current_user'] = ""
             st.rerun()
 
-    st.image("logo.png", width=250)  # Kích thước to hơn một chút ở trang chính
+    st.image("logo_moi.png", width=250)  # Kích thước to hơn một chút ở trang chính
     st.title("🔵 BulkMail Pro – Trình Quản Lý Email Marketing")
     st.info("💡 Bạn đang ở giao diện gửi Email chính thức.")
 
@@ -346,6 +346,7 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
 
 
