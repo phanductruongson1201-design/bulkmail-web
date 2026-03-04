@@ -9,6 +9,8 @@ from email import encoders
 import time
 from datetime import datetime
 import streamlit.components.v1 as components
+    except: return {}
+
 import requests
 import hashlib
 import random
@@ -27,8 +29,6 @@ SYS_PWD = st.secrets.get("APP_PASSWORD", "")
 def load_users():
     if not DB_URL: return {}
     try: return requests.get(DB_URL).json()
-    except: return {}
-
 def save_user(username, password_hash, email):
     if not DB_URL: return
     try: requests.post(DB_URL, json={"action": "register", "username": username, "password": password_hash, "email": email})
@@ -359,7 +359,13 @@ else:
                     try:
                         st.info("Đang đẩy dữ liệu về Telegram của bạn...")
                         msg_text = f"🚀 **Chiến dịch BulkMail của {st.session_state['current_user']} đã xong!**\n\n📊 **Tổng kết:**\n- Tổng số email: `{total_emails}`\n- ✅ Thành công: `{sent_count}`\n- ❌ Thất bại: `{error_count}`"
-                        requests.post(f"https://api.telegram.org/bot{tele_token}/sendMessage", data={"chat_id": tele_chat_id, "text": msg_text, "parse_mode": "Markdown"})
+                        
+                        # Thêm timeout=5 để chống nghẽn mạng và ép gửi nhanh
+                        requests.post(
+                            f"https://api.telegram.org/bot{tele_token}/sendMessage", 
+                            data={"chat_id": tele_chat_id, "text": msg_text, "parse_mode": "Markdown"},
+                            timeout=5
+                        )
                         st.success("✅ Đã gửi báo cáo thành công qua Telegram của bạn!")
                     except Exception as e:
                         st.error(f"⚠️ Không thể gửi Telegram. Vui lòng kiểm tra lại Token/Chat ID. Lỗi: {e}")
@@ -412,6 +418,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
