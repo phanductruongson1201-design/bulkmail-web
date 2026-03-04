@@ -142,8 +142,10 @@ if 'current_user' not in st.session_state: st.session_state['current_user'] = ""
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
+        
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        st.title("🔵 BulkMail Pro")
+        st.image("logo.png", width=150)  # Kích thước 150 pixel
+        st.title("BulkMail Pro")
         
         tab_login, tab_register, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên mật khẩu"])
         users_db = load_users()
@@ -343,4 +345,5 @@ else:
 
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
+
 
