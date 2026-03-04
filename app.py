@@ -218,7 +218,7 @@ else:
     st.header("🚀 6. Kích hoạt Chiến dịch")
 
     if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
-        if df is None or len(df) == 0:
+       if df is None or len(df) == 0:
             st.error("Vui lòng tải lên danh sách email!")
         elif not sender_email or not app_password or not subject or not body:
             st.error("Vui lòng điền đủ thông tin SMTP, tiêu đề và nội dung!")
@@ -238,7 +238,8 @@ else:
                 for index, row in df.iterrows():
                     recipient = str(row['email']).strip()
                     if not recipient or recipient.lower() == 'nan':
-                        total_emails -= 1; continue
+                        total_emails -= 1
+                        continue
                         
                     p_subj, p_body = subject, body
                     for col in df.columns:
@@ -266,17 +267,9 @@ else:
                     time.sleep(delay)
                     
                 smtp.quit()
-                # ... (các đoạn code gửi email ở trên)
-                    progress_bar.progress(min((sent_count + error_count) / max(total_emails, 1), 1.0))
-                    status_text.write(f"Đã gửi: {sent_count} | Lỗi: {error_count} | Tổng: {total_emails}")
-                    log_area.text("\n".join(log_messages[-5:]))
-                    time.sleep(delay)
-                    
-                # DÒNG CŨ: Đóng kết nối gửi mail
-                smtp.quit()
                 st.success(f"🎉 Hoàn tất! Đã gửi {sent_count}/{total_emails} email.")
                 
-                # ===== DÁN CODE TELEGRAM TỪ ĐÂY =====
+                # Bắn Telegram cho khách hàng nếu họ có nhập
                 if tele_token and tele_chat_id:
                     try:
                         st.info("Đang đẩy dữ liệu về Telegram của bạn...")
@@ -285,13 +278,7 @@ else:
                         st.success("✅ Đã gửi báo cáo thành công qua Telegram của bạn!")
                     except Exception as e:
                         st.error(f"⚠️ Không thể gửi Telegram. Vui lòng kiểm tra lại Token/Chat ID. Lỗi: {e}")
-                # ===== KẾT THÚC CODE TELEGRAM =====
 
-            # DÒNG CŨ: Bắt lỗi của toàn bộ quá trình
             except Exception as e:
                 st.error(f"❌ Lỗi SMTP: {e}")
-                st.success(f"🎉 Hoàn tất! Đã gửi {sent_count}/{total_emails} email.")
-            except Exception as e:
-                st.error(f"❌ Lỗi SMTP: {e}")
-
 
