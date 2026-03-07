@@ -98,6 +98,13 @@ def get_image_base64(path):
 # ==========================================
 st.markdown("""
 <style>
+    /* --- ẨN CÁC THÀNH PHẦN MẶC ĐỊNH CỦA STREAMLIT --- */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display:none;}
+    /* ------------------------------------------------ */
+
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
@@ -248,7 +255,6 @@ else:
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
         
-        # --- NÚT TẢI FILE MẪU BẰNG EXCEL (.XLSX) ---
         sample_df = pd.DataFrame({
             "name": ["Nguyễn Văn A", "Trần Thị B"],
             "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
@@ -263,7 +269,6 @@ else:
             dl_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             dl_label = "📥 Tải file mẫu chuẩn (.xlsx)"
         except:
-            # Dự phòng nếu máy chủ chưa cài openpyxl
             dl_data = sample_df.to_csv(index=False).encode('utf-8-sig')
             dl_name = "danh_sach_mau.csv"
             dl_mime = "text/csv"
@@ -276,7 +281,6 @@ else:
             mime=dl_mime,
             help="Tải file này về, mở bằng phần mềm Excel và điền danh sách khách hàng của bạn vào đúng 2 cột."
         )
-        # ------------------------
 
         up = st.file_uploader("Tải danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
         df = None
