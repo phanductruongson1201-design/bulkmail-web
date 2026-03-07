@@ -247,7 +247,7 @@ else:
     st.markdown("---")
     users_db = load_users(); u_data = users_db.get(st.session_state['current_user'], {})
     t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
-    with st.expander("🔔 Nhận báo cáo kết quả qua Telegram"):
+    with st.expander("🔔 Nhận báo cáo kết quả qua Telegram (Có thể thêm hoặc không)"):
         new_tk = st.text_input("Bot Token:", value=t_tk, type="password", key="t_tk")
         new_id = st.text_input("Chat ID:", value=t_id, key="t_id")
         if st.button("💾 Lưu cấu hình báo cáo"):
@@ -284,3 +284,4 @@ else:
 
 # NÚT ZALO HỖ TRỢ
 st.markdown('<div style="position:fixed;bottom:20px;right:20px;z-index:99"><a href="https://zalo.me/0935748199"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" width="50"></a></div>', unsafe_allow_html=True)
+
