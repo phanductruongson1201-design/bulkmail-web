@@ -97,7 +97,34 @@ if not st.session_state['logged_in']:
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         # Thêm câu chào mừng lên đầu
-        st.markdown('<p class="welcome-text">Chào mừng bạn đến với BulkMail Pro</p>', unsafe_allow_html=True)
+        st.markdown('<p class="# Tìm đến phần CSS (khoảng dòng 100) và thay thế đoạn .welcome-text bằng đoạn này:
+
+st.markdown("""
+<style>
+    .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
+    .auth-box { max-width: 450px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
+    
+    /* CÂU CHÀO MỪNG LỚN VÀ NỔI BẬT */
+    .welcome-text { 
+        text-align: center; 
+        color: #1e3a8a; 
+        font-weight: 800; 
+        margin-bottom: 20px; 
+        font-size: 32px; /* Tăng kích thước chữ lớn hơn */
+        text-transform: uppercase; /* Viết hoa toàn bộ cho trang trọng */
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Thêm bóng đổ nhẹ */
+    }
+
+    .logo-container { display: flex; justify-content: center; margin-bottom: 15px; }
+    .logo-container img { border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #fff; }
+    .preview-box { padding: 20px; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; line-height: 1.6; }
+</style>
+""", unsafe_allow_html=True)
+
+# Phần hiển thị câu chào trong khối if not st.session_state['logged_in']:
+st.markdown('<p class="welcome-text">CHÀO MỪNG BẠN ĐẾN VỚI BULKMAIL PRO</p>', unsafe_allow_html=True)">Chào mừng bạn đến với BulkMail Pro</p>', unsafe_allow_html=True)
         
         # Logo thu nhỏ
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
@@ -254,3 +281,4 @@ else:
 
 # NÚT LIÊN HỆ ZALO NỔI
 st.markdown('<div style="position:fixed;bottom:20px;right:20px;z-index:99"><a href="https://zalo.me/0935748199"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" width="50"></a></div>', unsafe_allow_html=True)
+
