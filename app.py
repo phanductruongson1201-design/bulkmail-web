@@ -84,7 +84,7 @@ if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = Fa
 LOGO_URL = "https://storage.googleapis.com/smart-home-v3-files/media-files/z7587176856031_f586c2b79f66ddf86eae7cb7405fc298.jpg"
 
 # ==========================================
-# LUỒNG LOGIC ĐĂNG NHẬP / QUÊN MK
+# LUỒNG LOGIC ĐĂNG NHẬP
 # ==========================================
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -115,7 +115,7 @@ if not st.session_state['logged_in']:
                         if reset_password_api(fg_user, fg_email, hash_password(otp), True):
                             if send_otp_email(fg_email, fg_user, otp): st.success("✅ Đã gửi mã OTP!")
                 
-                input_otp = st.text_input("Nhập mã 6 số từ email:", max_chars=6)
+                input_otp = st.text_input("Nhập mã 6 số:", max_chars=6)
                 if st.button("Xác thực", use_container_width=True):
                     u_info = users_db.get(fg_user)
                     if u_info and u_info.get("password") == hash_password(input_otp):
@@ -144,68 +144,79 @@ else:
             st.rerun()
 
     st.image(LOGO_URL, use_container_width=True)
-    t1, t2 = st.tabs(["🚀 Gửi Chiến dịch", "⚙️ Tài khoản"])
+    
+    # --- ĐƯA TELEGRAM LÊN TRANG ĐẦU ---
+    with st.expander("🔔 Cấu hình Thông báo Telegram (Nhấn để thiết lập ngay)", expanded=True):
+        users_db = load_users()
+        u_data = users_db.get(st.session_state['current_user'], {})
+        t_tk_val = u_data.get("tele_token", "")
+        t_id_val = u_data.get("tele_chat_id", "")
+        
+        t_col1, t_col2 = st.columns(2)
+        with t_col1:
+            new_tele_tk = st.text_input("Bot Token:", value=t_tk_val, type="password")
+        with t_col2:
+            new_tele_id = st.text_input("Chat ID:", value=t_id_val)
+        
+        if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
+            if save_config_api(st.session_state['current_user'], new_tele_tk, new_tele_id):
+                st.success("✅ Đã lưu cấu hình báo cáo Telegram thành công!")
+                time.sleep(1)
+                st.rerun()
 
-    with t1:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.header("1. Cấu hình")
-            s_name = st.text_input("Tên hiển thị:")
-            s_mail = st.text_input("Email gửi:")
-            s_pass = st.text_input("App Password:", type="password")
+    st.markdown("---")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.header("1. Cấu hình Gửi")
+        s_name = st.text_input("Tên hiển thị:")
+        s_mail = st.text_input("Email gửi:")
+        s_pass = st.text_input("App Password:", type="password")
+        
+        df_sample = pd.DataFrame({"email": ["test@gmail.com"], "name": ["Khách A"]})
+        buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
+        st.download_button("📥 Tải file mẫu (.xlsx)", data=buf.getvalue(), file_name="mau.xlsx")
+        
+        up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
+        df = None
+        if up:
+            df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
+            st.success(f"✅ Đã tải {len(df)} liên hệ.")
+        
+        # Gửi ảnh/file đính kèm
+        attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
+
+    with c2:
+        st.header("2. Nội dung Email")
+        subject = st.text_input("Tiêu đề:")
+        body = st.text_area("Nội dung (HTML):", height=200, value="Chào {{name}},...")
+        delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
+
+    if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
+        if df is not None:
+            users_db = load_users(); u_data = users_db.get(st.session_state['current_user'], {})
+            t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
             
-            # File mẫu
-            df_sample = pd.DataFrame({"email": ["test@gmail.com"], "name": ["Khách A"]})
-            buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
-            st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
+            # Báo Telegram: Bắt đầu
+            if t_tk and t_id:
+                try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
+                                   data={"chat_id": t_id, "text": f"⏳ Chiến dịch của {st.session_state['current_user']} bắt đầu..."}, timeout=5)
+                except: pass
+
+            # Mô phỏng gửi
+            progress = st.progress(0)
+            for i in range(len(df)):
+                time.sleep(delay)
+                progress.progress((i + 1) / len(df))
             
-            up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
-            df = None
-            if up:
-                df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
-                st.success(f"Đã tải {len(df)} liên hệ.")
+            st.success("🎉 Gửi hoàn tất!")
             
-            # --- PHẦN GỬI ẢNH ĐÍNH KÈM ---
-            attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
-
-        with c2:
-            st.header("2. Nội dung")
-            subject = st.text_input("Tiêu đề:")
-            body = st.text_area("Nội dung (HTML):", height=200, value="Chào {{name}},...")
-            delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
-
-        if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
-            if df is not None:
-                users_db = load_users(); u_data = users_db.get(st.session_state['current_user'], {})
-                t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
-                
-                # --- BÁO CÁO TELEGRAM: BẮT ĐẦU ---
-                if t_tk and t_id:
-                    try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
-                                       data={"chat_id": t_id, "text": f"⏳ Chiến dịch của {st.session_state['current_user']} bắt đầu..."}, timeout=5)
-                    except: pass
-
-                # Giả lập gửi (Bạn hãy chèn SMTP thực tế của bạn vào đây)
-                progress = st.progress(0)
-                for i in range(len(df)):
-                    time.sleep(delay)
-                    progress.progress((i + 1) / len(df))
-                
-                st.success("🎉 Gửi hoàn tất!")
-                
-                # --- BÁO CÁO TELEGRAM: KẾT THÚC ---
-                if t_tk and t_id:
-                    try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
-                                       data={"chat_id": t_id, "text": f"✅ Chiến dịch của {st.session_state['current_user']} đã XONG!"}, timeout=5)
-                    except: pass
-            else: st.error("Vui lòng tải danh sách lên!")
-
-    with t2:
-        st.header("⚙️ Cài đặt & Telegram")
-        tele_tk = st.text_input("Telegram Bot Token", type="password")
-        tele_id = st.text_input("Telegram Chat ID")
-        if st.button("Lưu cấu hình"):
-            if save_config_api(st.session_state['current_user'], tele_tk, tele_id): st.success("Đã lưu!")
+            # Báo Telegram: Kết thúc
+            if t_tk and t_id:
+                try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
+                                   data={"chat_id": t_id, "text": f"✅ Chiến dịch của {st.session_state['current_user']} đã XONG!"}, timeout=5)
+                except: pass
+        else: st.error("Vui lòng tải danh sách lên!")
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
