@@ -85,7 +85,7 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS (CHỈN CHU & NỔI BẬT)
+# GIAO DIỆN CSS (BỔ SUNG NÚT NỔI LIÊN HỆ)
 # ==========================================
 st.markdown("""
 <style>
@@ -104,6 +104,14 @@ st.markdown("""
     
     .dashboard-title { color: #1e3a8a; font-size: 32px; font-weight: 800; margin-bottom: 5px; }
     .section-header { color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-top: 20px; font-size: 20px; font-weight: 700; }
+
+    /* NÚT LIÊN HỆ NỔI */
+    .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 999999; }
+    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; transition: transform 0.2s; }
+    .float-btn:hover { transform: scale(1.1); }
+    .float-btn img { width: 75%; height: 75%; object-fit: contain; }
+    .zalo-btn { border: 2px solid #0068ff; }
+    .tele-btn { border: 2px solid #229ED9; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -120,7 +128,6 @@ if not st.session_state['logged_in']:
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">CHÀO MỪNG BẠN ĐẾN VỚI BULKMAIL PRO</p>', unsafe_allow_html=True)
-        
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try: st.image(LOGO_URL, width=320)
         except: st.info("🎯 TRƯỜNG SƠN - DỊCH VỤ HỖ TRỢ MXH")
@@ -177,7 +184,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH (GIAO DIỆN 5 BƯỚC)
+# 2. DASHBOARD CHÍNH
 # ==========================================
 else:
     head_col1, head_col2 = st.columns([6, 1])
@@ -204,7 +211,7 @@ else:
         st.markdown('<div class="section-header">1. Cấu hình Máy chủ & Tài khoản</div>', unsafe_allow_html=True)
         s_name = st.text_input("Tên hiển thị người gửi (VD: Công ty ABC):", value=st.session_state.get('s_name', ""))
         s_mail = st.text_input("Email Gmail dùng để gửi:", value=st.session_state.get('s_email', ""))
-        s_pass = st.text_input("Mật khẩu ứng dụng (App Password):", type="password", value=st.session_state.get('s_pwd', ""))
+        s_pass = st.text_input("App Password (16 ký tự):", type="password", value=st.session_state.get('s_pwd', ""))
         
         st.markdown('<div class="section-header">2. Chữ ký Email (Cuối thư)</div>', unsafe_allow_html=True)
         s_sign = st.text_area("Thông tin liên hệ, SĐT, Zalo...:", value=st.session_state.get('s_sign', "Trân trọng,\nĐội ngũ hỗ trợ Trường Sơn"), height=100)
@@ -221,12 +228,11 @@ else:
 
     with col_right:
         st.markdown('<div class="section-header">4. Biên soạn Nội dung Email</div>', unsafe_allow_html=True)
-        subject = st.text_input("Tiêu đề thư (Subject):", placeholder="Ví dụ: Thư ngỏ hợp tác từ Trường Sơn Marketing")
+        subject = st.text_input("Tiêu đề thư (Subject):", placeholder="Ví dụ: Thư mời tham gia sự kiện")
         raw_body = st.text_area(
-            "Nội dung chính:", 
-            height=250, 
-            placeholder="Mẹo: Dùng {{name}} để hệ thống tự gọi tên khách hàng.",
-            value="Kính chào Anh/Chị {{name}},\n\n(Ví dụ: Hệ thống sẽ tự đổi {{name}} thành tên thật của khách như Nguyễn Văn A...)\n\nNhập nội dung thư của bạn tại đây..."
+            "Nội dung chính:", height=250, 
+            placeholder="Dùng {{name}} để hệ thống tự gọi tên khách hàng.",
+            value="Kính chào Anh/Chị {{name}},\n\n(Ví dụ: Hệ thống sẽ tự đổi {{name}} thành tên khách như Nguyễn Văn A...)\n\nNhập nội dung thư của bạn tại đây..."
         )
         
         body_html = raw_body.replace("\n", "<br>")
@@ -254,10 +260,10 @@ else:
     st.markdown("---")
     users_db = load_users(); u_data = users_db.get(st.session_state['current_user'], {})
     t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
-    with st.expander("🔔 Nhận báo cáo kết quả qua Telegram"):
-        new_tk = st.text_input("Bot Token:", value=t_tk, type="password", key="t_tk")
-        new_id = st.text_input("Chat ID:", value=t_id, key="t_id")
-        if st.button("💾 Lưu cấu hình Telegram"):
+    with st.expander("🔔 Nhận báo cáo kết quả qua Telegram cá nhân"):
+        new_tk = st.text_input("Bot Token (Lấy từ @BotFather):", value=t_tk, type="password", key="t_tk")
+        new_id = st.text_input("Chat ID (Lấy từ @userinfobot):", value=t_id, key="t_id")
+        if st.button("💾 Lưu cấu hình báo cáo"):
             if save_config_api(st.session_state['current_user'], new_tk, new_id):
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!"); time.sleep(1); st.rerun()
 
@@ -289,5 +295,16 @@ else:
             st.success("🎉 Chiến dịch hoàn tất!"); st.download_button("📥 Tải báo cáo", data=csv_buf.getvalue(), file_name="ket_qua.csv")
         else: st.error("⚠️ Vui lòng cung cấp đầy đủ thông tin!")
 
-# NÚT ZALO
-st.markdown('<div style="position:fixed;bottom:20px;right:20px;z-index:99"><a href="https://zalo.me/0935748199"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" width="50"></a></div>', unsafe_allow_html=True)
+# ==========================================
+# CỤM NÚT LIÊN HỆ HỖ TRỢ NỔI (ZALO & TELEGRAM)
+# ==========================================
+st.markdown("""
+<div class="floating-container">
+    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn zalo-btn">
+        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" alt="Zalo">
+    </a>
+    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn tele-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+    </a>
+</div>
+""", unsafe_allow_html=True)
