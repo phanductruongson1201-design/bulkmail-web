@@ -85,7 +85,7 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS (ÉP KHUÔN LOGO MẠNH NHẤT)
+# GIAO DIỆN CSS (ÉP KHUÔN LOGO GIỮA TRANG)
 # ==========================================
 st.markdown("""
 <style>
@@ -93,22 +93,21 @@ st.markdown("""
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
-    /* TRỊ DỨT ĐIỂM LOGO BỊ LỆCH VÀ VUÔNG */
+    /* ÉP ẢNH CĂN GIỮA TUYỆT ĐỐI */
     div[data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        margin: 0 auto 20px auto !important;
+        margin-bottom: 25px !important;
         width: 100% !important;
     }
     div[data-testid="stImage"] img {
-        border-radius: 50% !important; /* Ép tròn */
-        width: 160px !important;       /* Chiều rộng cố định */
-        height: 160px !important;      /* Chiều cao bằng chiều rộng */
-        object-fit: cover !important;  /* Không bị méo ảnh */
+        border-radius: 50% !important; 
+        width: 160px !important;       
+        height: 160px !important;      
+        object-fit: cover !important;  
         border: 4px solid #1e3a8a !important; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-        display: block !important;
     }
 
     .hero-banner { background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(30, 58, 138, 0.85)), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'); background-size: cover; padding: 40px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
@@ -139,13 +138,11 @@ if not st.session_state['logged_in']:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">BULKMAIL PRO</p>', unsafe_allow_html=True)
         
-        # BÍ QUYẾT: DÙNG CỘT ĐỂ ÉP LOGO VÀO CHÍNH GIỮA
-        img_col1, img_col2, img_col3 = st.columns([1, 2, 1])
-        with img_col2:
-            try: 
-                st.image(LOGO_URL)
-            except: 
-                st.info("🎯 TRƯỜNG SƠN MARKETING")
+        # CHỈ GỌI ẢNH ĐƠN GIẢN - CSS SẼ TỰ KÉO NÓ VÀO GIỮA
+        try: 
+            st.image(LOGO_URL)
+        except: 
+            st.info("🎯 TRƯỜNG SƠN MARKETING")
         
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
         users_db = load_users()
@@ -211,7 +208,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD
+# 2. DASHBOARD CHÍNH
 # ==========================================
 else:
     head_col1, head_col2 = st.columns([6, 1])
