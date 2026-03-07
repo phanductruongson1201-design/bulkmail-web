@@ -27,16 +27,6 @@ def load_users():
     try: return requests.get(DB_URL).json()
     except: return {}
 
-def reset_password_api(username, email, new_password_hash, is_reset_status):
-    if not DB_URL: return False
-    try:
-        res = requests.post(DB_URL, json={
-            "action": "reset", "username": username, "email": email, 
-            "new_password": new_password_hash, "is_reset": is_reset_status
-        }).json()
-        return res.get("status") == "success"
-    except: return False
-
 def save_config_api(username, tele_token, tele_chat_id):
     if not DB_URL: return False
     try:
@@ -47,22 +37,12 @@ def save_config_api(username, tele_token, tele_chat_id):
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def generate_otp(length=6):
-    return ''.join(random.choices(string.digits, k=length))
-
-def send_otp_email(to_email, username, otp_code):
-    if not SYS_EMAIL or not SYS_PWD: return False
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"Hệ thống BulkMail <{SYS_EMAIL}>"
-        msg['To'] = to_email
-        msg['Subject'] = f"{otp_code} là mã xác nhận của bạn"
-        body = f"<h3>Chào {username},</h3><p>Mã xác nhận khôi phục mật khẩu: <b>{otp_code}</b></p>"
-        msg.attach(MIMEText(body, 'html'))
-        s = smtplib.SMTP("smtp.gmail.com", 587); s.starttls()
-        s.login(SYS_EMAIL, SYS_PWD); s.send_message(msg); s.quit()
-        return True
-    except: return False
+def send_tele_msg(token, chat_id, message):
+    if token and chat_id:
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            requests.post(url, data={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=5)
+        except: pass
 
 # ==========================================
 # GIAO DIỆN CSS
@@ -72,176 +52,158 @@ st.markdown("""
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 450px; margin: auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; border: none; font-weight: 600; }
-    
     .logo-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .logo-container img { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white; }
-
-    /* Khung xem trước nội dung */
-    .preview-box {
-        padding: 20px;
-        background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        color: #333;
-        min-height: 100px;
-        margin-top: 10px;
-    }
-
-    .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
-    .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; background: white; overflow: hidden; }
-    .float-btn img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-box { padding: 15px; background: #f8f9fa; border-left: 5px solid #1e3a8a; border-radius: 5px; color: #333; margin-top: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
-if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = False
 
 LOGO_URL = "logo_moi.png"
 
 # ==========================================
-# 1. LOGIC ĐĂNG NHẬP / QUÊN MK
+# 1. LOGIC ĐĂNG NHẬP
 # ==========================================
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         try: st.image(LOGO_URL, width=250)
-        except: st.warning("⚠️ Không tìm thấy file logo_moi.png")
-            
-        tab_login, tab_forgot = st.tabs(["🔐 Đăng nhập", "🔑 Quên mật khẩu"])
-        users_db = load_users()
-
-        with tab_login:
-            log_user = st.text_input("Tên đăng nhập")
-            log_pwd = st.text_input("Mật khẩu", type="password")
-            if st.button("Đăng nhập", type="primary", use_container_width=True):
-                user_data = users_db.get(log_user)
-                if user_data and user_data.get("password") == hash_password(log_pwd):
-                    st.session_state['current_user'] = log_user
-                    st.session_state['logged_in'] = True
-                    st.rerun()
-                else: st.error("❌ Sai tài khoản hoặc mật khẩu!")
-
-        with tab_forgot:
-            if not st.session_state['otp_verified']:
-                fg_user = st.text_input("Username")
-                fg_email = st.text_input("Email đăng ký")
-                if st.button("Gửi mã OTP", type="primary", use_container_width=True):
-                    if fg_user in users_db and users_db[fg_user].get("email") == fg_email:
-                        otp = generate_otp()
-                        if reset_password_api(fg_user, fg_email, hash_password(otp), True):
-                            if send_otp_email(fg_email, fg_user, otp): st.success("✅ Đã gửi mã OTP!")
-                
-                input_otp = st.text_input("Nhập mã 6 số:", max_chars=6)
-                if st.button("Xác thực mã", use_container_width=True):
-                    u_info = users_db.get(fg_user)
-                    if u_info and u_info.get("password") == hash_password(input_otp):
-                        st.session_state['otp_verified'] = True
-                        st.session_state['current_user'] = fg_user
-                        st.rerun()
-            else:
-                new_p = st.text_input("Mật khẩu mới", type="password")
-                if st.button("Cập nhật mật khẩu", type="primary", use_container_width=True):
-                    u_db = load_users()
-                    if reset_password_api(st.session_state['current_user'], u_db[st.session_state['current_user']]['email'], hash_password(new_p), False):
-                        st.session_state['otp_verified'] = False
-                        st.session_state['logged_in'] = True
-                        st.rerun()
+        except: st.warning("⚠️ Logo lỗi.")
+        
+        log_user = st.text_input("Username")
+        log_pwd = st.text_input("Password", type="password")
+        if st.button("ĐĂNG NHẬP", use_container_width=True):
+            users_db = load_users()
+            user_data = users_db.get(log_user)
+            if user_data and user_data.get("password") == hash_password(log_pwd):
+                st.session_state['current_user'] = log_user
+                st.session_state['logged_in'] = True
+                st.rerun()
+            else: st.error("❌ Sai tài khoản!")
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. GIAO DIỆN DASHBOARD CHÍNH
+# 2. GIAO DIỆN CHÍNH
 # ==========================================
 else:
-    col_h1, col_h2 = st.columns([8, 1])
-    with col_h1: st.subheader(f"👋 Chào mừng {st.session_state['current_user']}")
-    with col_h2:
-        if st.button("Đăng xuất"):
+    # Header & Logo
+    c_h1, c_h2 = st.columns([8, 1])
+    with c_h2: 
+        if st.button("Thoát"): 
             st.session_state['logged_in'] = False
             st.rerun()
 
-    # LOGO CĂN GIỮA
-    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
-    with col_l2:
+    c_l1, c_l2, c_l3 = st.columns([1, 2, 1])
+    with c_l2:
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try: st.image(LOGO_URL, width=400)
-        except: st.info("💡 Không tìm thấy ảnh logo_moi.png")
+        except: st.info("BulkMail Pro")
         st.markdown('</div>', unsafe_allow_html=True)
+
+    col_left, col_right = st.columns(2)
     
-    st.markdown("### 🚀 Gửi Email Chiến dịch")
-    
-    c1, c2 = st.columns(2)
-    with c1:
+    with col_left:
         st.header("1. Cấu hình Gửi")
-        s_name = st.text_input("Tên hiển thị người gửi:")
-        s_mail = st.text_input("Email gửi (Gmail):")
-        s_pass = st.text_input("App Password:", type="password")
+        s_name = st.text_input("Tên hiển thị:", value=st.session_state.get('s_name', ""))
+        s_mail = st.text_input("Email Gmail:", value=st.session_state.get('s_email', ""))
+        s_pass = st.text_input("App Password:", type="password", value=st.session_state.get('s_pwd', ""))
         
-        df_sample = pd.DataFrame({"email": ["vidu@gmail.com"], "name": ["Nguyễn Văn A"]})
-        buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
-        st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
-        
-        up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
+        # Lưu vào session
+        st.session_state['s_name'], st.session_state['s_email'], st.session_state['s_pwd'] = s_name, s_mail, s_pass
+
+        up = st.file_uploader("Danh sách Excel", type=["csv", "xlsx"])
         df = None
         if up:
             df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
-            st.success(f"✅ Đã tải {len(df)} liên hệ.")
-        
-        attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
+            st.success(f"✅ {len(df)} liên hệ.")
+        attachments = st.file_uploader("File đính kèm", accept_multiple_files=True)
 
-    with c2:
-        st.header("2. Nội dung & Xem trước")
-        subject = st.text_input("Tiêu đề thư:")
-        body = st.text_area("Nội dung thư (HTML):", height=150, value="Chào {{name}},...")
-        
-        # --- PHẦN XEM TRƯỚC (PREVIEW) ---
-        with st.expander("🔍 Xem trước nội dung hiển thị", expanded=True):
-            preview_text = body
-            # Nếu có danh sách khách hàng, thử thay thế {{name}} bằng tên người đầu tiên
+    with col_right:
+        st.header("2. Nội dung")
+        subject = st.text_input("Tiêu đề:")
+        body = st.text_area("Nội dung (HTML):", height=150, value="Chào {{name}},...")
+        with st.expander("🔍 Xem trước"):
+            p_text = body
             if df is not None and not df.empty and "name" in df.columns:
-                first_name = df.iloc[0]["name"]
-                preview_text = preview_text.replace("{{name}}", str(first_name))
-            
-            st.markdown(f"**Tiêu đề:** {subject}")
-            st.markdown(f'<div class="preview-box">{preview_text}</div>', unsafe_allow_html=True)
-            st.caption("💡 Đây là nội dung khách hàng đầu tiên trong danh sách sẽ nhận được.")
-            
-        delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
+                p_text = p_text.replace("{{name}}", str(df.iloc[0]["name"]))
+            st.markdown(f'<div class="preview-box">{p_text}</div>', unsafe_allow_html=True)
+        delay = st.number_input("Nghỉ (giây):", value=5, min_value=1)
 
-    # Cấu hình Telegram
+    # TELEGRAM CONFIG
     st.markdown("---")
-    with st.expander("🔔 Cấu hình Thông báo Telegram"):
-        users_db = load_users()
-        u_data = users_db.get(st.session_state['current_user'], {})
-        t_tk_val = u_data.get("tele_token", "")
-        t_id_val = u_data.get("tele_chat_id", "")
-        t_col1, t_col2 = st.columns(2)
-        with t_col1: new_tele_tk = st.text_input("Bot Token:", value=t_tk_val, type="password", key="tele_tk_main")
-        with t_col2: new_tele_id = st.text_input("Chat ID:", value=t_id_val, key="tele_id_main")
-        if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
-            if save_config_api(st.session_state['current_user'], new_tele_tk, new_tele_id):
-                st.success("✅ Đã lưu cấu hình báo cáo Telegram!"); time.sleep(1); st.rerun()
+    users_db = load_users()
+    u_data = users_db.get(st.session_state['current_user'], {})
+    with st.expander("🔔 Cấu hình Telegram"):
+        t_tk = st.text_input("Bot Token:", value=u_data.get("tele_token", ""), type="password")
+        t_id = st.text_input("Chat ID:", value=u_data.get("tele_chat_id", ""))
+        if st.button("💾 Lưu Tele"):
+            if save_config_api(st.session_state['current_user'], t_tk, t_id):
+                st.success("✅ Đã lưu!"); time.sleep(1); st.rerun()
 
+    # ==========================================
+    # GỬI MAIL & BÁO CÁO TELEGRAM
+    # ==========================================
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
-        if df is not None:
-            if t_tk_val and t_id_val:
-                requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
-                                data={"chat_id": t_id_val, "text": "⏳ Bắt đầu gửi..."}, timeout=5)
-            st.warning("Đang xử lý gửi mail...")
-            progress = st.progress(0)
-            for i in range(len(df)):
-                time.sleep(delay)
-                progress.progress((i + 1) / len(df))
-            st.success("🎉 Chiến dịch hoàn tất!")
-            if t_tk_val and t_id_val:
-                requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
-                                data={"chat_id": t_id_val, "text": "✅ Đã xong!"}, timeout=5)
-        else: st.error("Vui lòng tải danh sách khách hàng lên!")
+        if df is not None and s_mail and s_pass:
+            progress_bar = st.progress(0)
+            log_container = st.expander("📋 Nhật ký chi tiết", expanded=True)
+            
+            # Gửi thông báo bắt đầu lên Tele
+            start_msg = f"🚀 <b>CHIẾN DỊCH MỚI</b>\n👤 User: {st.session_state['current_user']}\n📧 Số lượng: {len(df)} mail\n⏰ Bắt đầu lúc: {time.strftime('%H:%M:%S')}"
+            send_tele_msg(t_tk, t_id, start_msg)
 
-# NÚT LIÊN HỆ NỔI
-st.markdown("""
-<div class="floating-container">
-    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png"></a>
-    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a>
-</div>
-""", unsafe_allow_html=True)
+            success_list = []
+            error_list = []
+
+            for index, row in df.iterrows():
+                target_email = row.get('email')
+                target_name = row.get('name', 'Khách hàng')
+                
+                try:
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
+                    msg.attach(MIMEText(body.replace("{{name}}", str(target_name)), 'html'))
+                    
+                    if attachments:
+                        for f in attachments:
+                            part = MIMEBase('application', "octet-stream")
+                            part.set_payload(f.read()); encoders.encode_base64(part)
+                            part.add_header('Content-Disposition', f'attachment; filename={f.name}')
+                            msg.attach(part); f.seek(0)
+
+                    server = smtplib.SMTP("smtp.gmail.com", 587); server.starttls()
+                    server.login(s_mail, s_pass); server.send_message(msg); server.quit()
+                    
+                    success_list.append(target_email)
+                    with log_container: st.write(f"✅ {target_email}: Xong")
+                except Exception as e:
+                    error_list.append(f"{target_email} ({str(e)})")
+                    with log_container: st.write(f"❌ {target_email}: Lỗi")
+
+                progress_bar.progress((index + 1) / len(df))
+                time.sleep(delay)
+
+            # --- GỬI TỔNG KẾT CHI TIẾT VỀ TELEGRAM ---
+            report_msg = f"📊 <b>KẾT QUẢ CHIẾN DỊCH</b>\n"
+            report_msg += f"✅ Thành công: {len(success_list)}\n"
+            report_msg += f"❌ Thất bại: {len(error_list)}\n\n"
+            
+            if error_list:
+                report_msg += "⚠️ <b>Danh sách lỗi:</b>\n"
+                report_msg += "\n".join([f"- {err}" for err in error_list[:10]]) # Gửi tối đa 10 lỗi đầu tiên
+                if len(error_list) > 10: report_msg += "\n..."
+
+            send_tele_msg(t_tk, t_id, report_msg)
+            
+            st.success(f"🎉 Hoàn tất! Đã báo cáo kết quả về Telegram của bạn.")
+            # Hiển thị bảng kết quả cho phép tải về
+            final_df = pd.DataFrame({"Email": success_list + [e.split()[0] for e in error_list], 
+                                    "Kết quả": ["Thành công ✅"]*len(success_list) + ["Lỗi ❌"]*len(error_list)})
+            st.download_button("📥 Tải báo cáo Excel", data=final_df.to_csv(index=False).encode('utf-8-sig'), file_name="report.csv")
+            
+        else: st.error("Thiếu thông tin cấu hình!")
+
+# NÚT ZALO
+st.markdown('<div style="position:fixed;bottom:20px;right:20px;z-index:99"><a href="https://zalo.me/0935748199"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" width="50"></a></div>', unsafe_allow_html=True)
