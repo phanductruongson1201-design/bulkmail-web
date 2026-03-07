@@ -85,7 +85,7 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS (ÉP TRỰC TIẾP LÕI STREAMLIT)
+# GIAO DIỆN CSS (ÉP KHUÔN LOGO MẠNH NHẤT)
 # ==========================================
 st.markdown("""
 <style>
@@ -93,20 +93,22 @@ st.markdown("""
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
-    /* ÉP ẢNH CỦA STREAMLIT THÀNH HÌNH TRÒN */
-    [data-testid="stImage"] {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 25px;
+    /* TRỊ DỨT ĐIỂM LOGO BỊ LỆCH VÀ VUÔNG */
+    div[data-testid="stImage"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 auto 20px auto !important;
+        width: 100% !important;
     }
-    [data-testid="stImage"] img {
-        border-radius: 50% !important;
-        width: 160px !important;
-        height: 160px !important;
-        object-fit: cover !important;
-        border: 4px solid #1e3a8a !important; /* Viền xanh đồng bộ logo */
+    div[data-testid="stImage"] img {
+        border-radius: 50% !important; /* Ép tròn */
+        width: 160px !important;       /* Chiều rộng cố định */
+        height: 160px !important;      /* Chiều cao bằng chiều rộng */
+        object-fit: cover !important;  /* Không bị méo ảnh */
+        border: 4px solid #1e3a8a !important; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+        display: block !important;
     }
 
     .hero-banner { background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(30, 58, 138, 0.85)), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'); background-size: cover; padding: 40px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
@@ -129,7 +131,7 @@ if 'otp_sent' not in st.session_state: st.session_state['otp_sent'] = False
 LOGO_URL = "logo_moi.png"
 
 # ==========================================
-# 1. AUTHENTICATION (ĐĂNG NHẬP)
+# 1. HỆ THỐNG ĐĂNG NHẬP
 # ==========================================
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.8, 1])
@@ -137,11 +139,13 @@ if not st.session_state['logged_in']:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">BULKMAIL PRO</p>', unsafe_allow_html=True)
         
-        # GỌI ẢNH TRỰC TIẾP - CSS SẼ TỰ ĐỘNG BO TRÒN VÀ CĂN GIỮA NÓ
-        try: 
-            st.image(LOGO_URL)
-        except: 
-            st.info("🎯 TRƯỜNG SƠN MARKETING")
+        # BÍ QUYẾT: DÙNG CỘT ĐỂ ÉP LOGO VÀO CHÍNH GIỮA
+        img_col1, img_col2, img_col3 = st.columns([1, 2, 1])
+        with img_col2:
+            try: 
+                st.image(LOGO_URL)
+            except: 
+                st.info("🎯 TRƯỜNG SƠN MARKETING")
         
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
         users_db = load_users()
@@ -269,7 +273,8 @@ else:
         new_id = st.text_input("Chat ID:", value=t_id, key="new_t_id")
         if st.button("💾 Lưu cấu hình báo cáo"):
             if save_config_api(st.session_state['current_user'], new_tk, new_id):
-                st.success("✅ Đã lưu!"); time.sleep(1); st.rerun()
+                st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
+                time.sleep(1); st.rerun()
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
