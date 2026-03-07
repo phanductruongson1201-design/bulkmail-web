@@ -65,13 +65,26 @@ def send_otp_email(to_email, username, otp_code):
     except: return False
 
 # ==========================================
-# GIAO DIỆN CSS (Sáng & Sang trọng)
+# GIAO DIỆN CSS (Chỉnh chu & Thu nhỏ Logo)
 # ==========================================
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 450px; margin: auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; border: none; font-weight: 600; }
+    
+    /* Căn giữa và thu nhỏ logo dashboard */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .logo-container img {
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 2px solid white;
+    }
+
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
     .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; background: white; overflow: hidden; }
     .float-btn img { width: 100%; height: 100%; object-fit: cover; }
@@ -81,7 +94,7 @@ st.markdown("""
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
 if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = False
 
-# ĐỊNH NGHĨA BIẾN LOGO (Sửa tên file ảnh của bạn vào đây)
+# ĐỊNH NGHĨA BIẾN LOGO
 LOGO_URL = "logo_moi.png" 
 
 # ==========================================
@@ -127,6 +140,7 @@ if not st.session_state['logged_in']:
                         st.session_state['otp_verified'] = True
                         st.session_state['current_user'] = fg_user
                         st.rerun()
+                    else: st.error("❌ Mã không đúng!")
             else:
                 new_p = st.text_input("Mật khẩu mới", type="password")
                 if st.button("Cập nhật mật khẩu", type="primary", use_container_width=True):
@@ -138,7 +152,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. GIAO DIỆN DASHBOARD CHÍNH (ĐÃ SỬA LỖI NAMEERROR)
+# 2. GIAO DIỆN DASHBOARD (Đã thu nhỏ Logo)
 # ==========================================
 else:
     col_h1, col_h2 = st.columns([8, 1])
@@ -148,11 +162,15 @@ else:
             st.session_state['logged_in'] = False
             st.rerun()
 
-    try:
-        # Sửa lỗi: Sử dụng biến LOGO_URL thay vì tên file trực tiếp
-        st.image(LOGO_URL, use_container_width=True) 
-    except:
-        st.info("💡 Đang hiển thị giao diện không kèm Logo.")
+    # CHỈNH SỬA LOGO TẠI ĐÂY: Căn giữa và đặt chiều rộng 400px
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        try:
+            st.image(LOGO_URL, width=400) # Thu nhỏ lại 400px để chỉn chu hơn
+        except:
+            st.info("💡 Không tìm thấy ảnh logo_moi.png")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     t_send, t_acc = st.tabs(["🚀 Gửi Email Chiến dịch", "⚙️ Quản lý Tài khoản"])
 
@@ -174,7 +192,6 @@ else:
                 df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
                 st.success(f"✅ Đã tải {len(df)} liên hệ.")
             
-            # Gửi ảnh/file đính kèm
             attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
 
         with c2:
@@ -183,7 +200,6 @@ else:
             body = st.text_area("Nội dung thư (HTML):", height=200, value="Chào {{name}},...")
             delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
 
-        # Cấu hình Telegram bên dưới
         st.markdown("---")
         with st.expander("🔔 Cấu hình Thông báo Telegram"):
             users_db = load_users()
@@ -204,19 +220,15 @@ else:
 
         if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
             if df is not None:
-                # Gửi thông báo Tele bắt đầu
                 if t_tk_val and t_id_val:
                     requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
                                    data={"chat_id": t_id_val, "text": "⏳ Bắt đầu gửi..."}, timeout=5)
-                
                 st.warning("Đang xử lý gửi mail...")
                 progress = st.progress(0)
                 for i in range(len(df)):
                     time.sleep(delay)
                     progress.progress((i + 1) / len(df))
-                
                 st.success("🎉 Chiến dịch hoàn tất!")
-                # Gửi thông báo Tele kết thúc
                 if t_tk_val and t_id_val:
                     requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
                                    data={"chat_id": t_id_val, "text": "✅ Đã xong!"}, timeout=5)
