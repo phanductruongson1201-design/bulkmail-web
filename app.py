@@ -81,16 +81,21 @@ st.markdown("""
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
 if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = False
 
-LOGO_URL = "https://storage.googleapis.com/smart-home-v3-files/media-files/z7587176856031_f586c2b79f66ddf86eae7cb7405fc298.jpg"
+# ĐỊNH NGHĨA BIẾN LOGO (Sửa tên file ảnh của bạn vào đây)
+LOGO_URL = "logo_moi.png" 
 
 # ==========================================
-# LUỒNG LOGIC ĐĂNG NHẬP
+# 1. LOGIC ĐĂNG NHẬP / QUÊN MK
 # ==========================================
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        st.image(logo_moi, width=250)
+        try:
+            st.image(LOGO_URL, width=250)
+        except:
+            st.warning("⚠️ Không tìm thấy file logo_moi.png trên GitHub.")
+            
         tab_login, tab_forgot = st.tabs(["🔐 Đăng nhập", "🔑 Quên mật khẩu"])
         users_db = load_users()
 
@@ -116,7 +121,7 @@ if not st.session_state['logged_in']:
                             if send_otp_email(fg_email, fg_user, otp): st.success("✅ Đã gửi mã OTP!")
                 
                 input_otp = st.text_input("Nhập mã 6 số:", max_chars=6)
-                if st.button("Xác thực", use_container_width=True):
+                if st.button("Xác thực mã", use_container_width=True):
                     u_info = users_db.get(fg_user)
                     if u_info and u_info.get("password") == hash_password(input_otp):
                         st.session_state['otp_verified'] = True
@@ -124,7 +129,7 @@ if not st.session_state['logged_in']:
                         st.rerun()
             else:
                 new_p = st.text_input("Mật khẩu mới", type="password")
-                if st.button("Cập nhật", type="primary", use_container_width=True):
+                if st.button("Cập nhật mật khẩu", type="primary", use_container_width=True):
                     u_db = load_users()
                     if reset_password_api(st.session_state['current_user'], u_db[st.session_state['current_user']]['email'], hash_password(new_p), False):
                         st.session_state['otp_verified'] = False
@@ -133,7 +138,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# GIAO DIỆN DASHBOARD CHÍNH
+# 2. GIAO DIỆN DASHBOARD CHÍNH (ĐÃ SỬA LỖI NAMEERROR)
 # ==========================================
 else:
     col_h1, col_h2 = st.columns([8, 1])
@@ -143,7 +148,11 @@ else:
             st.session_state['logged_in'] = False
             st.rerun()
 
-    st.image(logo_moi, use_container_width=True)
+    try:
+        # Sửa lỗi: Sử dụng biến LOGO_URL thay vì tên file trực tiếp
+        st.image(LOGO_URL, use_container_width=True) 
+    except:
+        st.info("💡 Đang hiển thị giao diện không kèm Logo.")
     
     t_send, t_acc = st.tabs(["🚀 Gửi Email Chiến dịch", "⚙️ Quản lý Tài khoản"])
 
@@ -153,11 +162,11 @@ else:
             st.header("1. Cấu hình Gửi")
             s_name = st.text_input("Tên hiển thị người gửi:")
             s_mail = st.text_input("Email gửi (Gmail):")
-            s_pass = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password")
+            s_pass = st.text_input("App Password:", type="password")
             
             df_sample = pd.DataFrame({"email": ["vidu@gmail.com"], "name": ["Nguyễn Văn A"]})
             buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
-            st.download_button("📥 Tải file Excel mẫu (.xlsx)", data=buf.getvalue(), file_name="mau.xlsx")
+            st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
             
             up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
             df = None
@@ -165,17 +174,18 @@ else:
                 df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
                 st.success(f"✅ Đã tải {len(df)} liên hệ.")
             
+            # Gửi ảnh/file đính kèm
             attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
 
         with c2:
             st.header("2. Nội dung Email")
             subject = st.text_input("Tiêu đề thư:")
             body = st.text_area("Nội dung thư (HTML):", height=200, value="Chào {{name}},...")
-            delay = st.number_input("Khoảng nghỉ giữa mỗi mail (giây):", value=5, min_value=1)
+            delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
 
-        # --- ĐƯA TELEGRAM XUỐNG DƯỚI NỘI DUNG ---
+        # Cấu hình Telegram bên dưới
         st.markdown("---")
-        with st.expander("🔔 Cấu hình Thông báo Telegram (Tùy chọn)", expanded=False):
+        with st.expander("🔔 Cấu hình Thông báo Telegram"):
             users_db = load_users()
             u_data = users_db.get(st.session_state['current_user'], {})
             t_tk_val = u_data.get("tele_token", "")
@@ -190,36 +200,31 @@ else:
             if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
                 if save_config_api(st.session_state['current_user'], new_tele_tk, new_tele_id):
                     st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
-                    time.sleep(1)
-                    st.rerun()
+                    time.sleep(1); st.rerun()
 
         if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
             if df is not None:
-                users_db = load_users(); u_data = users_db.get(st.session_state['current_user'], {})
-                t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
+                # Gửi thông báo Tele bắt đầu
+                if t_tk_val and t_id_val:
+                    requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
+                                   data={"chat_id": t_id_val, "text": "⏳ Bắt đầu gửi..."}, timeout=5)
                 
-                if t_tk and t_id:
-                    try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
-                                       data={"chat_id": t_id, "text": f"⏳ Chiến dịch của {st.session_state['current_user']} bắt đầu..."}, timeout=5)
-                    except: pass
-
-                st.warning("Đang xử lý gửi mail... Vui lòng không tắt trình duyệt.")
+                st.warning("Đang xử lý gửi mail...")
                 progress = st.progress(0)
                 for i in range(len(df)):
                     time.sleep(delay)
                     progress.progress((i + 1) / len(df))
                 
-                st.success("🎉 Chiến dịch đã hoàn tất thành công!")
-                
-                if t_tk and t_id:
-                    try: requests.post(f"https://api.telegram.org/bot{t_tk}/sendMessage", 
-                                       data={"chat_id": t_id, "text": f"✅ Chiến dịch của {st.session_state['current_user']} đã HOÀN TẤT!"}, timeout=5)
-                    except: pass
-            else: st.error("Vui lòng tải danh sách khách hàng lên!")
+                st.success("🎉 Chiến dịch hoàn tất!")
+                # Gửi thông báo Tele kết thúc
+                if t_tk_val and t_id_val:
+                    requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
+                                   data={"chat_id": t_id_val, "text": "✅ Đã xong!"}, timeout=5)
+            else: st.error("Vui lòng tải danh sách khách hàng!")
 
     with t_acc:
-        st.header("⚙️ Cài đặt & Đổi mật khẩu")
-        st.write("Tính năng đang được cập nhật thêm...")
+        st.header("⚙️ Cài đặt Tài khoản")
+        st.write("Thông tin người dùng và các tùy chỉnh khác.")
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
@@ -228,4 +233,3 @@ st.markdown("""
     <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a>
 </div>
 """, unsafe_allow_html=True)
-
