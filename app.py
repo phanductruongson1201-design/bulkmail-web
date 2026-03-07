@@ -85,7 +85,7 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (CHỈN CHU & NỔI BẬT)
 # ==========================================
 st.markdown("""
 <style>
@@ -100,19 +100,10 @@ st.markdown("""
 
     .logo-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .logo-container img { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #fff; }
-    .preview-box { padding: 20px; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; line-height: 1.6; }
+    .preview-box { padding: 25px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 10px; margin-top: 10px; line-height: 1.8; }
     
-    /* Chỉnh sửa tiêu đề chính của Dashboard */
-    .dashboard-title {
-        color: #1e3a8a;
-        font-size: 36px;
-        font-weight: 800;
-        margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    .title-icon { color: #1e3a8a; font-size: 40px; }
+    .dashboard-title { color: #1e3a8a; font-size: 32px; font-weight: 800; margin-bottom: 5px; }
+    .section-header { color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-top: 20px; font-size: 20px; font-weight: 700; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -168,8 +159,7 @@ if not st.session_state['logged_in']:
                         otp = generate_otp()
                         if reset_password_api(fg_user, fg_email, hash_password(otp), True):
                             if send_otp_email(fg_email, fg_user, otp): st.success("✅ Mã OTP đã gửi!")
-                
-                input_otp = st.text_input("Nhập mã 6 số:", max_chars=6, key="otp_i")
+                input_otp = st.text_input("Nhập mã OTP:", max_chars=6, key="otp_i")
                 if st.button("XÁC THỰC", use_container_width=True):
                     u_info = users_db.get(fg_user)
                     if u_info and u_info.get("password") == hash_password(input_otp):
@@ -187,7 +177,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH
+# 2. DASHBOARD CHÍNH (GIAO DIỆN 5 BƯỚC)
 # ==========================================
 else:
     head_col1, head_col2 = st.columns([6, 1])
@@ -205,38 +195,44 @@ else:
         except: st.info("BulkMail Pro")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- TIÊU ĐỀ DASHBOARD & CÂU GIỚI THIỆU ---
     st.markdown('<div class="dashboard-title">🔵 BulkMail Pro – Trình Quản Lý Email Marketing</div>', unsafe_allow_html=True)
     st.info("💡 Hệ thống gửi email hàng loạt cá nhân hóa. Vui lòng sử dụng cho danh sách liên hệ hợp pháp.")
 
     col_left, col_right = st.columns(2)
     
     with col_left:
-        st.header("1. Cấu hình Máy chủ & Tài khoản")
+        st.markdown('<div class="section-header">1. Cấu hình Máy chủ & Tài khoản</div>', unsafe_allow_html=True)
         s_name = st.text_input("Tên hiển thị người gửi (VD: Công ty ABC):", value=st.session_state.get('s_name', ""))
-        s_mail = st.text_input("Email gửi:", value=st.session_state.get('s_email', ""))
-        s_pass = st.text_input("App Password:", type="password", value=st.session_state.get('s_pwd', ""))
-        st.markdown("---")
-        s_sign = st.text_area("🖋️ Chữ ký (SĐT, Địa chỉ, Zalo...):", value=st.session_state.get('s_sign', "Trân trọng,\nĐội ngũ hỗ trợ Trường Sơn"), height=100)
+        s_mail = st.text_input("Email Gmail dùng để gửi:", value=st.session_state.get('s_email', ""))
+        s_pass = st.text_input("Mật khẩu ứng dụng (App Password):", type="password", value=st.session_state.get('s_pwd', ""))
+        
+        st.markdown('<div class="section-header">2. Chữ ký Email (Cuối thư)</div>', unsafe_allow_html=True)
+        s_sign = st.text_area("Thông tin liên hệ, SĐT, Zalo...:", value=st.session_state.get('s_sign', "Trân trọng,\nĐội ngũ hỗ trợ Trường Sơn"), height=100)
+        
         st.session_state['s_name'], st.session_state['s_email'], st.session_state['s_pwd'], st.session_state['s_sign'] = s_name, s_mail, s_pass, s_sign
         
-        st.header("2. Dữ liệu Khách hàng (.csv, .xlsx)")
-        up = st.file_uploader("Kéo thả file danh sách email vào đây", type=["csv", "xlsx"])
+        st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
+        up = st.file_uploader("Tải file danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
         df = None
         if up:
             df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
             st.success(f"✅ Đã nhận {len(df)} khách hàng.")
-        attachments = st.file_uploader("Đính kèm file/ảnh vào thư", accept_multiple_files=True)
+        attachments = st.file_uploader("Đính kèm file hoặc ảnh vào thư", accept_multiple_files=True)
 
     with col_right:
-        st.header("3. Biên soạn Nội dung")
-        subject = st.text_input("Tiêu đề (Subject):")
-        raw_body = st.text_area("Nội dung (Hỗ trợ định dạng HTML) - Cú pháp biến: {{tên_cột}}", height=200, value="Kính chào {{name}},<br><br>Nhập nội dung email của bạn tại đây...")
+        st.markdown('<div class="section-header">4. Biên soạn Nội dung Email</div>', unsafe_allow_html=True)
+        subject = st.text_input("Tiêu đề thư (Subject):", placeholder="Ví dụ: Thư ngỏ hợp tác từ Trường Sơn Marketing")
+        raw_body = st.text_area(
+            "Nội dung chính:", 
+            height=250, 
+            placeholder="Mẹo: Dùng {{name}} để hệ thống tự gọi tên khách hàng.",
+            value="Kính chào Anh/Chị {{name}},\n\n(Ví dụ: Hệ thống sẽ tự đổi {{name}} thành tên thật của khách như Nguyễn Văn A...)\n\nNhập nội dung thư của bạn tại đây..."
+        )
         
         body_html = raw_body.replace("\n", "<br>")
         sign_html = s_sign.replace("\n", "<br>")
         full_email_content = f"""
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="font-family: Arial, sans-serif; line-height: 1.8; color: #333;">
             {body_html}
             <br><br>
             <div style="color: #666; border-top: 1px solid #eee; padding-top: 10px; font-size: 14px;">
@@ -244,13 +240,15 @@ else:
             </div>
         </div>
         """
-        with st.expander("> Xem trước hiển thị Email (Live Preview)", expanded=True):
+        with st.expander("👁️ Xem trước thực tế (Live Preview)", expanded=True):
             p_text = full_email_content
+            example_name = "Nguyễn Văn A"
             if df is not None and not df.empty and "name" in df.columns:
-                p_text = p_text.replace("{{name}}", str(df.iloc[0]["name"]))
+                example_name = str(df.iloc[0]["name"])
+            p_text = p_text.replace("{{name}}", f"<b style='color:#1e3a8a;'>{example_name}</b>")
             st.markdown(p_text, unsafe_allow_html=True)
         
-        st.header("4. Thiết lập Gửi & Kiểm tra")
+        st.markdown('<div class="section-header">5. Thiết lập Gửi & Kiểm tra</div>', unsafe_allow_html=True)
         delay = st.number_input("Khoảng nghỉ giữa 2 email (giây):", value=5, min_value=1)
 
     st.markdown("---")
@@ -263,10 +261,10 @@ else:
             if save_config_api(st.session_state['current_user'], new_tk, new_id):
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!"); time.sleep(1); st.rerun()
 
-    if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
+    if st.button("▶ BẮT ĐẦU GỬI CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
             progress_bar = st.progress(0); log_ex = st.expander("📋 Nhật ký chi tiết", expanded=True)
-            send_tele_msg(t_tk, t_id, f"🚀 <b>CHIẾN DỊCH BẮT ĐẦU</b>\n👤 User: {st.session_state['current_user']}")
+            send_tele_msg(t_tk, t_id, f"🚀 <b>CHIẾN DỊCH BẮT ĐẦU</b>\n👤 User: {st.session_state['current_user']}\n📧 Số lượng: {len(df)}")
             success_list = []; error_list = []
             for index, row in df.iterrows():
                 try:
