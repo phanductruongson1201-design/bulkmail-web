@@ -65,7 +65,7 @@ def send_otp_email(to_email, username, otp_code):
     except: return False
 
 # ==========================================
-# GIAO DIỆN CSS (Chỉnh chu & Thu nhỏ Logo)
+# GIAO DIỆN CSS (Thu nhỏ Logo & Làm sạch giao diện)
 # ==========================================
 st.markdown("""
 <style>
@@ -73,17 +73,8 @@ st.markdown("""
     .auth-box { max-width: 450px; margin: auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; border: none; font-weight: 600; }
     
-    /* Căn giữa và thu nhỏ logo dashboard */
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-    .logo-container img {
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid white;
-    }
+    .logo-container { display: flex; justify-content: center; margin-bottom: 20px; }
+    .logo-container img { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white; }
 
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
     .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; background: white; overflow: hidden; }
@@ -95,7 +86,7 @@ if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
 if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = False
 
 # ĐỊNH NGHĨA BIẾN LOGO
-LOGO_URL = "logo_moi.png" 
+LOGO_URL = "logo_moi.png"
 
 # ==========================================
 # 1. LOGIC ĐĂNG NHẬP / QUÊN MK
@@ -104,10 +95,8 @@ if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        try:
-            st.image(LOGO_URL, width=250)
-        except:
-            st.warning("⚠️ Không tìm thấy file logo_moi.png trên GitHub.")
+        try: st.image(LOGO_URL, width=250)
+        except: st.warning("⚠️ Không tìm thấy file logo_moi.png")
             
         tab_login, tab_forgot = st.tabs(["🔐 Đăng nhập", "🔑 Quên mật khẩu"])
         users_db = load_users()
@@ -140,7 +129,6 @@ if not st.session_state['logged_in']:
                         st.session_state['otp_verified'] = True
                         st.session_state['current_user'] = fg_user
                         st.rerun()
-                    else: st.error("❌ Mã không đúng!")
             else:
                 new_p = st.text_input("Mật khẩu mới", type="password")
                 if st.button("Cập nhật mật khẩu", type="primary", use_container_width=True):
@@ -152,7 +140,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. GIAO DIỆN DASHBOARD (Đã thu nhỏ Logo)
+# 2. GIAO DIỆN DASHBOARD (ĐÃ XÓA TAB PHỤ)
 # ==========================================
 else:
     col_h1, col_h2 = st.columns([8, 1])
@@ -162,81 +150,73 @@ else:
             st.session_state['logged_in'] = False
             st.rerun()
 
-    # CHỈNH SỬA LOGO TẠI ĐÂY: Căn giữa và đặt chiều rộng 400px
+    # LOGO CĂN GIỮA
     col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
     with col_l2:
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-        try:
-            st.image(LOGO_URL, width=400) # Thu nhỏ lại 400px để chỉn chu hơn
-        except:
-            st.info("💡 Không tìm thấy ảnh logo_moi.png")
+        try: st.image(LOGO_URL, width=400)
+        except: st.info("💡 Không tìm thấy ảnh logo_moi.png")
         st.markdown('</div>', unsafe_allow_html=True)
     
-    t_send, t_acc = st.tabs(["🚀 Gửi Email Chiến dịch", "⚙️ Quản lý Tài khoản"])
+    st.markdown("### 🚀 Gửi Email Chiến dịch")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.header("1. Cấu hình Gửi")
+        s_name = st.text_input("Tên hiển thị người gửi:")
+        s_mail = st.text_input("Email gửi (Gmail):")
+        s_pass = st.text_input("App Password:", type="password")
+        
+        df_sample = pd.DataFrame({"email": ["vidu@gmail.com"], "name": ["Nguyễn Văn A"]})
+        buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
+        st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
+        
+        up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
+        df = None
+        if up:
+            df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
+            st.success(f"✅ Đã tải {len(df)} liên hệ.")
+        
+        attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
 
-    with t_send:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.header("1. Cấu hình Gửi")
-            s_name = st.text_input("Tên hiển thị người gửi:")
-            s_mail = st.text_input("Email gửi (Gmail):")
-            s_pass = st.text_input("App Password:", type="password")
-            
-            df_sample = pd.DataFrame({"email": ["vidu@gmail.com"], "name": ["Nguyễn Văn A"]})
-            buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
-            st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
-            
-            up = st.file_uploader("Tải danh sách khách hàng", type=["csv", "xlsx"])
-            df = None
-            if up:
-                df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
-                st.success(f"✅ Đã tải {len(df)} liên hệ.")
-            
-            attachments = st.file_uploader("Chọn ảnh/file đính kèm", accept_multiple_files=True)
+    with c2:
+        st.header("2. Nội dung Email")
+        subject = st.text_input("Tiêu đề thư:")
+        body = st.text_area("Nội dung thư (HTML):", height=200, value="Chào {{name}},...")
+        delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
 
-        with c2:
-            st.header("2. Nội dung Email")
-            subject = st.text_input("Tiêu đề thư:")
-            body = st.text_area("Nội dung thư (HTML):", height=200, value="Chào {{name}},...")
-            delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
+    # Cấu hình Telegram bên dưới cùng
+    st.markdown("---")
+    with st.expander("🔔 Cấu hình Thông báo Telegram"):
+        users_db = load_users()
+        u_data = users_db.get(st.session_state['current_user'], {})
+        t_tk_val = u_data.get("tele_token", "")
+        t_id_val = u_data.get("tele_chat_id", "")
+        
+        t_col1, t_col2 = st.columns(2)
+        with t_col1: new_tele_tk = st.text_input("Bot Token:", value=t_tk_val, type="password", key="tele_tk_main")
+        with t_col2: new_tele_id = st.text_input("Chat ID:", value=t_id_val, key="tele_id_main")
+        
+        if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
+            if save_config_api(st.session_state['current_user'], new_tele_tk, new_tele_id):
+                st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
+                time.sleep(1); st.rerun()
 
-        st.markdown("---")
-        with st.expander("🔔 Cấu hình Thông báo Telegram"):
-            users_db = load_users()
-            u_data = users_db.get(st.session_state['current_user'], {})
-            t_tk_val = u_data.get("tele_token", "")
-            t_id_val = u_data.get("tele_chat_id", "")
-            
-            t_col1, t_col2 = st.columns(2)
-            with t_col1:
-                new_tele_tk = st.text_input("Bot Token:", value=t_tk_val, type="password", key="tele_tk_main")
-            with t_col2:
-                new_tele_id = st.text_input("Chat ID:", value=t_id_val, key="tele_id_main")
-            
-            if st.button("💾 Lưu cấu hình Telegram", use_container_width=True):
-                if save_config_api(st.session_state['current_user'], new_tele_tk, new_tele_id):
-                    st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
-                    time.sleep(1); st.rerun()
-
-        if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
-            if df is not None:
-                if t_tk_val and t_id_val:
-                    requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
-                                   data={"chat_id": t_id_val, "text": "⏳ Bắt đầu gửi..."}, timeout=5)
-                st.warning("Đang xử lý gửi mail...")
-                progress = st.progress(0)
-                for i in range(len(df)):
-                    time.sleep(delay)
-                    progress.progress((i + 1) / len(df))
-                st.success("🎉 Chiến dịch hoàn tất!")
-                if t_tk_val and t_id_val:
-                    requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
-                                   data={"chat_id": t_id_val, "text": "✅ Đã xong!"}, timeout=5)
-            else: st.error("Vui lòng tải danh sách khách hàng!")
-
-    with t_acc:
-        st.header("⚙️ Cài đặt Tài khoản")
-        st.write("Thông tin người dùng và các tùy chỉnh khác.")
+    if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
+        if df is not None:
+            if t_tk_val and t_id_val:
+                requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
+                                data={"chat_id": t_id_val, "text": "⏳ Bắt đầu gửi..."}, timeout=5)
+            st.warning("Đang xử lý gửi mail...")
+            progress = st.progress(0)
+            for i in range(len(df)):
+                time.sleep(delay)
+                progress.progress((i + 1) / len(df))
+            st.success("🎉 Chiến dịch hoàn tất!")
+            if t_tk_val and t_id_val:
+                requests.post(f"https://api.telegram.org/bot{t_tk_val}/sendMessage", 
+                                data={"chat_id": t_id_val, "text": "✅ Đã xong!"}, timeout=5)
+        else: st.error("Vui lòng tải danh sách khách hàng!")
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
