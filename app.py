@@ -11,6 +11,8 @@ import requests
 import hashlib
 import string
 import random
+import base64
+import os
 
 # 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🔵", layout="wide")
@@ -84,8 +86,16 @@ def send_tele_file(token, chat_id, file_content, file_name):
             requests.post(url, data={'chat_id': chat_id}, files=files, timeout=10)
         except: pass
 
+# HÀM CHUYỂN ẢNH THÀNH MÃ HTML (KHẮC PHỤC LỖI LỆCH ẢNH)
+def get_image_base64(path):
+    try:
+        with open(path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode('utf-8')
+    except:
+        return None
+
 # ==========================================
-# GIAO DIỆN CSS (ÉP KHUÔN LOGO GIỮA TRANG)
+# GIAO DIỆN CSS
 # ==========================================
 st.markdown("""
 <style>
@@ -93,21 +103,37 @@ st.markdown("""
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
-    /* ÉP ẢNH CĂN GIỮA TUYỆT ĐỐI */
-    div[data-testid="stImage"] {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin-bottom: 25px !important;
-        width: 100% !important;
+    /* CHỈ ĐỊNH HTML THUẦN: ÉP CĂN GIỮA TUYỆT ĐỐI */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 25px;
     }
-    div[data-testid="stImage"] img {
-        border-radius: 50% !important; 
-        width: 160px !important;       
-        height: 160px !important;      
-        object-fit: cover !important;  
-        border: 4px solid #1e3a8a !important; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    .logo-container img {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #1e3a8a;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: block;
+    }
+    .alt-logo {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background-color: #1e3a8a;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 800;
+        font-size: 18px;
+        text-align: center;
+        border: 4px solid white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
     .hero-banner { background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(30, 58, 138, 0.85)), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'); background-size: cover; padding: 40px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
@@ -138,11 +164,12 @@ if not st.session_state['logged_in']:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">BULKMAIL PRO</p>', unsafe_allow_html=True)
         
-        # CHỈ GỌI ẢNH ĐƠN GIẢN - CSS SẼ TỰ KÉO NÓ VÀO GIỮA
-        try: 
-            st.image(LOGO_URL)
-        except: 
-            st.info("🎯 TRƯỜNG SƠN MARKETING")
+        # SỬ DỤNG HTML ĐỂ CĂN GIỮA TUYỆT ĐỐI (KHÔNG PHỤ THUỘC STREAMLIT)
+        logo_b64 = get_image_base64(LOGO_URL)
+        if logo_b64:
+            st.markdown(f'<div class="logo-container"><img src="data:image/png;base64,{logo_b64}"></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="logo-container"><div class="alt-logo">TRƯỜNG SƠN<br>MARKETING</div></div>', unsafe_allow_html=True)
         
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
         users_db = load_users()
