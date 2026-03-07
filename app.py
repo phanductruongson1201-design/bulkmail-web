@@ -248,18 +248,33 @@ else:
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
         
-        # --- NÚT TẢI FILE MẪU ---
+        # --- NÚT TẢI FILE MẪU BẰNG EXCEL (.XLSX) ---
         sample_df = pd.DataFrame({
             "name": ["Nguyễn Văn A", "Trần Thị B"],
             "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
         })
-        csv_sample = sample_df.to_csv(index=False).encode('utf-8-sig')
+        
+        try:
+            excel_buf = io.BytesIO()
+            with pd.ExcelWriter(excel_buf, engine='openpyxl') as writer:
+                sample_df.to_excel(writer, index=False, sheet_name='Danh_sach')
+            dl_data = excel_buf.getvalue()
+            dl_name = "danh_sach_mau.xlsx"
+            dl_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            dl_label = "📥 Tải file mẫu chuẩn (.xlsx)"
+        except:
+            # Dự phòng nếu máy chủ chưa cài openpyxl
+            dl_data = sample_df.to_csv(index=False).encode('utf-8-sig')
+            dl_name = "danh_sach_mau.csv"
+            dl_mime = "text/csv"
+            dl_label = "📥 Tải file mẫu (.csv)"
+
         st.download_button(
-            label="📥 Tải file danh sách mẫu (.csv)",
-            data=csv_sample,
-            file_name="danh_sach_mau.csv",
-            mime="text/csv",
-            help="Tải file này về, mở bằng Excel và điền danh sách khách hàng của bạn vào đúng cột name và email."
+            label=dl_label,
+            data=dl_data,
+            file_name=dl_name,
+            mime=dl_mime,
+            help="Tải file này về, mở bằng phần mềm Excel và điền danh sách khách hàng của bạn vào đúng 2 cột."
         )
         # ------------------------
 
