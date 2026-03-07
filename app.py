@@ -49,13 +49,26 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (Tối ưu hóa Header)
 # ==========================================
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 450px; margin: auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
+    
+    /* Header chào mừng và đăng xuất */
+    .user-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+    }
+    
     .logo-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .logo-container img { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white; }
     .preview-box { padding: 15px; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; line-height: 1.6; }
@@ -91,11 +104,16 @@ if not st.session_state['logged_in']:
 # 2. DASHBOARD CHÍNH
 # ==========================================
 else:
-    with st.sidebar:
-        if st.button("🚪 Đăng xuất"):
+    # --- HEADER CHÀO MỪNG VÀ NÚT ĐĂNG XUẤT ---
+    head_col1, head_col2 = st.columns([6, 1])
+    with head_col1:
+        st.markdown(f"### 👋 Xin chào, **{st.session_state['current_user']}**")
+    with head_col2:
+        if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state['logged_in'] = False
             st.rerun()
 
+    # LOGO CĂN GIỮA
     c_l1, c_l2, c_l3 = st.columns([1, 2, 1])
     with c_l2:
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
@@ -124,7 +142,6 @@ else:
         subject = st.text_input("Tiêu đề:")
         raw_body = st.text_area("Nội dung (Gõ xuống dòng bình thường):", height=200, value="Chào {{name}},\n\nĐây là nội dung thư mẫu.\nChúc bạn một ngày tốt lành!")
         
-        # --- XỬ LÝ XUỐNG DÒNG TỰ ĐỘNG ---
         # Chuyển đổi dấu xuống dòng (\n) thành thẻ HTML (<br>)
         body = raw_body.replace("\n", "<br>")
         
@@ -170,7 +187,6 @@ else:
                     msg = MIMEMultipart()
                     msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
                     
-                    # Nội dung đã được xử lý xuống dòng
                     final_html = f"""
                     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                         {body.replace("{{name}}", str(target_name))}
