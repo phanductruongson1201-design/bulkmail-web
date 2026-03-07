@@ -94,16 +94,22 @@ def get_image_base64(path):
         return None
 
 # ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (SÁT THỦ TÀNG HÌNH STREAMLIT)
 # ==========================================
 st.markdown("""
 <style>
-    /* --- ẨN CÁC THÀNH PHẦN MẶC ĐỊNH CỦA STREAMLIT --- */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stDeployButton {display:none;}
-    /* ------------------------------------------------ */
+    /* --- DIỆT TẬN GỐC CÁC MENU VÀ LOGO CỦA STREAMLIT --- */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    .stDeployButton {display: none !important;}
+    
+    /* Nhắm thẳng vào cục logo góc dưới cùng bên phải */
+    [data-testid="manage-app-button"] {display: none !important; visibility: hidden !important;}
+    [data-testid="viewerBadge"] {display: none !important; visibility: hidden !important;}
+    iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
+    iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
+    /* --------------------------------------------------- */
 
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
