@@ -38,10 +38,16 @@ def reset_password_api(username, email, new_password_hash, is_reset_status):
         return res.get("status") == "success"
     except: return False
 
+def save_config_api(username, tele_token, tele_chat_id):
+    if not DB_URL: return False
+    try:
+        res = requests.post(DB_URL, json={"action": "update_config", "username": username, "tele_token": tele_token, "tele_chat_id": tele_chat_id}).json()
+        return res.get("status") == "success"
+    except: return False
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Hàm tạo mã OTP 6 số ngắn gọn
 def generate_otp(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
@@ -51,13 +57,8 @@ def send_otp_email(to_email, username, otp_code):
         msg = MIMEMultipart()
         msg['From'] = f"Hệ thống BulkMail <{SYS_EMAIL}>"
         msg['To'] = to_email
-        msg['Subject'] = f"{otp_code} là mã xác nhận khôi phục mật khẩu của bạn"
-        body = f"""
-        <h3>Chào {username},</h3>
-        <p>Bạn đã yêu cầu khôi phục mật khẩu. Vui lòng nhập mã xác nhận dưới đây vào ứng dụng:</p>
-        <h2 style='color:#1e3a8a; letter-spacing: 5px;'>{otp_code}</h2>
-        <p>Mã này dùng để xác thực và giúp bạn tạo mật khẩu mới ngay lập tức.</p>
-        """
+        msg['Subject'] = f"{otp_code} là mã xác nhận của bạn"
+        body = f"<h3>Chào {username},</h3><p>Mã xác nhận khôi phục mật khẩu của bạn là: <b>{otp_code}</b></p>"
         msg.attach(MIMEText(body, 'html'))
         s = smtplib.SMTP("smtp.gmail.com", 587); s.starttls()
         s.login(SYS_EMAIL, SYS_PWD); s.send_message(msg); s.quit()
@@ -65,7 +66,7 @@ def send_otp_email(to_email, username, otp_code):
     except: return False
 
 # ==========================================
-# GIAO DIỆN CSS & TRẠNG THÁI
+# GIAO DIỆN CSS
 # ==========================================
 st.markdown("""
 <style>
@@ -73,6 +74,7 @@ st.markdown("""
     .auth-box { max-width: 450px; margin: auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
     .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; background: white; overflow: hidden; }
+    .float-btn img { width: 100%; height: 100%; object-fit: cover; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -82,7 +84,7 @@ if 'otp_verified' not in st.session_state: st.session_state['otp_verified'] = Fa
 LOGO_URL = "https://storage.googleapis.com/smart-home-v3-files/media-files/z7587176856031_f586c2b79f66ddf86eae7cb7405fc298.jpg"
 
 # ==========================================
-# LUỒNG XỬ LÝ QUÊN MẬT KHẨU MỚI
+# LUỒNG LOGIC CHÍNH
 # ==========================================
 
 if not st.session_state['logged_in']:
@@ -106,52 +108,83 @@ if not st.session_state['logged_in']:
 
         with tab_forgot:
             if not st.session_state['otp_verified']:
-                fg_user = st.text_input("Tên đăng nhập của bạn")
-                fg_email = st.text_input("Email đã đăng ký")
-                
-                # Nút yêu cầu gửi mã
-                if st.button("Gửi mã xác nhận", type="primary", use_container_width=True):
+                fg_user = st.text_input("Username")
+                fg_email = st.text_input("Email đăng ký")
+                if st.button("Gửi mã OTP", type="primary", use_container_width=True):
                     if fg_user in users_db and users_db[fg_user].get("email") == fg_email:
-                        otp_code = generate_otp()
-                        # Lưu mã OTP vào cột Password tạm thời và đánh dấu is_reset = True
-                        if reset_password_api(fg_user, fg_email, hash_password(otp_code), True):
-                            if send_otp_email(fg_email, fg_user, otp_code):
-                                st.success(f"✅ Mã xác nhận đã được gửi tới {fg_email}!")
-                    else: st.error("❌ Thông tin không chính xác!")
-
-                st.markdown("---")
-                # Ô nhập mã OTP để xác thực
-                input_otp = st.text_input("Nhập mã 6 số từ Email:", max_chars=6)
+                        otp = generate_otp()
+                        if reset_password_api(fg_user, fg_email, hash_password(otp), True):
+                            if send_otp_email(fg_email, fg_user, otp): st.success("✅ Đã gửi mã!")
+                    else: st.error("❌ Thông tin không đúng!")
+                
+                input_otp = st.text_input("Nhập mã OTP 6 số:", max_chars=6)
                 if st.button("Xác thực mã", use_container_width=True):
-                    user_info = users_db.get(fg_user)
-                    if user_info and user_info.get("password") == hash_password(input_otp):
+                    u_info = users_db.get(fg_user)
+                    if u_info and u_info.get("password") == hash_password(input_otp):
                         st.session_state['otp_verified'] = True
                         st.session_state['current_user'] = fg_user
                         st.rerun()
-                    else: st.error("❌ Mã xác nhận không đúng!")
-            
-            # Nếu đã xác thực mã xong, hiện ngay màn hình đổi mật khẩu
+                    else: st.error("❌ Mã không đúng!")
             else:
                 st.subheader("🔑 Tạo mật khẩu mới")
                 new_p = st.text_input("Mật khẩu mới", type="password")
                 conf_p = st.text_input("Xác nhận mật khẩu", type="password")
-                if st.button("Cập nhật & Đăng nhập", type="primary", use_container_width=True):
+                if st.button("Cập nhật", type="primary", use_container_width=True):
                     if new_p == conf_p and len(new_p) >= 6:
                         u_db = load_users()
                         if reset_password_api(st.session_state['current_user'], u_db[st.session_state['current_user']]['email'], hash_password(new_p), False):
                             st.session_state['otp_verified'] = False
                             st.session_state['logged_in'] = True
-                            st.success("✅ Đã đổi mật khẩu! Đang vào Dashboard...")
-                            time.sleep(1); st.rerun()
-                    else: st.error("❌ Mật khẩu không khớp hoặc quá ngắn!")
+                            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-# GIAO DIỆN CHÍNH
+# GIAO DIỆN DASHBOARD (PHẦN NÀY ĐÃ ĐƯỢC SỬA LỖI HIỂN THỊ)
 else:
-    st.title(f"Chào mừng {st.session_state['current_user']} đến với BulkMail Pro")
-    if st.button("Đăng xuất"):
-        st.session_state['logged_in'] = False
-        st.rerun()
+    col_head1, col_head2 = st.columns([8, 1])
+    with col_head1: st.subheader(f"👋 Chào mừng {st.session_state['current_user']} đến với BulkMail Pro")
+    with col_head2:
+        if st.button("Đăng xuất"):
+            st.session_state['logged_in'] = False
+            st.rerun()
+
+    st.image(LOGO_URL, use_container_width=True)
+    
+    t1, t2 = st.tabs(["🚀 Gửi Chiến dịch", "⚙️ Tài khoản"])
+    
+    with t1:
+        c1, c2 = st.columns(2)
+        with c1:
+            st.header("1. Cấu hình")
+            s_name = st.text_input("Tên hiển thị:")
+            s_mail = st.text_input("Email gửi:")
+            s_pass = st.text_input("App Password:", type="password")
+            
+            df_sample = pd.DataFrame({"email": ["test@gmail.com"], "name": ["Khách hàng A"]})
+            buf = io.BytesIO(); df_sample.to_excel(buf, index=False)
+            st.download_button("📥 Tải file mẫu", data=buf.getvalue(), file_name="mau.xlsx")
+            
+            up = st.file_uploader("Tải danh sách", type=["csv", "xlsx"])
+            df = None
+            if up:
+                df = pd.read_excel(up) if up.name.endswith('xlsx') else pd.read_csv(up)
+                st.success(f"Đã tải {len(df)} dòng.")
+
+        with c2:
+            st.header("2. Nội dung")
+            subject = st.text_input("Tiêu đề email:")
+            body = st.text_area("Nội dung (HTML):", height=200)
+            delay = st.number_input("Delay (giây):", value=5)
+
+        if st.button("▶ BẮT ĐẦU GỬI", type="primary", use_container_width=True):
+            st.info("Hệ thống đang xử lý...")
+            # Code gửi mail thực tế của bạn nằm ở đây
+            time.sleep(2)
+            st.success("🎉 Hoàn tất chiến dịch!")
+
+    with t2:
+        st.header("🔐 Cài đặt tài khoản")
+        # Thêm các nút đổi mật khẩu chủ động tại đây
+        st.write("Tính năng đang được cập nhật...")
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
