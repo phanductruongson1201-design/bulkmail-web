@@ -33,7 +33,6 @@ def save_config_api(username, tele_token, tele_chat_id):
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# --- HÀM GỬI TIN NHẮN VÀ FILE QUA TELEGRAM ---
 def send_tele_msg(token, chat_id, message):
     if token and chat_id:
         try:
@@ -59,7 +58,7 @@ st.markdown("""
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     .logo-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .logo-container img { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid white; }
-    .preview-box { padding: 15px; background: #f8f9fa; border-left: 5px solid #1e3a8a; border-radius: 5px; margin-top: 10px; }
+    .preview-box { padding: 15px; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; line-height: 1.6; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -121,14 +120,21 @@ else:
         attachments = st.file_uploader("File đính kèm thư", accept_multiple_files=True)
 
     with col_right:
-        st.header("2. Nội dung")
+        st.header("2. Nội dung thư")
         subject = st.text_input("Tiêu đề:")
-        body = st.text_area("Nội dung (HTML):", height=150, value="Chào {{name}},...")
-        with st.expander("🔍 Xem trước"):
+        raw_body = st.text_area("Nội dung (Gõ xuống dòng bình thường):", height=200, value="Chào {{name}},\n\nĐây là nội dung thư mẫu.\nChúc bạn một ngày tốt lành!")
+        
+        # --- XỬ LÝ XUỐNG DÒNG TỰ ĐỘNG ---
+        # Chuyển đổi dấu xuống dòng (\n) thành thẻ HTML (<br>)
+        body = raw_body.replace("\n", "<br>")
+        
+        with st.expander("🔍 Xem trước thực tế", expanded=True):
             p_text = body
             if df is not None and not df.empty and "name" in df.columns:
                 p_text = p_text.replace("{{name}}", str(df.iloc[0]["name"]))
+            st.markdown(f"**Tiêu đề:** {subject}")
             st.markdown(f'<div class="preview-box">{p_text}</div>', unsafe_allow_html=True)
+        
         delay = st.number_input("Nghỉ (giây):", value=5, min_value=1)
 
     # TELEGRAM CONFIG
@@ -136,7 +142,7 @@ else:
     users_db = load_users()
     u_data = users_db.get(st.session_state['current_user'], {})
     t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
-    with st.expander("🔔 Cấu hình Telegram (Báo cáo kết quả)"):
+    with st.expander("🔔 Cấu hình Telegram"):
         new_tk = st.text_input("Bot Token:", value=t_tk, type="password")
         new_id = st.text_input("Chat ID:", value=t_id)
         if st.button("💾 Lưu cấu hình"):
@@ -144,14 +150,13 @@ else:
                 st.success("✅ Đã lưu!"); time.sleep(1); st.rerun()
 
     # ==========================================
-    # TIẾN TRÌNH GỬI & GỬI FILE TELEGRAM
+    # TIẾN TRÌNH GỬI
     # ==========================================
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
             progress_bar = st.progress(0)
             log_expander = st.expander("📋 Nhật ký trực tiếp", expanded=True)
             
-            # 1. Thông báo bắt đầu
             start_msg = f"🚀 <b>CHIẾN DỊCH BẮT ĐẦU</b>\n👤 User: {st.session_state['current_user']}\n📧 Quy mô: {len(df)} mail"
             send_tele_msg(t_tk, t_id, start_msg)
 
@@ -164,7 +169,14 @@ else:
                 try:
                     msg = MIMEMultipart()
                     msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
-                    msg.attach(MIMEText(body.replace("{{name}}", str(target_name)), 'html'))
+                    
+                    # Nội dung đã được xử lý xuống dòng
+                    final_html = f"""
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        {body.replace("{{name}}", str(target_name))}
+                    </div>
+                    """
+                    msg.attach(MIMEText(final_html, 'html'))
                     
                     if attachments:
                         for f in attachments:
@@ -185,24 +197,19 @@ else:
                 progress_bar.progress((index + 1) / len(df))
                 time.sleep(delay)
 
-            # 2. Tổng kết dữ liệu
-            final_df = pd.DataFrame({
-                "Email": success_list + [e.split()[0] for e in error_list], 
-                "Trạng thái": ["Thành công"]*len(success_list) + ["Lỗi"]*len(error_list)
-            })
+            # Tổng kết và Gửi Telegram
+            final_df = pd.DataFrame({"Email": success_list + [e.split()[0] for e in error_list], "Trạng thái": ["Thành công"]*len(success_list) + ["Lỗi"]*len(error_list)})
             csv_buffer = io.BytesIO()
             final_df.to_csv(csv_buffer, index=False, encoding='utf-8-sig')
-            csv_buffer.seek(0)
-
-            # 3. Gửi tin nhắn tổng kết và ĐÍNH KÈM FILE báo cáo qua Telegram
-            report_msg = f"📊 <b>TỔNG KẾT CHIẾN DỊCH</b>\n✅ Thành công: {len(success_list)}\n❌ Thất bại: {len(error_list)}\n📎 <i>File báo cáo chi tiết đính kèm bên dưới.</i>"
-            send_tele_msg(t_tk, t_id, report_msg)
-            send_tele_file(t_tk, t_id, csv_buffer.getvalue(), f"Bao_cao_{st.session_state['current_user']}_{int(time.time())}.csv")
-
-            st.success("🎉 Chiến dịch hoàn tất! Báo cáo đã được gửi vào Telegram.")
-            st.download_button("📥 Tải báo cáo về máy", data=csv_buffer.getvalue(), file_name="ket_qua.csv")
             
-        else: st.error("Vui lòng kiểm tra lại cấu hình và danh sách!")
+            report_msg = f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Thất bại: {len(error_list)}"
+            send_tele_msg(t_tk, t_id, report_msg)
+            send_tele_file(t_tk, t_id, csv_buffer.getvalue(), f"Bao_cao_{st.session_state['current_user']}.csv")
+
+            st.success("🎉 Hoàn tất!")
+            st.download_button("📥 Tải báo cáo", data=csv_buffer.getvalue(), file_name="ket_qua.csv")
+            
+        else: st.error("Thiếu cấu hình!")
 
 # NÚT ZALO
 st.markdown('<div style="position:fixed;bottom:20px;right:20px;z-index:99"><a href="https://zalo.me/0935748199"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png" width="50"></a></div>', unsafe_allow_html=True)
