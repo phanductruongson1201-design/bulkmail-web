@@ -86,7 +86,6 @@ def send_tele_file(token, chat_id, file_content, file_name):
             requests.post(url, data={'chat_id': chat_id}, files=files, timeout=10)
         except: pass
 
-# HÀM CHUYỂN ẢNH THÀNH MÃ HTML (KHẮC PHỤC LỖI LỆCH ẢNH)
 def get_image_base64(path):
     try:
         with open(path, "rb") as img_file:
@@ -103,38 +102,9 @@ st.markdown("""
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
-    /* CHỈ ĐỊNH HTML THUẦN: ÉP CĂN GIỮA TUYỆT ĐỐI */
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 25px;
-    }
-    .logo-container img {
-        width: 160px;
-        height: 160px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid #1e3a8a;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        display: block;
-    }
-    .alt-logo {
-        width: 160px;
-        height: 160px;
-        border-radius: 50%;
-        background-color: #1e3a8a;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 800;
-        font-size: 18px;
-        text-align: center;
-        border: 4px solid white;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
+    .logo-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 25px; }
+    .logo-container img { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: block; }
+    .alt-logo { width: 160px; height: 160px; border-radius: 50%; background-color: #1e3a8a; color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 18px; text-align: center; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
     .hero-banner { background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(30, 58, 138, 0.85)), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'); background-size: cover; padding: 40px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
     .hero-banner h1 { font-size: 32px !important; font-weight: 800 !important; color: white !important; }
@@ -146,6 +116,8 @@ st.markdown("""
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 999999; }
     .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; }
     .float-btn img { width: 75%; height: 75%; object-fit: contain; }
+    
+    .help-box { background-color: #f0f7ff; padding: 15px; border-left: 4px solid #3b82f6; border-radius: 5px; font-size: 14px; color: #333; margin-top: -10px; margin-bottom: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -164,7 +136,6 @@ if not st.session_state['logged_in']:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">BULKMAIL PRO</p>', unsafe_allow_html=True)
         
-        # SỬ DỤNG HTML ĐỂ CĂN GIỮA TUYỆT ĐỐI (KHÔNG PHỤ THUỘC STREAMLIT)
         logo_b64 = get_image_base64(LOGO_URL)
         if logo_b64:
             st.markdown(f'<div class="logo-container"><img src="data:image/png;base64,{logo_b64}"></div>', unsafe_allow_html=True)
@@ -260,11 +231,38 @@ else:
         s_mail = st.text_input("Email gửi (Gmail):", value=st.session_state.get('s_email', ""))
         s_pass = st.text_input("App Password (16 ký tự):", type="password", value=st.session_state.get('s_pwd', ""))
         
+        with st.expander("❓ Nhấn vào đây để xem Cách lấy App Password nhanh nhất"):
+            st.markdown("""
+            <div class="help-box">
+                <b>Bảo mật của Google yêu cầu bạn dùng Mật khẩu ứng dụng (không dùng mật khẩu Gmail thường). Làm theo 3 bước:</b><br><br>
+                1. Mở thẻ trình duyệt mới, truy cập vào <a href="https://myaccount.google.com/security" target="_blank">Cài đặt Bảo mật Google</a>.<br>
+                2. Đảm bảo bạn đã bật <b>Xác minh 2 bước</b>.<br>
+                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.<br><br>
+                <i>🔥 Mẹo: Hệ thống tự động lưu lại mật khẩu này, bạn chỉ cần làm 1 lần duy nhất!</i>
+            </div>
+            """, unsafe_allow_html=True)
+
         st.markdown('<div class="section-header">2. Chữ ký Email</div>', unsafe_allow_html=True)
         s_sign = st.text_area("Thông tin liên hệ cuối thư:", value=st.session_state.get('s_sign', "Trân trọng,\nTrường Sơn Marketing"), height=100)
         st.session_state['s_name'], st.session_state['s_email'], st.session_state['s_pwd'], st.session_state['s_sign'] = s_name, s_mail, s_pass, s_sign
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
+        
+        # --- NÚT TẢI FILE MẪU ---
+        sample_df = pd.DataFrame({
+            "name": ["Nguyễn Văn A", "Trần Thị B"],
+            "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
+        })
+        csv_sample = sample_df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button(
+            label="📥 Tải file danh sách mẫu (.csv)",
+            data=csv_sample,
+            file_name="danh_sach_mau.csv",
+            mime="text/csv",
+            help="Tải file này về, mở bằng Excel và điền danh sách khách hàng của bạn vào đúng cột name và email."
+        )
+        # ------------------------
+
         up = st.file_uploader("Tải danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
         df = None
         if up:
