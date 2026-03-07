@@ -90,7 +90,7 @@ if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        st.image(LOGO_URL, width=250)
+        st.image(logo_moi, width=250)
         tab_login, tab_forgot = st.tabs(["🔐 Đăng nhập", "🔑 Quên mật khẩu"])
         users_db = load_users()
 
@@ -143,7 +143,7 @@ else:
             st.session_state['logged_in'] = False
             st.rerun()
 
-    st.image(LOGO_URL, use_container_width=True)
+    st.image(logo_moi, use_container_width=True)
     
     t_send, t_acc = st.tabs(["🚀 Gửi Email Chiến dịch", "⚙️ Quản lý Tài khoản"])
 
@@ -228,3 +228,4 @@ st.markdown("""
     <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a>
 </div>
 """, unsafe_allow_html=True)
+
