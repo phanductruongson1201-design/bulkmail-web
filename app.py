@@ -85,7 +85,7 @@ def send_tele_file(token, chat_id, file_content, file_name):
         except: pass
 
 # ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (ĐÃ CẤU HÌNH LOGO TRÒN HOÀN HẢO)
 # ==========================================
 st.markdown("""
 <style>
@@ -93,8 +93,16 @@ st.markdown("""
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
+    /* LOGO TRÒN VÀ CĂN GIỮA */
     .logo-container { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; width: 100%; }
-    .logo-container img { border-radius: 50% !important; width: 180px !important; height: 180px !important; object-fit: cover !important; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .logo-container img { 
+        border-radius: 50% !important; /* Lệnh biến thành hình tròn */
+        width: 160px !important;       /* Chiều rộng */
+        height: 160px !important;      /* Chiều cao bằng chiều rộng */
+        object-fit: cover !important;  /* Cắt ảnh gọn gàng không bị méo */
+        border: 4px solid #1e3a8a;     /* Viền xanh chuyên nghiệp */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+    }
 
     .hero-banner { background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(30, 58, 138, 0.85)), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'); background-size: cover; padding: 40px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
     .hero-banner h1 { font-size: 32px !important; font-weight: 800 !important; color: white !important; }
@@ -116,7 +124,7 @@ if 'otp_sent' not in st.session_state: st.session_state['otp_sent'] = False
 LOGO_URL = "logo_moi.png"
 
 # ==========================================
-# 1. AUTHENTICATION
+# 1. AUTHENTICATION (TRANG ĐĂNG NHẬP CÓ LOGO TRÒN)
 # ==========================================
 if not st.session_state['logged_in']:
     col1, col2, col3 = st.columns([1, 1.8, 1])
@@ -124,8 +132,9 @@ if not st.session_state['logged_in']:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         st.markdown('<p class="welcome-text">BULKMAIL PRO</p>', unsafe_allow_html=True)
         
+        # HIỂN THỊ LOGO TRÒN
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-        try: st.image(LOGO_URL, width=180)
+        try: st.image(LOGO_URL, width=160)
         except: st.info("🎯 TRƯỜNG SƠN MARKETING")
         st.markdown('</div>', unsafe_allow_html=True)
         
@@ -193,7 +202,7 @@ if not st.session_state['logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD
+# 2. DASHBOARD CHÍNH (ĐÃ BỎ LOGO, DÙNG BANNER)
 # ==========================================
 else:
     head_col1, head_col2 = st.columns([6, 1])
@@ -247,6 +256,7 @@ else:
         st.markdown('<div class="section-header">5. Thiết lập Gửi</div>', unsafe_allow_html=True)
         delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
 
+    # NÚT BẤM LƯU TELEGRAM THEO YÊU CẦU
     st.markdown("---")
     u_data = load_users().get(st.session_state['current_user'], {})
     t_tk = u_data.get("tele_token", ""); t_id = u_data.get("tele_chat_id", "")
@@ -255,7 +265,8 @@ else:
         new_id = st.text_input("Chat ID:", value=t_id, key="new_t_id")
         if st.button("💾 Lưu cấu hình báo cáo"):
             if save_config_api(st.session_state['current_user'], new_tk, new_id):
-                st.success("✅ Đã lưu!"); time.sleep(1); st.rerun()
+                st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
+                time.sleep(1); st.rerun()
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
