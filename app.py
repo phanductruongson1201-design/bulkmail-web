@@ -259,7 +259,7 @@ else:
     with col_right:
         st.markdown('<div class="section-header">4. Biên soạn Nội dung Email</div>', unsafe_allow_html=True)
         subject = st.text_input("Tiêu đề thư (Subject):")
-        raw_body = st.text_area("Nội dung chính (Dùng {{name}}):", height=250, value="Kính chào Anh/Chị {{name}},")
+        raw_body = st.text_area("Nội dung chính (Dùng {{name}}(Tên sẽ hiện giống như tên trong file excel bạn tải lên):", height=250, value="Kính chào Anh/Chị {{name}},")
         
         body_html = raw_body.replace("\n", "<br>")
         sign_html = s_sign.replace("\n", "<br>")
@@ -340,3 +340,4 @@ st.markdown("""
     <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" style="border: 2px solid #229ED9;"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a>
 </div>
 """, unsafe_allow_html=True)
+
