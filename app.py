@@ -123,7 +123,8 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] { justify-content: center !important; }
 
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 999999; }
-    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; }
+    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; transition: transform 0.3s; }
+    .float-btn:hover { transform: scale(1.1); }
     .float-btn img { width: 75%; height: 75%; object-fit: contain; }
     
     .help-box { background-color: #f0f7ff; padding: 15px; border-left: 4px solid #3b82f6; border-radius: 5px; font-size: 14px; color: #333; margin-top: -10px; margin-bottom: 15px; }
@@ -246,8 +247,7 @@ else:
                 <b>Bảo mật của Google yêu cầu bạn dùng Mật khẩu ứng dụng (không dùng mật khẩu Gmail thường). Làm theo 3 bước:</b><br><br>
                 1. Mở thẻ trình duyệt mới, truy cập vào <a href="https://myaccount.google.com/security" target="_blank">Cài đặt Bảo mật Google</a>.<br>
                 2. Đảm bảo bạn đã bật <b>Xác minh 2 bước</b>.<br>
-                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.<br><br>
-                <i>🔥 Mẹo: Hệ thống tự động lưu lại mật khẩu này, bạn chỉ cần làm 1 lần duy nhất!</i>
+                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.
             </div>
             """, unsafe_allow_html=True)
 
@@ -257,8 +257,9 @@ else:
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
         
+        # File mẫu chuẩn chỉ có Email
         sample_df = pd.DataFrame({
-            "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
+            "email": ["khachhang@gmail.com", "vidu@gmail.com"]
         })
         
         try:
@@ -318,8 +319,8 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # --- CẢNH BÁO AN TOÀN ---
-    st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi 200 - 300 email mỗi ngày.")
+    # --- CẬP NHẬT CÂU LƯU Ý CHUYÊN NGHIỆP ---
+    st.warning("⚖️ **CÂN NHẮC SỬ DỤNG:** Gửi từ **100 - 200 mail mỗi ngày** để đảm bảo an toàn tối đa cho tài khoản của bạn.")
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
@@ -353,36 +354,31 @@ else:
     # PHẦN GIỚI THIỆU CHUYÊN NGHIỆP & LOGO CUỐI TRANG
     # ==========================================
     st.markdown("---")
-    st.markdown(
-        """
-        <div style="text-align: center; padding: 20px; max-width: 850px; margin: 0 auto; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-            <p style="font-size: 17px; line-height: 1.8;">
-                <b style="color: #1e3a8a; font-size: 20px;">BulkMail Pro</b> – Giải pháp gửi email marketing hàng loạt chuyên nghiệp được phát triển và vận hành bởi <b style="color: #1e3a8a;">Trường Sơn Marketing</b>. 
-                Với sứ mệnh hỗ trợ doanh nghiệp tối ưu hóa quy trình kết nối khách hàng, chúng tôi cam kết mang đến trải nghiệm: 
-                <span style="color: #3b82f6; font-weight: bold;">Dễ dùng – Bảo mật – Hiệu quả vượt trội</span>. 
-                Trường Sơn Marketing luôn tự hào là người đồng hành tin cậy, giúp bạn nâng tầm thương hiệu và đột phá doanh số trong mọi chiến dịch kinh doanh.
+    st.markdown("""
+        <div style="text-align: center; padding: 20px; color: #444; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+            <p style="font-size: 16px; line-height: 1.6;">
+                <b style="color: #1e3a8a;">BulkMail Pro</b> là giải pháp gửi email hàng loạt chuyên nghiệp được Trường Sơn Marketing tin dùng. 
+                Dễ dùng - An toàn - Hiệu quả, chúng tôi cam kết đồng hành cùng thành công của bạn.
             </p>
         </div>
-        """, 
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
     
     logo_footer_b64 = get_image_base64(LOGO_URL)
     if logo_footer_b64:
         st.markdown(f"""
-            <div style="display: flex; justify-content: center; padding-bottom: 50px;">
+            <div style="display: flex; justify-content: center; padding: 40px 0 60px 0;">
                 <img src="data:image/png;base64,{logo_footer_b64}" 
-                     style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             </div>
         """, unsafe_allow_html=True)
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
 <div class="floating-container">
-    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn" style="border: 2px solid #0068ff;">
+    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn" style="border: 2.5px solid #0068ff;">
         <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png">
     </a>
-    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" style="border: 2px solid #229ED9;">
+    <a href="https://t.me/TrườngSơnMarketing" target="_blank" class="float-btn" style="border: 2.5px solid #229ED9;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
     </a>
 </div>
