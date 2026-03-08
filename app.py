@@ -261,8 +261,8 @@ else:
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
         
+        # CHỈ SỬA Ở ĐÂY: Bỏ cột name, chỉ để lại cột email
         sample_df = pd.DataFrame({
-            "name": ["Nguyễn Văn A", "Trần Thị B"],
             "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
         })
         
@@ -285,7 +285,7 @@ else:
             data=dl_data,
             file_name=dl_name,
             mime=dl_mime,
-            help="Tải file này về, mở bằng phần mềm Excel và điền danh sách khách hàng của bạn vào đúng 2 cột."
+            help="Tải file này về, mở bằng phần mềm Excel và điền danh sách email khách hàng của bạn vào."
         )
 
         up = st.file_uploader("Tải danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
@@ -306,7 +306,6 @@ else:
         
         with st.expander("👁️ Xem trước thực tế", expanded=True):
             p_text = full_email_content
-            # Xử lý file excel không có cột 'name' khi xem trước
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
             st.markdown(p_text.replace("{{name}}", f"<b style='color:#1e3a8a;'>{example_name}</b>"), unsafe_allow_html=True)
         
@@ -324,8 +323,7 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # --- ĐÃ BỔ SUNG LẠI CẢNH BÁO ---
-    st.warning("⚠️ **CẢNH BÁO AN TOÀN:** Để đảm bảo tài khoản Gmail không bị khóa, hệ thống khuyến nghị chỉ nên gửi từ **200 - 300 email mỗi ngày**.")
+    st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi 200 - 300 email mỗi ngày.")
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
@@ -334,7 +332,6 @@ else:
             success_list = []; error_list = []
             for index, row in df.iterrows():
                 try:
-                    # Lấy cột email bằng mọi giá (lấy cột đầu tiên nếu không tìm thấy chữ email)
                     target_email = row.get('email', row.iloc[0]); target_name = row.get('name', 'Khách hàng')
                     msg = MIMEMultipart()
                     msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
