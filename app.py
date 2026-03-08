@@ -271,9 +271,8 @@ else:
     # --- HEADER ---
     head_col1, head_col2 = st.columns([5, 1])
     with head_col1:
-        # ===== ĐÃ SỬA CHỮ LỚN THÀNH BULKMAIL =====
         st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Hệ thống Marketing Tự động chuyên nghiệp.</p>', unsafe_allow_html=True)
+        st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Thiết lập và vận hành hàng ngàn email cá nhân hóa chỉ trong tích tắc.</p>', unsafe_allow_html=True)
     with head_col2:
         st.markdown(f"<div style='text-align: right; padding-top: 10px; font-weight: bold; color: #1e40af;'>👤 {st.session_state['current_user']}</div>", unsafe_allow_html=True)
         if st.button("🚪 Đăng xuất", use_container_width=True):
@@ -287,16 +286,27 @@ else:
         
         with cfg_col1:
             st.markdown("<b style='color:#0f172a;'>📧 Thông tin Gửi thư (Gmail)</b>", unsafe_allow_html=True)
-            st.session_state["s_name"] = st.text_input("Tên người gửi:", value=st.session_state["s_name"])
-            st.session_state["s_email"] = st.text_input("Địa chỉ Gmail:", value=st.session_state["s_email"])
+            st.session_state["s_name"] = st.text_input("Tên người gửi (Ví dụ: Trường Sơn Marketing):", value=st.session_state["s_name"])
+            st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
-            st.markdown("<span style='font-size:12px; color:#64748b;'>*Mật khẩu ứng dụng lấy ở phần Bảo mật của tài khoản Google.</span>", unsafe_allow_html=True)
+            
+            # --- HƯỚNG DẪN LẤY APP PASSWORD RÕ RÀNG, AI CŨNG HIỂU ---
+            with st.expander("❓ Bấm vào đây để xem Hướng dẫn lấy Mật khẩu ứng dụng (Rất dễ)"):
+                st.markdown("""
+                <div style="font-size: 14.5px; color: #334155; line-height: 1.6;">
+                    <b>Làm theo 4 bước sau (chỉ mất 1 phút):</b><br>
+                    <b>1.</b> Mở tab mới, truy cập link này: <a href="https://myaccount.google.com/security" target="_blank" style="color:#3b82f6; text-decoration:none;"><b>Bảo mật Tài khoản Google</b></a>.<br>
+                    <b>2.</b> Đảm bảo tính năng <b>Xác minh 2 bước</b> đã được <b>BẬT</b>.<br>
+                    <b>3.</b> Kéo lên trên cùng, tìm ô <b>Tìm kiếm</b> (biểu tượng kính lúp) ➔ Gõ chữ <b>"Mật khẩu ứng dụng"</b> (hoặc App Passwords) ➔ Bấm chọn kết quả hiện ra.<br>
+                    <b>4.</b> Gõ tên ứng dụng là <i>"BulkMail"</i> ➔ Bấm <b>Tạo</b>. Google sẽ cấp cho bạn một dải gồm <b>16 chữ cái</b>. Hãy copy và dán vào ô bên trên (cứ dán nguyên, không cần xóa khoảng trắng).
+                </div>
+                """, unsafe_allow_html=True)
             
         with cfg_col2:
             st.markdown("<b style='color:#0f172a;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
             u_data = load_users().get(st.session_state["current_user"], {})
-            new_tk = st.text_input("Bot Token Telegram:", value=u_data.get("tele_token", ""), type="password")
-            new_id = st.text_input("Chat ID Telegram:", value=u_data.get("tele_chat_id", ""))
+            new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=u_data.get("tele_token", ""), type="password")
+            new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=u_data.get("tele_chat_id", ""))
             
             st.session_state["s_sign"] = st.text_area("Chữ ký mặc định cuối thư:", value=st.session_state["s_sign"], height=68)
             
@@ -397,6 +407,7 @@ else:
                 progress = st.progress(0)
                 log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
                 
+                # --- KHỞI TẠO BIẾN (FIX LỖI NAME_ERROR) ---
                 success_list = []
                 error_list = []
                 
