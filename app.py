@@ -98,13 +98,10 @@ def get_image_base64(path):
 # ==========================================
 st.markdown("""
 <style>
-    /* --- DIỆT TẬN GỐC CÁC MENU VÀ LOGO CỦA STREAMLIT --- */
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stDeployButton {display: none !important;}
-    
-    /* Nhắm thẳng vào cục logo góc dưới cùng bên phải */
     [data-testid="manage-app-button"] {display: none !important; visibility: hidden !important;}
     [data-testid="viewerBadge"] {display: none !important; visibility: hidden !important;}
     iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
@@ -313,8 +310,8 @@ else:
 
     st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi từ **200 - 300 email mỗi ngày**.")
     
-    # --- PHẦN BẢNG HƯỚNG DẪN AN TOÀN ĐƯỢC CHÈN VÀO ĐÂY ---
-    with st.expander("🛡️ Hướng dẫn gửi email An toàn tuyệt đối (Tránh khóa tài khoản)"):
+    # --- PHẦN BẢNG HƯỚNG DẪN AN TOÀN LUÔN MỞ (expanded=True) ---
+    with st.expander("🛡️ Hướng dẫn gửi email An toàn tuyệt đối (Tránh khóa tài khoản)", expanded=True):
         st.markdown("""
         **Số lượng gửi thực tế để "An toàn tuyệt đối"**
         
