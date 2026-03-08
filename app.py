@@ -298,7 +298,7 @@ else:
             st.markdown(p_text.replace("{{name}}", f"<b style='color:#1e3a8a;'>{example_name}</b>"), unsafe_allow_html=True)
         
         st.markdown('<div class="section-header">5. Thiết lập Gửi</div>', unsafe_allow_html=True)
-        delay = st.number_input("Khoảng nghỉ (giây):", value=5, min_value=1)
+        delay = st.number_input("Khoảng nghỉ (giây):", value=15, min_value=1)
 
     st.markdown("---")
     u_data = load_users().get(st.session_state['current_user'], {})
@@ -311,8 +311,21 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # --- CẢNH BÁO AN TOÀN 200-300 MAIL ---
     st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi từ **200 - 300 email mỗi ngày**.")
+    
+    # --- PHẦN BẢNG HƯỚNG DẪN AN TOÀN ĐƯỢC CHÈN VÀO ĐÂY ---
+    with st.expander("🛡️ Hướng dẫn gửi email An toàn tuyệt đối (Tránh khóa tài khoản)"):
+        st.markdown("""
+        **Số lượng gửi thực tế để "An toàn tuyệt đối"**
+        
+        Để giữ cho tài khoản luôn khỏe mạnh và thư vào Inbox thay vì mục Quảng cáo/Spam, bạn nên tuân thủ định mức sau:
+        
+        | Loại tài khoản | Số lượng khuyến nghị | Tần suất gửi |
+        | :--- | :--- | :--- |
+        | **Tài khoản mới tạo** | 20 - 50 mail/ngày | Nên "nuôi" tài khoản bằng cách gửi/nhận thủ công trong 1-2 tuần đầu. |
+        | **Tài khoản đã dùng lâu** | 200 - 300 mail/ngày | Chia nhỏ danh sách gửi thành nhiều đợt trong ngày. |
+        | **Tài khoản Workspace** | 500 - 1000 mail/ngày | Vẫn nên rải đều thời gian gửi, không gửi dồn dập. |
+        """)
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
@@ -347,7 +360,7 @@ else:
     # ==========================================
     st.markdown("---")
     
-    # Logo phóng to rõ nét (size ~180px)
+    # Logo phóng to rõ nét
     logo_footer_b64 = get_image_base64(LOGO_URL)
     if logo_footer_b64:
         st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 40px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"></div>""", unsafe_allow_html=True)
