@@ -97,7 +97,7 @@ def get_image_base64(path):
         return None
 
 # ==========================================
-# GIAO DIỆN CSS: "BENTO BOX" SIÊU HIỆN ĐẠI
+# GIAO DIỆN CSS: "VIÊN NANG ĐA SẮC NỔI BẬT"
 # ==========================================
 st.markdown("""
 <style>
@@ -107,36 +107,41 @@ st.markdown("""
     
     #MainMenu, footer, header, .stDeployButton, [data-testid="manage-app-button"], [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"], iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
 
-    /* Nền ứng dụng xám xanh cực nhạt, tạo chiều sâu */
-    .stApp { background-color: #f1f5f9; }
+    /* Nền ứng dụng */
+    .stApp { background-color: #f8fafc; }
     
     /* Chữ Gradient cực ngầu cho Tiêu đề */
     .gradient-text {
-        background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+        background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800;
-        font-size: 42px;
+        font-weight: 900;
+        font-size: 46px;
         margin-bottom: 5px;
+        letter-spacing: -1px;
     }
 
-    /* Khung Tiêu Đề Lớn (MỚI THÊM) */
-    .step-header {
-        background: linear-gradient(to right, #ffffff, #f8fafc);
-        border: 1px solid #e2e8f0;
-        border-left: 5px solid #3b82f6; /* Viền nhấn bên trái */
-        padding: 12px 18px;
-        border-radius: 8px;
-        color: #0f172a;
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        display: flex;
-        align-items: center;
+    /* KHUNG TIÊU ĐỀ NỔI BẬT 3D (PILL DESIGN) */
+    .pill-header {
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px; /* Bo cong viên thuốc */
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        margin-top: 15px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
+        display: inline-block; /* Ôm sát chữ */
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
+    
+    /* Các màu riêng biệt cho từng bước */
+    .bg-gradient-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); border: 2px solid #93c5fd; }
+    .bg-gradient-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); box-shadow: 0 6px 15px rgba(168, 85, 247, 0.4); border: 2px solid #d8b4fe; }
+    .bg-gradient-pink { background: linear-gradient(135deg, #ec4899, #be185d); box-shadow: 0 6px 15px rgba(236, 72, 153, 0.4); border: 2px solid #fbcfe8; }
+    .bg-gradient-green { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); border: 2px solid #6ee7b7; }
+    .bg-gradient-orange { background: linear-gradient(135deg, #f59e0b, #b45309); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.4); border: 2px solid #fcd34d; }
 
     /* Khối Đăng nhập - Kính mờ */
     .auth-box { 
@@ -163,17 +168,17 @@ st.markdown("""
         background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important; 
         color: white !important; 
         border-radius: 12px; 
-        font-weight: 700; 
+        font-weight: 800; 
         font-size: 16px;
         padding: 12px 24px; 
         border: none; 
-        box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
         transition: all 0.3s ease; 
         letter-spacing: 0.5px;
     }
     .stButton>button[kind="primary"]:hover { 
-        transform: translateY(-2px); 
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23); 
+        transform: translateY(-3px); 
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5); 
     }
     
     /* Logo Login */
@@ -215,7 +220,7 @@ if not st.session_state["logged_in"]:
         else:
             st.markdown('<div class="logo-container"><div class="alt-logo">TRƯỜNG SƠN<br>MARKETING</div></div>', unsafe_allow_html=True)
             
-        st.markdown('<h2 style="text-align:center; color:#0f172a; font-weight:800; margin-bottom:5px;">BULKMAIL PRO</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 style="text-align:center; color:#0f172a; font-weight:900; margin-bottom:5px;">BULKMAIL PRO</h2>', unsafe_allow_html=True)
         st.markdown('<p style="text-align:center; color:#64748b; margin-bottom:25px;">Đăng nhập để bắt đầu chiến dịch</p>', unsafe_allow_html=True)
         
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
@@ -290,16 +295,18 @@ else:
     head_col1, head_col2 = st.columns([5, 1])
     with head_col1:
         st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Thiết lập và vận hành hàng ngàn email cá nhân hóa chỉ trong tích tắc.</p>', unsafe_allow_html=True)
+        st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Hệ thống Marketing Tự động thông minh.</p>', unsafe_allow_html=True)
     with head_col2:
         st.markdown(f"<div style='text-align: right; padding-top: 10px; font-weight: bold; color: #1e40af;'>👤 {st.session_state['current_user']}</div>", unsafe_allow_html=True)
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state["logged_in"] = False
             st.rerun()
 
-    # --- KHỐI CẤU HÌNH ---
-    with st.expander("⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO", expanded=True):
-        st.info("Điền thông tin một lần, hệ thống sẽ tự động lưu lại cho các chiến dịch sau.")
+    # --- BƯỚC 1: CẤU HÌNH (THẺ XANH DƯƠNG) ---
+    st.markdown('<div class="pill-header bg-gradient-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
+    
+    with st.container():
+        st.info("💡 Điền thông tin một lần, hệ thống sẽ tự động lưu lại cho các chiến dịch sau.")
         cfg_col1, cfg_col2 = st.columns(2, gap="large")
         
         with cfg_col1:
@@ -331,15 +338,15 @@ else:
                 if save_config_api(st.session_state["current_user"], new_tk, new_id):
                     st.success("✅ Đã lưu cấu hình!")
 
-    st.markdown("<hr style='margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
 
     # --- KHỐI DỮ LIỆU & NỘI DUNG (CHIA 2 CỘT) ---
     col_data, col_content = st.columns([1, 1.2], gap="large")
     
     # Góc Trái: Data Khách hàng
     with col_data:
-        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN XANH) =====
-        st.markdown('<div class="step-header">📁 BƯỚC 2: DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
+        # BƯỚC 2 (THẺ TÍM)
+        st.markdown('<div class="pill-header bg-gradient-purple">📁 BƯỚC 2: DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
         
         sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
         try:
@@ -360,14 +367,14 @@ else:
             
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN TÍM) =====
-        st.markdown('<div class="step-header" style="border-left-color: #8b5cf6;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
+        # ĐÍNH KÈM (THẺ HỒNG)
+        st.markdown('<div class="pill-header bg-gradient-pink">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
         attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
 
     # Góc Phải: Nội dung & Soạn thảo
     with col_content:
-        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN XANH NGỌC) =====
-        st.markdown('<div class="step-header" style="border-left-color: #10b981;">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
+        # BƯỚC 3 (THẺ XANH LÁ)
+        st.markdown('<div class="pill-header bg-gradient-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         
         subject = st.text_input("Tiêu đề Email:")
         raw_body = st.text_area("Nội dung (Gọi tên bằng biến {{name}}):", height=230, value="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...")
@@ -383,40 +390,41 @@ else:
         
         with st.expander("👁️ Mở rộng Xem trước giao diện thực tế", expanded=False):
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
-            st.markdown(f"<div style='padding:20px; background:white;'>{full_email_content.replace('{{name}}', f'<b style=\"color:#3b82f6;\">{example_name}</b>')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='padding:20px; background:white; border-radius: 8px; border: 1px solid #e2e8f0;'>{full_email_content.replace('{{name}}', f'<b style=\"color:#3b82f6;\">{example_name}</b>')}</div>", unsafe_allow_html=True)
 
-    st.markdown("<br><hr style='margin: 10px 0 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
 
     # --- KHỐI BẢNG LƯU Ý & NÚT GỬI ---
     col_action1, col_action2 = st.columns([1.5, 1])
     
     with col_action1:
+        # BẢNG LƯU Ý (THẺ CAM)
+        st.markdown('<div class="pill-header bg-gradient-orange">🛡️ BẢNG TIÊU CHUẨN AN TOÀN</div>', unsafe_allow_html=True)
         st.markdown("""
-        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <h4 style="margin-top:0; color:#0f172a; font-size:16px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
-            <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-                <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;">
-                    <th style="padding: 8px 0;">Loại tài khoản</th>
-                    <th style="padding: 8px 0;">Số lượng (Ngày)</th>
+        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-top: -10px;">
+            <table style="width:100%; border-collapse: collapse; font-size: 15px; text-align: left;">
+                <tr style="border-bottom: 2px solid #e2e8f0; color:#64748b;">
+                    <th style="padding: 10px 0;">Loại tài khoản</th>
+                    <th style="padding: 10px 0;">Số lượng an toàn / Ngày</th>
                 </tr>
                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 8px 0; font-weight: 600;">Gmail mới tạo</td>
-                    <td style="padding: 8px 0; color: #f59e0b; font-weight: 600;">20 - 50 mail</td>
+                    <td style="padding: 12px 0; font-weight: 600;">Gmail mới tạo</td>
+                    <td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 8px 0; font-weight: 600;">Gmail dùng lâu</td>
-                    <td style="padding: 8px 0; color: #10b981; font-weight: 600;">200 - 300 mail</td>
+                    <td style="padding: 12px 0; font-weight: 600;">Gmail dùng lâu</td>
+                    <td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px 0; font-weight: 600;">Google Workspace</td>
-                    <td style="padding: 8px 0; color: #3b82f6; font-weight: 600;">500 - 1000 mail</td>
+                    <td style="padding: 12px 0; font-weight: 600;">Google Workspace</td>
+                    <td style="padding: 12px 0; color: #3b82f6; font-weight: 700;">500 - 1000 mail</td>
                 </tr>
             </table>
         </div>
         """, unsafe_allow_html=True)
 
     with col_action2:
-        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 55px;'></div>", unsafe_allow_html=True)
         if st.button("🚀 BẮT ĐẦU CHIẾN DỊCH GỬI MAIL", type="primary", use_container_width=True):
             if df is None:
                 st.error("⚠️ Vui lòng tải lên danh sách Khách hàng!")
@@ -428,6 +436,7 @@ else:
                 progress = st.progress(0)
                 log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
                 
+                # Biến đếm kết quả
                 success_list = []
                 error_list = []
                 
@@ -498,10 +507,10 @@ else:
         """
         <div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
             <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; 
-                        padding: 30px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; 
+                        padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; background: white; 
                         box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
                 <p style="font-size: 15px; line-height: 1.8; margin: 0;">
-                    <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 20px; font-weight: 800;">BulkMail Pro</b><br><br> 
+                    <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
                     Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
                     Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
                     giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
