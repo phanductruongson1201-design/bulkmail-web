@@ -98,10 +98,13 @@ def get_image_base64(path):
 # ==========================================
 st.markdown("""
 <style>
+    /* --- DIỆT TẬN GỐC CÁC MENU VÀ LOGO CỦA STREAMLIT --- */
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stDeployButton {display: none !important;}
+    
+    /* Nhắm thẳng vào cục logo góc dưới cùng bên phải */
     [data-testid="manage-app-button"] {display: none !important; visibility: hidden !important;}
     [data-testid="viewerBadge"] {display: none !important; visibility: hidden !important;}
     iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
@@ -122,10 +125,10 @@ st.markdown("""
     .section-header { color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-top: 20px; font-size: 20px; font-weight: 700; }
     .stTabs [data-baseweb="tab-list"] { justify-content: center !important; }
 
-    .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
-    .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; transition: all 0.3s ease; }
+    .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 999999; }
+    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; transition: 0.3s; }
     .float-btn:hover { transform: scale(1.1); }
-    .float-btn img { width: 35px; height: 35px; object-fit: contain; }
+    .float-btn img { width: 75%; height: 75%; object-fit: contain; }
     
     .help-box { background-color: #f0f7ff; padding: 15px; border-left: 4px solid #3b82f6; border-radius: 5px; font-size: 14px; color: #333; margin-top: -10px; margin-bottom: 15px; }
 </style>
@@ -247,8 +250,7 @@ else:
                 <b>Bảo mật của Google yêu cầu bạn dùng Mật khẩu ứng dụng (không dùng mật khẩu Gmail thường). Làm theo 3 bước:</b><br><br>
                 1. Mở thẻ trình duyệt mới, truy cập vào <a href="https://myaccount.google.com/security" target="_blank">Cài đặt Bảo mật Google</a>.<br>
                 2. Đảm bảo bạn đã bật <b>Xác minh 2 bước</b>.<br>
-                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.<br><br>
-                <i>🔥 Mẹo: Hệ thống tự động lưu lại mật khẩu này, bạn chỉ cần làm 1 lần duy nhất!</i>
+                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.
             </div>
             """, unsafe_allow_html=True)
 
@@ -257,7 +259,7 @@ else:
         st.session_state['s_name'], st.session_state['s_email'], st.session_state['s_pwd'], st.session_state['s_sign'] = s_name, s_mail, s_pass, s_sign
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
-        sample_df = pd.DataFrame({"email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]})
+        sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
         try:
             excel_buf = io.BytesIO()
             with pd.ExcelWriter(excel_buf, engine='openpyxl') as writer:
@@ -309,7 +311,7 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # --- CẬP NHẬT LƯU Ý 200-300 MAIL ---
+    # --- CẢNH BÁO AN TOÀN 200-300 MAIL ---
     st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi từ **200 - 300 email mỗi ngày**.")
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
@@ -341,28 +343,33 @@ else:
         else: st.error("⚠️ Thiếu cấu hình!")
 
     # ==========================================
-    # PHẦN GIỚI THIỆU (GỐC) & LOGO PHÓNG TO
+    # PHẦN LOGO TRƯỚC - CHỮ SAU (CÓ HIỆU ỨNG NỔI)
     # ==========================================
     st.markdown("---")
-    st.markdown("""
-        <div style="text-align: center; padding: 20px; color: #444; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
-            <p style="font-size: 16px; line-height: 1.6;">
-                <b>BulkMail Pro</b> là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
-                Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
-                giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. Với tiêu chí: Dễ dùng - An toàn - Hiệu quả, 
-                Trường Sơn Marketing cam kết luôn đồng hành và hỗ trợ bạn trong mọi chiến dịch kinh doanh.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
     
+    # Logo phóng to rõ nét (size ~180px)
     logo_footer_b64 = get_image_base64(LOGO_URL)
     if logo_footer_b64:
-        st.markdown(f"""
-            <div style="display: flex; justify-content: center; padding: 40px 0 60px 0;">
-                <img src="data:image/png;base64,{logo_footer_b64}" 
-                     style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 40px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"></div>""", unsafe_allow_html=True)
+
+    # Đoạn chữ giới thiệu (Dưới logo, hiệu ứng nổi lên)
+    st.markdown(
+        """
+        <div style="display: flex; justify-content: center; padding: 20px 0 60px 0;">
+            <div style="max-width: 850px; text-align: center; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                        padding: 25px; border-radius: 12px; border: 1px solid #ddd; background: white; 
+                        box-shadow: 0 15px 35px rgba(0,0,0,0.12);">
+                <p style="font-size: 16px; line-height: 1.7; margin: 0;">
+                    <b style="color: #1e3a8a; font-size: 18px;">BulkMail Pro</b> là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
+                    Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
+                    giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. Với tiêu chí: Dễ dùng - An toàn - Hiệu quả, 
+                    Trường Sơn Marketing cam kết luôn đồng hành và hỗ trợ bạn trong mọi chiến dịch kinh doanh.
+                </p>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
