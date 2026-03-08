@@ -110,9 +110,7 @@ st.markdown("""
     iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
     iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
 
-    .stApp { 
-        background: linear-gradient(120deg, #e0f2fe 0%, #cffafe 100%); 
-    }
+    .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .stButton>button { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%) !important; color: white !important; border-radius: 8px; font-weight: 600; }
     
@@ -427,6 +425,7 @@ else:
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn" style="border: 2px solid #0068ff;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" style="border: 2px solid #229ED9;"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a></div>""", unsafe_allow_html=True)
+
 
 
 
