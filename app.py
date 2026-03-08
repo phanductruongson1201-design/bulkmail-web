@@ -98,18 +98,14 @@ def get_image_base64(path):
 # ==========================================
 st.markdown("""
 <style>
-    /* --- DIỆT TẬN GỐC CÁC MENU VÀ LOGO CỦA STREAMLIT --- */
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stDeployButton {display: none !important;}
-    
-    /* Nhắm thẳng vào cục logo góc dưới cùng bên phải */
     [data-testid="manage-app-button"] {display: none !important; visibility: hidden !important;}
     [data-testid="viewerBadge"] {display: none !important; visibility: hidden !important;}
     iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
     iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
-    /* --------------------------------------------------- */
 
     .stApp { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
     .auth-box { max-width: 480px; margin: auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -127,8 +123,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] { justify-content: center !important; }
 
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 999999; }
-    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; transition: 0.3s; }
-    .float-btn:hover { transform: scale(1.1); }
+    .float-btn { width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; background: white; }
     .float-btn img { width: 75%; height: 75%; object-fit: contain; }
     
     .help-box { background-color: #f0f7ff; padding: 15px; border-left: 4px solid #3b82f6; border-radius: 5px; font-size: 14px; color: #333; margin-top: -10px; margin-bottom: 15px; }
@@ -251,7 +246,8 @@ else:
                 <b>Bảo mật của Google yêu cầu bạn dùng Mật khẩu ứng dụng (không dùng mật khẩu Gmail thường). Làm theo 3 bước:</b><br><br>
                 1. Mở thẻ trình duyệt mới, truy cập vào <a href="https://myaccount.google.com/security" target="_blank">Cài đặt Bảo mật Google</a>.<br>
                 2. Đảm bảo bạn đã bật <b>Xác minh 2 bước</b>.<br>
-                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.
+                3. Gõ chữ <b>Mật khẩu ứng dụng</b> vào ô tìm kiếm của Google (hoặc cuộn xuống dưới cùng phần Xác minh 2 bước). Tạo một ứng dụng tên là "BulkMail" và sao chép <b>16 chữ cái</b> dán vào ô bên trên.<br><br>
+                <i>🔥 Mẹo: Hệ thống tự động lưu lại mật khẩu này, bạn chỉ cần làm 1 lần duy nhất!</i>
             </div>
             """, unsafe_allow_html=True)
 
@@ -261,9 +257,8 @@ else:
         
         st.markdown('<div class="section-header">3. Dữ liệu Khách hàng</div>', unsafe_allow_html=True)
         
-        # File mẫu chuẩn chỉ có Email
         sample_df = pd.DataFrame({
-            "email": ["khachhang@gmail.com", "vidu@gmail.com"]
+            "email": ["nguyenvana@gmail.com", "tranthib@gmail.com"]
         })
         
         try:
@@ -306,7 +301,6 @@ else:
         
         with st.expander("👁️ Xem trước thực tế", expanded=True):
             p_text = full_email_content
-            # Xử lý nếu file không có cột 'name'
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
             st.markdown(p_text.replace("{{name}}", f"<b style='color:#1e3a8a;'>{example_name}</b>"), unsafe_allow_html=True)
         
@@ -324,8 +318,8 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # Cảnh báo an toàn
-    st.warning("⚠️ **CẢNH BÁO AN TOÀN:** Để đảm bảo tài khoản Gmail không bị khóa, hệ thống khuyến nghị chỉ nên gửi từ **200 - 300 email mỗi ngày** trên một tài khoản.")
+    # --- CẢNH BÁO AN TOÀN ---
+    st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi 200 - 300 email mỗi ngày.")
 
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
@@ -334,9 +328,7 @@ else:
             success_list = []; error_list = []
             for index, row in df.iterrows():
                 try:
-                    # Lấy email từ cột 'email' hoặc cột đầu tiên nếu không có
-                    target_email = row.get('email', row.iloc[0])
-                    target_name = row.get('name', 'Khách hàng')
+                    target_email = row.get('email', row.iloc[0]); target_name = row.get('name', 'Khách hàng')
                     msg = MIMEMultipart()
                     msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
                     msg.attach(MIMEText(full_email_content.replace("{{name}}", str(target_name)), 'html'))
@@ -352,39 +344,45 @@ else:
                 except Exception as e:
                     error_list.append(f"{target_email}"); log_ex.write(f"❌ Lỗi {target_email}: {str(e)}")
                 progress_bar.progress((index + 1) / len(df)); time.sleep(delay)
-            
             csv_buf = io.BytesIO(); pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"]*len(success_list) + ["Lỗi"]*len(error_list)}).to_csv(csv_buf, index=False, encoding='utf-8-sig')
             send_tele_msg(new_tk, new_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}"); send_tele_file(new_tk, new_id, csv_buf.getvalue(), "ket_qua.csv")
             st.success("🎉 Hoàn tất!"); st.download_button("📥 Tải báo cáo", data=csv_buf.getvalue(), file_name="ket_qua.csv")
         else: st.error("⚠️ Thiếu cấu hình!")
 
-    # GIỚI THIỆU & LOGO CUỐI TRANG
+    # ==========================================
+    # PHẦN GIỚI THIỆU CHUYÊN NGHIỆP & LOGO CUỐI TRANG
+    # ==========================================
     st.markdown("---")
-    st.markdown("""
-        <div style="text-align: center; padding: 20px; color: #444;">
-            <p style="font-size: 16px; line-height: 1.6;">
-                <b>BulkMail Pro</b> là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
-                Giải pháp Dễ dùng - An toàn - Hiệu quả, cam kết luôn đồng hành cùng bạn.
+    st.markdown(
+        """
+        <div style="text-align: center; padding: 20px; max-width: 850px; margin: 0 auto; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <p style="font-size: 17px; line-height: 1.8;">
+                <b style="color: #1e3a8a; font-size: 20px;">BulkMail Pro</b> – Giải pháp gửi email marketing hàng loạt chuyên nghiệp được phát triển và vận hành bởi <b style="color: #1e3a8a;">Trường Sơn Marketing</b>. 
+                Với sứ mệnh hỗ trợ doanh nghiệp tối ưu hóa quy trình kết nối khách hàng, chúng tôi cam kết mang đến trải nghiệm: 
+                <span style="color: #3b82f6; font-weight: bold;">Dễ dùng – Bảo mật – Hiệu quả vượt trội</span>. 
+                Trường Sơn Marketing luôn tự hào là người đồng hành tin cậy, giúp bạn nâng tầm thương hiệu và đột phá doanh số trong mọi chiến dịch kinh doanh.
             </p>
         </div>
-    """, unsafe_allow_html=True)
+        """, 
+        unsafe_allow_html=True
+    )
     
     logo_footer_b64 = get_image_base64(LOGO_URL)
     if logo_footer_b64:
         st.markdown(f"""
-            <div style="display: flex; justify-content: center; padding-bottom: 40px;">
+            <div style="display: flex; justify-content: center; padding-bottom: 50px;">
                 <img src="data:image/png;base64,{logo_footer_b64}" 
-                     style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                     style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #1e3a8a; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             </div>
         """, unsafe_allow_html=True)
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""
 <div class="floating-container">
-    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn" style="border: 2.5px solid #0068ff;">
+    <a href="https://zalo.me/0935748199" target="_blank" class="float-btn" style="border: 2px solid #0068ff;">
         <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/01/Logo-Zalo-Arc.png">
     </a>
-    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" style="border: 2.5px solid #229ED9;">
+    <a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn" style="border: 2px solid #229ED9;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
     </a>
 </div>
