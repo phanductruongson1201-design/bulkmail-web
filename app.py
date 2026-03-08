@@ -334,6 +334,13 @@ else:
         if df is not None and s_mail and s_pass:
             progress = st.progress(0)
             log = st.expander("📋 Nhật ký", expanded=True)
+            
+            # --- BỔ SUNG LẠI 2 BIẾN NÀY ĐỂ ĐẾM KẾT QUẢ GỬI ---
+            success_list = []
+            error_list = []
+            
+            send_tele_msg(new_tk, new_id, f"🚀 <b>BẮT ĐẦU</b>\n👤 User: {st.session_state['current_user']}")
+            
             for index, row in df.iterrows():
                 try:
                     e_col = next((c for c in df.columns if c.lower() in ["email", "mail"]), None)
@@ -346,6 +353,7 @@ else:
                     msg["To"] = target_email
                     msg["Subject"] = subject
                     msg.attach(MIMEText(full_email_content.replace("{{name}}", target_name), "html"))
+                    
                     if attachments:
                         for f in attachments:
                             part = MIMEBase("application", "octet-stream")
@@ -354,21 +362,33 @@ else:
                             part.add_header("Content-Disposition", f"attachment; filename={f.name}")
                             msg.attach(part)
                             f.seek(0)
+                            
                     with smtplib.SMTP("smtp.gmail.com", 587) as server:
                         server.starttls()
                         server.login(s_mail, s_pass)
                         server.send_message(msg)
+                        
+                    success_list.append(target_email)  # Thêm vào danh sách thành công
                     log.write(f"✅ Đã gửi: {target_email}")
                 except Exception as e:
+                    error_list.append(target_email)  # Thêm vào danh sách thất bại
                     log.write(f"❌ Lỗi {target_email}: {e}")
+                    
                 progress.progress((index + 1) / len(df))
                 time.sleep(delay)
+                
             st.success("🎉 Hoàn tất!")
             
+            # Khởi tạo file CSV báo cáo
             csv_buf = io.BytesIO()
-            pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"]*len(success_list) + ["Lỗi"]*len(error_list)}).to_csv(csv_buf, index=False, encoding="utf-8-sig")
+            pd.DataFrame({
+                "Email": success_list + error_list, 
+                "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)
+            }).to_csv(csv_buf, index=False, encoding="utf-8-sig")
+            
             send_tele_msg(new_tk, new_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
             send_tele_file(new_tk, new_id, csv_buf.getvalue(), "ket_qua.csv")
+            
             st.download_button("📥 Tải báo cáo", data=csv_buf.getvalue(), file_name="ket_qua.csv")
             
         else:
