@@ -306,7 +306,8 @@ else:
         
         with st.expander("👁️ Xem trước thực tế", expanded=True):
             p_text = full_email_content
-            example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty else "Nguyễn Văn A"
+            # Sửa đổi 1: Xử lý file excel không có cột 'name' khi xem trước
+            example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
             st.markdown(p_text.replace("{{name}}", f"<b style='color:#1e3a8a;'>{example_name}</b>"), unsafe_allow_html=True)
         
         st.markdown('<div class="section-header">5. Thiết lập Gửi</div>', unsafe_allow_html=True)
@@ -323,9 +324,6 @@ else:
                 st.success("✅ Đã lưu cấu hình báo cáo Telegram!")
                 time.sleep(1); st.rerun()
 
-    # --- ĐOẠN CẢNH BÁO ĐƯỢC CHÈN THÊM ---
-    st.warning("⚠️ **LƯU Ý:** Để tài khoản an toàn, chỉ nên gửi 200 - 300 email mỗi ngày.")
-
     if st.button("▶ BẮT ĐẦU CHIẾN DỊCH", type="primary", use_container_width=True):
         if df is not None and s_mail and s_pass:
             progress_bar = st.progress(0); log_ex = st.expander("📋 Nhật ký", expanded=True)
@@ -333,7 +331,8 @@ else:
             success_list = []; error_list = []
             for index, row in df.iterrows():
                 try:
-                    target_email = row.get('email'); target_name = row.get('name', 'Khách hàng')
+                    # Sửa đổi 2: Lấy cột email bằng mọi giá (lấy cột đầu tiên nếu không tìm thấy chữ email)
+                    target_email = row.get('email', row.iloc[0]); target_name = row.get('name', 'Khách hàng')
                     msg = MIMEMultipart()
                     msg['From'] = f"{s_name} <{s_mail}>"; msg['To'] = target_email; msg['Subject'] = subject
                     msg.attach(MIMEText(full_email_content.replace("{{name}}", str(target_name)), 'html'))
