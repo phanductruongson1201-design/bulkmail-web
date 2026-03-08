@@ -120,6 +120,24 @@ st.markdown("""
         margin-bottom: 5px;
     }
 
+    /* Khung Tiêu Đề Lớn (MỚI THÊM) */
+    .step-header {
+        background: linear-gradient(to right, #ffffff, #f8fafc);
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid #3b82f6; /* Viền nhấn bên trái */
+        padding: 12px 18px;
+        border-radius: 8px;
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        display: flex;
+        align-items: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
     /* Khối Đăng nhập - Kính mờ */
     .auth-box { 
         max-width: 420px; margin: 60px auto; padding: 40px; 
@@ -279,7 +297,7 @@ else:
             st.session_state["logged_in"] = False
             st.rerun()
 
-    # --- KHỐI CẤU HÌNH (THAY THẾ SIDEBAR, LUÔN HIỂN THỊ) ---
+    # --- KHỐI CẤU HÌNH ---
     with st.expander("⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO", expanded=True):
         st.info("Điền thông tin một lần, hệ thống sẽ tự động lưu lại cho các chiến dịch sau.")
         cfg_col1, cfg_col2 = st.columns(2, gap="large")
@@ -290,7 +308,6 @@ else:
             st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
             
-            # --- HƯỚNG DẪN LẤY APP PASSWORD RÕ RÀNG, AI CŨNG HIỂU ---
             with st.expander("❓ Bấm vào đây để xem Hướng dẫn lấy Mật khẩu ứng dụng (Rất dễ)"):
                 st.markdown("""
                 <div style="font-size: 14.5px; color: #334155; line-height: 1.6;">
@@ -321,7 +338,8 @@ else:
     
     # Góc Trái: Data Khách hàng
     with col_data:
-        st.markdown('<h3 style="color:#0f172a; font-size:20px;">BƯỚC 2: Dữ liệu Khách hàng</h3>', unsafe_allow_html=True)
+        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN XANH) =====
+        st.markdown('<div class="step-header">📁 BƯỚC 2: DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
         
         sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
         try:
@@ -341,12 +359,15 @@ else:
             st.success(f"✅ Hợp lệ! Đã nhận {len(df)} địa chỉ email.")
             
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<h3 style="color:#0f172a; font-size:20px;">Tệp đính kèm (Tùy chọn)</h3>', unsafe_allow_html=True)
+        
+        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN TÍM) =====
+        st.markdown('<div class="step-header" style="border-left-color: #8b5cf6;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
         attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
 
     # Góc Phải: Nội dung & Soạn thảo
     with col_content:
-        st.markdown('<h3 style="color:#0f172a; font-size:20px;">BƯỚC 3: Soạn Thông điệp</h3>', unsafe_allow_html=True)
+        # ===== TIÊU ĐỀ CÓ KHUNG (VIỀN XANH NGỌC) =====
+        st.markdown('<div class="step-header" style="border-left-color: #10b981;">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         
         subject = st.text_input("Tiêu đề Email:")
         raw_body = st.text_area("Nội dung (Gọi tên bằng biến {{name}}):", height=230, value="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...")
@@ -407,7 +428,6 @@ else:
                 progress = st.progress(0)
                 log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
                 
-                # --- KHỞI TẠO BIẾN (FIX LỖI NAME_ERROR) ---
                 success_list = []
                 error_list = []
                 
