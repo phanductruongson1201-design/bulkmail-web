@@ -181,6 +181,23 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5); 
     }
     
+    /* ===== NÚT PHỤ (ĐĂNG XUẤT, LƯU CẤU HÌNH, TẢI FILE) ===== */
+    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button {
+        border-radius: 12px; 
+        border: 1.5px solid #cbd5e1; 
+        color: #475569 !important; 
+        font-weight: 700;
+        background-color: white !important;
+        transition: all 0.3s ease;
+    }
+    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover {
+        border-color: #3b82f6 !important; 
+        color: #3b82f6 !important; 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15);
+    }
+    /* ======================================================== */
+    
     /* Logo Login */
     .logo-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 30px; }
     .logo-container img { width: 130px; height: 130px; border-radius: 35%; object-fit: cover; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); border: 4px solid white;}
@@ -298,6 +315,7 @@ else:
         st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Hệ thống Marketing Tự động thông minh.</p>', unsafe_allow_html=True)
     with head_col2:
         st.markdown(f"<div style='text-align: right; padding-top: 10px; font-weight: bold; color: #1e40af;'>👤 {st.session_state['current_user']}</div>", unsafe_allow_html=True)
+        # Nút đăng xuất (Giờ đã có hiệu ứng Hover xịn xò)
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state["logged_in"] = False
             st.rerun()
@@ -334,6 +352,7 @@ else:
             
             st.session_state["s_sign"] = st.text_area("Chữ ký mặc định cuối thư:", value=st.session_state["s_sign"], height=68)
             
+            # Nút Lưu cấu hình (Giờ đã có hiệu ứng Hover xịn xò)
             if st.button("💾 Lưu cấu hình Telegram"):
                 if save_config_api(st.session_state["current_user"], new_tk, new_id):
                     st.success("✅ Đã lưu cấu hình!")
