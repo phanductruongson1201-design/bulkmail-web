@@ -116,7 +116,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800;
-        font-size: 38px;
+        font-size: 42px;
         margin-bottom: 5px;
     }
 
@@ -265,13 +265,14 @@ if not st.session_state["logged_in"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH (ĐEM CẤU HÌNH RA MÀN HÌNH CHÍNH)
+# 2. DASHBOARD CHÍNH
 # ==========================================
 else:
     # --- HEADER ---
     head_col1, head_col2 = st.columns([5, 1])
     with head_col1:
-        st.markdown('<div class="gradient-text">Studio Chiến Dịch</div>', unsafe_allow_html=True)
+        # ===== ĐÃ SỬA CHỮ LỚN THÀNH BULKMAIL =====
+        st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
         st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Hệ thống Marketing Tự động chuyên nghiệp.</p>', unsafe_allow_html=True)
     with head_col2:
         st.markdown(f"<div style='text-align: right; padding-top: 10px; font-weight: bold; color: #1e40af;'>👤 {st.session_state['current_user']}</div>", unsafe_allow_html=True)
