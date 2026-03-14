@@ -18,7 +18,7 @@ import re
 from bs4 import BeautifulSoup
 from streamlit_quill import st_quill
 
-# 1. Cấu hình trang Web
+# 1. Cấu hình trang Web (Giao diện rộng)
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
 
 # ==========================================
@@ -41,7 +41,10 @@ def save_user_api(username, password_hash, email):
 def reset_password_api(username, email, new_password_hash, is_reset_status):
     if not DB_URL: return False
     try:
-        res = requests.post(DB_URL, json={"action": "reset", "username": username, "email": email, "new_password": new_password_hash, "is_reset": is_reset_status}).json()
+        res = requests.post(DB_URL, json={
+            "action": "reset", "username": username, "email": email, 
+            "new_password": new_password_hash, "is_reset": is_reset_status
+        }).json()
         return res.get("status") == "success"
     except: return False
 
@@ -62,13 +65,9 @@ def send_otp_email(to_email, username, otp_code):
         msg["From"] = f"Hệ thống xác thực <{SYS_EMAIL}>"
         msg["To"] = to_email
         msg["Subject"] = f"{otp_code} là mã xác thực của bạn"
-        body = f"<h3>Chào {username},</h3><p>Mã OTP để khôi phục mật khẩu của bạn là: <b style='font-size: 20px;'>{otp_code}</b></p>"
+        body = f"<h3>Chào {username},</h3><p>Mã OTP là: <b>{otp_code}</b></p>"
         msg.attach(MIMEText(body, "html"))
-        s = smtplib.SMTP("smtp.gmail.com", 587)
-        s.starttls()
-        s.login(SYS_EMAIL, SYS_PWD)
-        s.send_message(msg)
-        s.quit()
+        s = smtplib.SMTP("smtp.gmail.com", 587); s.starttls(); s.login(SYS_EMAIL, SYS_PWD); s.send_message(msg); s.quit()
         return True
     except: return False
 
@@ -79,21 +78,13 @@ def send_tele_msg(token, chat_id, message):
             requests.post(url, data={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=5)
         except: pass
 
-def send_tele_file(token, chat_id, file_content, file_name):
-    if token and chat_id:
-        try:
-            url = f"https://api.telegram.org/bot{token}/sendDocument"
-            files = {"document": (file_name, file_content)}
-            requests.post(url, data={"chat_id": chat_id}, files=files, timeout=10)
-        except: pass
-
 def get_image_base64(path):
     try:
         with open(path, "rb") as img_file: return base64.b64encode(img_file.read()).decode("utf-8")
     except: return None
 
 # ==========================================
-# GIAO DIỆN CSS (GIỮ NGUYÊN)
+# GIAO DIỆN CSS CHUYÊN NGHIỆP
 # ==========================================
 st.markdown("""
 <style>
@@ -102,21 +93,13 @@ st.markdown("""
     #MainMenu, footer, header, .stDeployButton, [data-testid="manage-app-button"] {display: none !important;}
     .block-container { padding-top: 1.5rem !important; }
     .stApp { background-color: #f8fafc; }
-    .gradient-text {
-        background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 900; font-size: 46px; margin-bottom: 5px; letter-spacing: -1px;
-    }
+    .gradient-text { background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 46px; margin-bottom: 5px; letter-spacing: -1px; }
     div[data-baseweb="tab-list"] { background-color: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; }
     div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; color: #64748b !important; font-weight: 600 !important; }
     div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #1e40af !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important; }
     div[data-testid="stExpander"] { background-color: #eff6ff !important; border: 2px solid #bfdbfe !important; border-radius: 16px; }
     div[data-testid="stFileUploader"] { background-color: #faf5ff !important; border: 2px solid #e9d5ff !important; border-radius: 16px; padding: 20px; }
-    .stButton>button[kind="primary"] { 
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; 
-        color: white !important; border-radius: 16px; font-weight: 900; font-size: 18px !important; padding: 15px 24px; border: none !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important;
-    }
+    .stButton>button[kind="primary"] { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; color: white !important; border-radius: 16px; font-weight: 900; font-size: 18px !important; padding: 15px 24px; border: none !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important; }
     .pill-header { color: white; padding: 10px 24px; border-radius: 50px; font-size: 15px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; display: inline-block; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
     .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); }
@@ -139,7 +122,7 @@ if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
 if "s_sign" not in st.session_state: st.session_state["s_sign"] = "Trân trọng,\nTrường Sơn Marketing"
 
 # ==========================================
-# 1. HỆ THỐNG ĐĂNG NHẬP (GIỮ NGUYÊN)
+# 1. HỆ THỐNG ĐĂNG NHẬP
 # ==========================================
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
@@ -207,7 +190,7 @@ if not st.session_state["logged_in"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH (GIỮ NGUYÊN + FIX ẢNH)
+# 2. DASHBOARD CHÍNH
 # ==========================================
 else:
     head_col1, head_col2 = st.columns([5, 1])
@@ -239,16 +222,16 @@ else:
         up = st.file_uploader("Tải Excel/CSV", type=["csv", "xlsx"])
         df = pd.read_excel(up) if up and up.name.endswith("xlsx") else (pd.read_csv(up) if up else None)
         if df is not None: st.success(f"Đã nhận {len(df)} khách hàng")
-        st.markdown('<div class="pill-header bg-purple" style="font-size:12px;">📎 ĐÍNH KÈM THÊM</div>', unsafe_allow_html=True)
+        st.markdown('<div class="pill-header bg-purple" style="font-size:12px;">📎 TỆP ĐÍNH KÈM THÊM</div>', unsafe_allow_html=True)
         files = st.file_uploader("Kéo thả file", accept_multiple_files=True)
 
     with col_content:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THƯ</div>', unsafe_allow_html=True)
         subject = st.text_input("Tiêu đề email:")
+        # NÂNG CẤP Ô SOẠN THẢO COPY ẢNH
         raw_body = st_quill(placeholder="Dán nội dung và ảnh vào đây...", html=True, key="editor")
         delay = st.number_input("⏳ Nghỉ giữa các mail (giây):", value=15, min_value=5)
 
-    # NÚT GỬI VÀ XỬ LÝ ẢNH CHUYÊN NGHIỆP
     if st.button("🚀 BẮT ĐẦU GỬI MAIL", type="primary", use_container_width=True):
         if df is None or not subject or not st.session_state["s_email"]: st.error("Thiếu thông tin gửi!")
         else:
@@ -264,7 +247,7 @@ else:
                     msg["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
                     msg["To"] = target_email; msg["Subject"] = subject
                     
-                    # Tự động hóa việc tách và nhúng ảnh
+                    # XỬ LÝ ẢNH DÁN VÀO (FIX LỖI HIỂN THỊ GMAIL)
                     soup = BeautifulSoup(raw_body.replace("{{name}}", target_name), "html.parser")
                     img_counter = 0
                     for img in soup.find_all("img"):
@@ -293,11 +276,10 @@ else:
                 except Exception as e: fail += 1; log.write(f"❌ {target_email}: {e}")
                 progress.progress((idx + 1) / len(df)); time.sleep(delay)
             
-            st.success(f"Hoàn tất! Thành công: {success}, Thất bại: {fail}")
-            send_tele_msg(u_run.get("tele_token"), u_run.get("tele_chat_id"), f"📊 Tổng kết: {success} thành công.")
+            st.success(f"Hoàn tất! Thành công: {success}, Lỗi: {fail}")
 
-# BẢNG AN TOÀN & GIỚI THIỆU (GIỮ NGUYÊN)
-st.markdown("""<div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+# CHÂN TRANG & NÚT NỔI
+st.markdown("""<div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top:30px;">
 <h4 style="margin-top:0; color:#0f172a; font-size:16px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
 <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
 <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng an toàn / Ngày</th></tr>
