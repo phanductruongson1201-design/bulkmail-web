@@ -13,6 +13,7 @@ import string
 import random
 import base64
 import os
+from streamlit_quill import st_quill # Thêm thư viện soạn thảo hỗ trợ copy ảnh
 
 # 1. Cấu hình trang Web (Giao diện rộng)
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
@@ -252,9 +253,9 @@ st.markdown("""
     .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); box-shadow: 0 6px 15px rgba(168, 85, 247, 0.4); border: 2px solid #d8b4fe; }
     .bg-green { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); border: 2px solid #6ee7b7; }
 
-    /* KHỐI ĐĂNG NHẬP (Đã Dời Lên Trên) */
+    /* KHỐI ĐĂNG NHẬP */
     .auth-box { 
-        max-width: 440px; margin: 10px auto; padding: 35px; 
+        max-width: 440px; margin: 0 auto 20px auto; padding: 35px; 
         background: rgba(255, 255, 255, 0.95); 
         border-radius: 24px; 
         box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); 
@@ -293,6 +294,13 @@ LOGO_URL = "logo_moi.png"
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
+        
+        st.markdown("""
+        <div style="text-align: center; margin-top: -10px; margin-bottom: 10px;">
+            <h1 class="gradient-text" style="font-size: 50px; padding-bottom: 5px;">Bulkmail Pro</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
         
         logo_b64 = get_image_base64(LOGO_URL)
@@ -454,16 +462,27 @@ else:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         
         subject = st.text_input("Tiêu đề Email:")
-        raw_body = st.text_area("Nội dung (Gọi tên bằng biến {{name}}):", height=230, value="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...")
+        
+        # --- KHUNG SOẠN THẢO CAO CẤP ---
+        st.markdown('<p style="font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;">Nội dung (Gọi tên bằng biến {{name}}):</p>', unsafe_allow_html=True)
+        
+        # Ô Quill Editor thay cho Text Area để dán được ảnh
+        raw_body = st_quill(
+            placeholder="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...",
+            html=True,
+            key="quill_editor"
+        )
+        
+        if not raw_body: 
+            raw_body = ""
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
             delay = st.number_input("⏳ Khoảng nghỉ/Mail (Giây):", value=15, min_value=5, help="Thời gian nghỉ giữa mỗi mail. Đề xuất: 15-30s.")
 
-        # Xem trước
-        body_html = raw_body.replace("\n", "<br>")
+        # Xem trước (Sử dụng trực tiếp HTML từ Quill sinh ra)
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
-        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{body_html}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
+        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{raw_body}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
         
         with st.expander("👁️ Xem trước giao diện thực tế", expanded=False):
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
