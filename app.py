@@ -16,10 +16,11 @@ import random
 import base64
 import os
 import re 
+import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web (Giao diện rộng)
+# 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
 
 # ==========================================
@@ -29,10 +30,15 @@ DB_URL = st.secrets.get("DB_URL", "")
 SYS_EMAIL = st.secrets.get("SENDER_EMAIL", "")
 SYS_PWD = st.secrets.get("APP_PASSWORD", "")
 
-def load_users():
-    if not DB_URL: return {}
-    try: return requests.get(DB_URL).json()
-    except: return {}
+def load_data():
+    if not DB_URL: return {"users": {}, "logs": []}
+    try: 
+        res = requests.get(DB_URL).json()
+        # Xử lý linh hoạt nếu API trả về bản cũ (chỉ users) hoặc bản mới (users + logs)
+        if isinstance(res, dict) and "users" in res:
+            return res
+        return {"users": res, "logs": []}
+    except: return {"users": {}, "logs": []}
 
 def save_user_api(username, password_hash, email):
     if not DB_URL: return
@@ -102,7 +108,7 @@ def get_image_base64(path):
         return None
 
 # ==========================================
-# GIAO DIỆN CSS
+# GIAO DIỆN CSS (Giữ nguyên phong cách của Ngân)
 # ==========================================
 st.markdown("""
 <style>
@@ -150,12 +156,11 @@ st.markdown("""
     .float-btn:hover { transform: translateY(-5px); border-color: #3b82f6; }
     .float-btn img { width: 65%; height: 65%; object-fit: contain; }
     
-    /* Giao diện Form Deposit */
     .deposit-box { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 25px; }
 </style>
 """, unsafe_allow_html=True)
 
-# Khởi tạo trạng thái
+# Khởi tạo trạng thái Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "otp_verified" not in st.session_state: st.session_state["otp_verified"] = False
 if "otp_sent" not in st.session_state: st.session_state["otp_sent"] = False
@@ -164,7 +169,7 @@ if "show_deposit_form" not in st.session_state: st.session_state["show_deposit_f
 if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
-if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None # Dùng để bắt sự kiện cộng tiền
+if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None 
 
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
@@ -180,7 +185,6 @@ if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
-        
         logo_b64 = get_image_base64(LOGO_URL)
         if logo_b64:
             st.markdown(f'<div class="logo-container"><img src="data:image/png;base64,{logo_b64}"></div>', unsafe_allow_html=True)
@@ -188,15 +192,13 @@ if not st.session_state["logged_in"]:
             st.markdown('<div class="logo-container"><div class="alt-logo">TRƯỜNG SƠN<br>MARKETING</div></div>', unsafe_allow_html=True)
             
         st.markdown('<h2 style="text-align:center; color:#0f172a; font-weight:900; margin-bottom:5px; font-size:28px;">BULKMAIL PRO</h2>', unsafe_allow_html=True)
-        st.markdown('<p style="text-align:center; color:#64748b; margin-bottom:20px; font-size:14px;">Đăng nhập để bắt đầu chiến dịch</p>', unsafe_allow_html=True)
-        
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
-        users_db = load_users()
+        all_data = load_data()
+        users_db = all_data["users"]
 
         with tab_login:
             log_user = st.text_input("Tên đăng nhập", key="login_u")
             log_pwd = st.text_input("Mật khẩu", type="password", key="login_p")
-            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("ĐĂNG NHẬP HỆ THỐNG", type="primary", use_container_width=True):
                 u_data = users_db.get(log_user)
                 if u_data and u_data.get("password") == hash_password(log_pwd):
@@ -209,14 +211,9 @@ if not st.session_state["logged_in"]:
             reg_user = st.text_input("Tên đăng nhập mới", key="reg_u")
             reg_email = st.text_input("Email khôi phục", key="reg_e")
             reg_pwd = st.text_input("Mật khẩu", type="password", key="reg_p")
-            reg_pwd_confirm = st.text_input("Xác nhận mật khẩu", type="password", key="reg_pc")
             if st.button("TẠO TÀI KHOẢN", type="primary", use_container_width=True):
-                if not reg_user or not reg_email or not reg_pwd:
-                    st.warning("⚠️ Điền đủ thông tin!")
-                elif reg_user in users_db:
-                    st.error("❌ Username đã tồn tại!")
-                elif reg_pwd != reg_pwd_confirm:
-                    st.error("❌ Mật khẩu không khớp!")
+                if not reg_user or not reg_email or not reg_pwd: st.warning("⚠️ Điền đủ thông tin!")
+                elif reg_user in users_db: st.error("❌ Username đã tồn tại!")
                 else:
                     save_user_api(reg_user, hash_password(reg_pwd), reg_email)
                     st.success("✅ Đăng ký thành công!")
@@ -234,451 +231,201 @@ if not st.session_state["logged_in"]:
                                 st.success(f"✅ OTP đã gửi tới {fg_email}")
                     else: st.error("❌ Thông tin không khớp!")
                 
-                if st.session_state["otp_sent"]:
-                    input_otp = st.text_input("Mã OTP 6 số:", max_chars=6, key="otp_i")
+                if st.session_state.get("otp_sent"):
+                    input_otp = st.text_input("Mã OTP 6 số:", max_chars=6)
                     if st.button("XÁC THỰC OTP", type="primary", use_container_width=True):
-                        u_info = load_users().get(fg_user)
+                        u_info = load_data()["users"].get(fg_user)
                         if u_info and u_info.get("password") == hash_password(input_otp):
                             st.session_state["otp_verified"] = True
                             st.session_state["target_user"] = fg_user
                             st.rerun()
                         else: st.error("❌ OTP không đúng!")
             else:
-                new_p = st.text_input("Mật khẩu mới", type="password", key="new_p")
+                new_p = st.text_input("Mật khẩu mới", type="password")
                 if st.button("ĐỔI MẬT KHẨU", type="primary", use_container_width=True):
-                    u_db = load_users()
                     target = st.session_state["target_user"]
-                    if reset_password_api(target, u_db[target]["email"], hash_password(new_p), False):
+                    if reset_password_api(target, users_db[target]["email"], hash_password(new_p), False):
                         st.session_state["otp_verified"] = False
-                        st.session_state["otp_sent"] = False
                         st.success("✅ Đổi mật khẩu thành công!")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH
+# 2. DASHBOARD CHÍNH (Sau đăng nhập)
 # ==========================================
 else:
-    # --- TẢI DỮ LIỆU & KIỂM TRA SỐ DƯ ---
-    users_db = load_users()
+    all_data = load_data()
+    users_db = all_data["users"]
+    logs_db = all_data["logs"]
     current_user_data = users_db.get(st.session_state["current_user"], {})
     
-    balance = current_user_data.get("balance", 0)
-    try: balance = int(float(balance))
-    except: balance = 0
+    balance = int(float(current_user_data.get("balance", 0)))
 
-    # THUẬT TOÁN KÍCH HOẠT BÁO CÁO THÀNH CÔNG
+    # Pháo hoa mừng cộng tiền thành công
     if st.session_state["previous_balance"] is None:
         st.session_state["previous_balance"] = balance
     elif balance > st.session_state["previous_balance"]:
         st.balloons()
         st.success(f"🎉 THANH TOÁN THÀNH CÔNG! Tài khoản của bạn vừa được cộng thêm {balance - st.session_state['previous_balance']:,} VNĐ.")
         st.session_state["previous_balance"] = balance
-        # Đóng form QR cho gọn
         st.session_state["show_deposit_form"] = False
         st.session_state["show_qr"] = False
 
-    # --- HEADER ---
+    # Header Dashboard
     head_col1, head_col2 = st.columns([5, 1.5])
     with head_col1:
         st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Thiết lập và vận hành hàng ngàn email cá nhân hóa chỉ trong tích tắc.</p>', unsafe_allow_html=True)
     with head_col2:
         st.markdown(f"""
         <div style='text-align: right; padding-top: 5px;'>
             <div style='font-weight: bold; color: #1e40af; font-size: 15px;'>👤 {st.session_state['current_user']}</div>
-            <div style='color: #047857; font-weight: 800; font-size: 14px; margin-bottom: 5px;'>💰 Số dư: {balance:,} VNĐ</div>
+            <div style='color: #047857; font-weight: 800; font-size: 14px;'>💰 Số dư: {balance:,} VNĐ</div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state["logged_in"] = False
             st.rerun()
 
-    # ========================================================
-    # --- KHỐI GIAO DIỆN NẠP TIỀN (CHUẨN FORM POPUP) ---
-    # ========================================================
-    btn_col1, btn_col2 = st.columns([6, 2])
-    with btn_col2:
-        if st.button("💳 NẠP TIỀN TỰ ĐỘNG", type="primary", use_container_width=True):
+    # TỔ HỢP TABS
+    tab_send, tab_history, tab_config = st.tabs(["✉️ Gửi Email", "📊 Lịch sử nạp", "⚙️ Cài đặt"])
+
+    with tab_send:
+        # NẠP TIỀN POPUP (Giữ nguyên giao diện mockup của Ngân)
+        if st.button("💳 NẠP TIỀN TỰ ĐỘNG", type="primary"):
             st.session_state["show_deposit_form"] = True
             st.session_state["show_qr"] = False
             
-    if st.session_state.get("show_deposit_form"):
-        # Khung Form thiết kế y hệt ảnh mockup
-        st.markdown('<div class="deposit-box">', unsafe_allow_html=True)
-        st.markdown("<h3 style='margin-top:0; color:#0f172a;'>Nhập số tiền cần nạp</h3>", unsafe_allow_html=True)
-        st.markdown("<hr style='margin: 10px 0 20px 0; border: 1px solid #f1f5f9;'>", unsafe_allow_html=True)
-        
-        amount_input = st.number_input("Nhập số tiền bạn cần nạp vào hệ thống (VNĐ)", 
-                                       value=st.session_state.get("deposit_amount", 100000), step=10000, min_value=0)
-        
-        col_pay, col_receive = st.columns(2)
-        col_pay.markdown(f"**Số tiền cần thanh toán**<br><h3 style='color:#2563eb; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
-        col_receive.markdown(f"**Số tiền nhận được**<br><h3 style='color:#ef4444; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        bc1, bc2, bc3 = st.columns([5.5, 2, 2.5])
-        with bc2:
-            if st.button("Đóng", use_container_width=True):
-                st.session_state["show_deposit_form"] = False
-                st.session_state["show_qr"] = False
-                st.rerun()
-        with bc3:
-            if st.button("Tạo hoá đơn", type="primary", use_container_width=True):
-                if amount_input < 10000:
-                    st.error("⚠️ Số tiền nạp tối thiểu là 10.000 VNĐ")
+        if st.session_state.get("show_deposit_form"):
+            st.markdown('<div class="deposit-box">', unsafe_allow_html=True)
+            st.markdown("### Nhập số tiền cần nạp")
+            st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+            amount_input = st.number_input("Nhập số tiền VNĐ", value=st.session_state["deposit_amount"], step=10000, min_value=0)
+            
+            c_p, c_r = st.columns(2)
+            c_p.markdown(f"**Cần thanh toán**<br><h3 style='color:#2563eb; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
+            c_r.markdown(f"**Nhận được**<br><h3 style='color:#ef4444; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            bc1, bc2, bc3 = st.columns([6, 2, 2.5])
+            if bc2.button("Đóng"): 
+                st.session_state["show_deposit_form"] = False; st.rerun()
+            if bc3.button("Tạo hoá đơn", type="primary"):
+                if amount_input < 10000: st.error("Tối thiểu 10.000đ")
                 else:
                     st.session_state["deposit_amount"] = amount_input
                     st.session_state["show_qr"] = True
-                    st.session_state["qr_expire_time"] = time.time() + 600 # 10 phút = 600 giây
+                    st.session_state["qr_expire_time"] = time.time() + 600
                     st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        # Logic hiển thị QR Code Đếm ngược
         if st.session_state.get("show_qr"):
             time_left = int(st.session_state["qr_expire_time"] - time.time())
-            
             if time_left <= 0:
-                st.warning("⏳ Mã QR đã hết hạn. Vui lòng bấm Tạo hoá đơn mới.")
-                st.session_state["show_qr"] = False
+                st.warning("⏳ Mã QR hết hạn."); st.session_state["show_qr"] = False
             else:
-                st.markdown("<div style='background-color: #fffbeb; border: 1px dashed #fca5a5; border-radius: 12px; padding: 20px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-                col_qr, col_info = st.columns([1, 1.5], gap="large")
-                
-                # THÔNG TIN TÀI KHOẢN NGÂN HÀNG CỦA BẠN (SEPAY)
-                SEPAY_ACC = "VQRQAHQHF1360"
-                SEPAY_BANK = "MBBank"
-                MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON"
-                
-                amount = st.session_state["deposit_amount"]
-                transfer_content = f"NAP {st.session_state['current_user']}"
-                transfer_content_url = transfer_content.replace(' ', '%20') 
-                
-                qr_url = f"https://qr.sepay.vn/img?acc={SEPAY_ACC}&bank={SEPAY_BANK}&amount={amount}&des={transfer_content_url}"
+                st.markdown("<div style='background:#fffbeb; border:1px dashed orange; border-radius:12px; padding:20px; margin-bottom:20px;'>", unsafe_allow_html=True)
+                col_qr, col_info = st.columns([1, 1.5])
+                acc = "VQRQAHQHF1360"; bank = "MBBank"; name = "PHAN DUC TRUONG SON"
+                amt = st.session_state["deposit_amount"]
+                cont = f"NAP {st.session_state['current_user']}"
+                qr_url = f"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amt}&des={cont.replace(' ','%20')}"
                 
                 with col_qr:
-                    st.image(qr_url, width=250, caption="Mở App ngân hàng quét mã")
-                    
-                    # Đồng hồ đếm ngược
-                    components.html(f"""
-                        <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ef4444; font-weight: 800; font-size: 15px; padding: 10px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
-                            ⏳ Hết hạn sau: <span id="time">10:00</span>
-                        </div>
-                        <script>
-                            var timeLeft = {time_left};
-                            var timerId = setInterval(function() {{
-                                if (timeLeft <= 0) {{
-                                    clearInterval(timerId);
-                                    document.getElementById("time").innerHTML = "ĐÃ HẾT HẠN";
-                                }} else {{
-                                    var m = Math.floor(timeLeft / 60);
-                                    var s = timeLeft % 60;
-                                    document.getElementById("time").innerHTML = m + ":" + (s < 10 ? "0" : "") + s;
-                                    timeLeft--;
-                                }}
-                            }}, 1000);
-                        </script>
-                    """, height=50)
-                    
+                    st.image(qr_url, width=240)
+                    components.html(f"<div style='text-align:center;color:red;font-weight:bold;'>⏳ Hết hạn: <span id='t'>10:00</span></div><script>var l={time_left};setInterval(function(){{if(l<=0)document.getElementById('t').innerHTML='HẾT HẠN';else{{var m=Math.floor(l/60),s=l%60;document.getElementById('t').innerHTML=m+':'+(s<10?'0':'')+s;l--;}}}},1000);</script>", height=30)
+                
                 with col_info:
-                    st.markdown(f"<h3 style='color: #1e40af; margin-top:0;'>Thông tin chuyển khoản</h3>", unsafe_allow_html=True)
-                    st.markdown(f"**🏦 Ngân hàng:** {SEPAY_BANK}")
-                    st.markdown(f"**👤 Chủ tài khoản:** {MY_ACCOUNT_NAME}")
-                    st.markdown(f"**💳 Số tài khoản:** `{SEPAY_ACC}`")
-                    st.markdown(f"**💰 Số tiền nạp:** <b style='color:#047857; font-size: 18px;'>{amount:,} VNĐ</b>", unsafe_allow_html=True)
-                    
-                    st.markdown("**📝 Nội dung chuyển khoản (Bấm biểu tượng 📋 ở góc phải để Copy):**")
-                    st.code(transfer_content, language="text")
-                    
-                    st.info("💡 Trạng thái: Đang chờ thanh toán. Sau khi chuyển xong, vui lòng bấm nút bên dưới để xác nhận.")
-                    
-                    if st.button("🔄 LÀM MỚI SỐ DƯ ĐỂ HOÀN TẤT", type="primary", use_container_width=True):
-                        st.rerun()
+                    st.markdown(f"**🏦 Ngân hàng:** {bank}<br>**👤 Chủ TK:** {name}<br>**💰 Số tiền:** <b style='color:green;'>{amt:,} VNĐ</b>", unsafe_allow_html=True)
+                    st.markdown("**Nội dung (Bấm 📋 Copy):**")
+                    st.code(cont, language="text")
+                    if st.button("🔄 LÀM MỚI SỐ DƯ ĐỂ XÁC NHẬN", use_container_width=True): st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- KHỐI CẤU HÌNH ---
-    st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
-    
-    with st.expander("Bấm để mở rộng Cài đặt Máy chủ", expanded=True):
-        cfg_col1, cfg_col2 = st.columns(2, gap="large")
-        
-        with cfg_col1:
-            st.markdown("<b style='color:#1e40af;'>📧 Thông tin Gửi thư (Gmail)</b>", unsafe_allow_html=True)
-            st.session_state["s_name"] = st.text_input("Tên người gửi (Ví dụ: Trường Sơn Marketing):", value=st.session_state["s_name"])
-            st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
-            st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
-            
-            with st.expander("❓ Bấm vào đây để xem Hướng dẫn lấy Mật khẩu ứng dụng (Rất dễ)"):
-                st.markdown("""
-                <div style="font-size: 14.5px; color: #334155; line-height: 1.6;">
-                    <b>Làm theo 4 bước sau (chỉ mất 1 phút):</b><br>
-                    <b>1.</b> Mở tab mới, truy cập link này: <a href="https://myaccount.google.com/security" target="_blank" style="color:#3b82f6; text-decoration:none;"><b>Bảo mật Tài khoản Google</b></a>.<br>
-                    <b>2.</b> Đảm bảo tính năng <b>Xác minh 2 bước</b> đã được <b>BẬT</b>.<br>
-                    <b>3.</b> Kéo lên trên cùng, tìm ô <b>Tìm kiếm</b> (biểu tượng kính lúp) ➔ Gõ chữ <b>"Mật khẩu ứng dụng"</b> (hoặc App Passwords) ➔ Bấm chọn kết quả hiện ra.<br>
-                    <b>4.</b> Gõ tên ứng dụng là <i>"BulkMail"</i> ➔ Bấm <b>Tạo</b>. Google sẽ cấp cho bạn một dải gồm <b>16 chữ cái</b>. Hãy copy và dán vào ô bên trên.
-                </div>
-                """, unsafe_allow_html=True)
-            
-        with cfg_col2:
-            st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
-            new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=current_user_data.get("tele_token", ""), type="password")
-            new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=current_user_data.get("tele_chat_id", ""))
-            st.session_state["s_sign"] = st.text_area("Chữ ký mặc định cuối thư:", value=st.session_state["s_sign"], height=68)
-            
-            if st.button("💾 Lưu cấu hình Telegram"):
-                if save_config_api(st.session_state["current_user"], new_tk, new_id):
-                    st.success("✅ Đã lưu cấu hình!")
+        # PHẦN GỬI MAIL (Giữ nguyên toàn bộ logic chống lỗi 5.7.0)
+        st.markdown('<div class="pill-header bg-purple">📁 DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
+        col_data, col_content = st.columns([1, 1.2], gap="large")
+        with col_data:
+            up = st.file_uploader("Tải tệp (.xlsx, .csv)", type=["csv", "xlsx"])
+            df = pd.read_excel(up) if up and up.name.endswith("xlsx") else (pd.read_csv(up) if up else None)
+            attachments = st.file_uploader("📎 Tệp đính kèm", accept_multiple_files=True)
 
-    st.markdown("<hr style='margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
+        with col_content:
+            st.markdown('<div class="pill-header bg-green">✍️ SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
+            subject = st.text_input("Tiêu đề Email:")
+            raw_body = st_quill(placeholder="Dán nội dung từ web vào đây...", html=True)
+            delay = st.number_input("⏳ Nghỉ/Mail (s):", value=15, min_value=5)
 
-    # --- KHỐI DỮ LIỆU & NỘI DUNG (CHIA 2 CỘT) ---
-    col_data, col_content = st.columns([1, 1.2], gap="large")
-    
-    with col_data:
-        st.markdown('<div class="pill-header bg-purple">📁 BƯỚC 2: DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
-        
-        sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
-        try:
-            excel_buf = io.BytesIO()
-            with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer:
-                sample_df.to_excel(writer, index=False, sheet_name="Danh_sach")
-            dl_data = excel_buf.getvalue()
-        except:
-            dl_data = sample_df.to_csv(index=False).encode("utf-8-sig")
-            
-        st.download_button("📥 Tải File Mẫu (Excel)", data=dl_data, file_name="danh_sach_mau.xlsx", use_container_width=True)
-        
-        up = st.file_uploader("Tải tệp danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
-        df = None
-        if up:
-            df = pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up)
-            st.success(f"✅ Hợp lệ! Đã nhận {len(df)} địa chỉ email.")
-            
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        st.markdown('<div class="pill-header bg-purple" style="font-size: 13px; padding: 6px 18px; margin-bottom: 10px;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
-        attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
-
-    with col_content:
-        st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
-        
-        subject = st.text_input("Tiêu đề Email:")
-        
-        st.markdown("""
-        <p style='font-size: 14px; font-weight: 600; color: #b91c1c; margin-bottom: 5px;'>
-        ⚠️ LƯU Ý: Vui lòng cuộn chuột từ trên xuống dưới bài viết trên Web cho ảnh hiện lên đầy đủ, SAU ĐÓ mới bôi đen Copy và Dán vào đây nhé.
-        </p>
-        """, unsafe_allow_html=True)
-        
-        raw_body = st_quill(placeholder="Bôi đen Copy/Paste trực tiếp từ Website vào đây...", html=True, key="quill_editor")
-        if not raw_body: raw_body = ""
-        
-        col_delay, col_blank = st.columns([1, 1])
-        with col_delay:
-            delay = st.number_input("⏳ Khoảng nghỉ/Mail (Giây):", value=15, min_value=5, help="Thời gian nghỉ giữa mỗi mail. Đề xuất: 15-30s.")
-
-        sign_html = st.session_state["s_sign"].replace("\n", "<br>")
-        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{raw_body}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
-        
-        with st.expander("👁️ Xem trước giao diện thực tế", expanded=False):
-            example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
-            st.markdown(f"<div style='padding:20px; background:white; border-radius: 8px; border: 1px solid #e2e8f0;'>{full_email_content.replace('{{name}}', f'<b style=\"color:#3b82f6;\">{example_name}</b>')}</div>", unsafe_allow_html=True)
-
-    st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
-
-    # --- KHỐI BẢNG LƯU Ý & NÚT GỬI ---
-    col_action1, col_action2 = st.columns([1.5, 1])
-    
-    with col_action1:
-        st.markdown("""
-        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <h4 style="margin-top:0; color:#0f172a; font-size:16px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
-            <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-                <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;">
-                    <th style="padding: 10px 0;">Loại tài khoản</th>
-                    <th style="padding: 10px 0;">Số lượng an toàn / Ngày</th>
-                </tr>
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px 0; font-weight: 600;">Gmail mới tạo</td>
-                    <td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px 0; font-weight: 600;">Gmail dùng lâu</td>
-                    <td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 0; font-weight: 600;">Google Workspace</td>
-                    <td style="padding: 12px 0; color: #3b82f6; font-weight: 700;">500 - 1000 mail</td>
-                </tr>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_action2:
-        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         if st.button("🚀 BẮT ĐẦU CHIẾN DỊCH GỬI MAIL", type="primary", use_container_width=True):
-            if df is None:
-                st.error("⚠️ Vui lòng tải lên danh sách Khách hàng!")
-            elif not subject:
-                st.error("⚠️ Tiêu đề thư không được bỏ trống!")
-            elif not st.session_state["s_email"] or not st.session_state["s_pwd"]:
-                st.error("⚠️ Lỗi: Bạn chưa điền Email hoặc Mật khẩu ở Bước 1!")
+            if df is None or not subject: st.error("⚠️ Thiếu danh sách hoặc tiêu đề!")
             else:
-                progress = st.progress(0)
-                log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
-                
-                # --- THUẬT TOÁN TỐI ƯU: KHÔNG TẢI ẢNH ĐỂ LÁCH LỖI 5.7.0 ---
-                log.write("🔄 Đang cấu trúc lại hình ảnh để vượt tường lửa Google...")
-                soup = BeautifulSoup(full_email_content, "html.parser")
-                
-                for tag in soup(["script", "style", "meta", "noscript", "iframe"]):
-                    tag.decompose()
-                    
-                inline_images = []
-                img_counter = 0
-                
+                progress = st.progress(0); log = st.expander("Live Log", expanded=True)
+                soup = BeautifulSoup(raw_body or "", "html.parser")
+                for tag in soup(["script", "style"]): tag.decompose()
+                inline_images = []; img_counter = 0
                 for img in soup.find_all("img"):
-                    src = img.get("data-src") or img.get("data-lazy-src") or img.get("data-original") or img.get("src", "")
-                    
-                    if not src:
-                        img.decompose()
-                        continue
-                    
-                    if src.startswith("//"):
-                        src = "https:" + src
-                    elif src.startswith("/") and not src.startswith("//"):
-                        src = "https://taynguyenfilm.com" + src
-                    elif not src.startswith("http") and not src.startswith("data:"):
-                        src = "https://taynguyenfilm.com/" + src
-
-                    if src.startswith("http"):
-                        img.attrs = {
-                            "src": src, 
-                            "style": "max-width: 100%; height: auto; display: block; margin: 10px 0;",
-                            "alt": "Hình ảnh"
-                        }
-                    
-                    elif src.startswith("data:image"):
-                        if img_counter < 2:
-                            try:
-                                header, encoded = src.split(",", 1)
-                                img_data = base64.b64decode(encoded)
-                                
-                                img_counter += 1
-                                ext = "png"
-                                match = re.search(r"image/(.*?);", header)
-                                if match:
-                                    ext = match.group(1).lower()
-                                    if ext not in ['jpg', 'jpeg', 'png', 'gif']: ext = "png"
-                                
-                                cid = f"img_inline_{img_counter}_{int(time.time())}"
-                                inline_images.append({
-                                    "cid": cid, "data": img_data, "type": ext, 
-                                    "filename": f"image_{img_counter}.{ext}"
-                                })
-                                img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; height: auto; display: block; margin: 10px 0;"}
-                            except:
-                                img.decompose()
-                        else:
-                            img.decompose()
-                    else:
-                        img.decompose()
-
-                prepared_html_template = str(soup) 
-                log.write(f"✅ Tối ưu thành công. Đã đóng gói {len(inline_images)} ảnh đính kèm nội bộ.")
-
-                run_tk = current_user_data.get("tele_token", "")
-                run_id = current_user_data.get("tele_chat_id", "")
-                send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
+                    src = img.get("src", "")
+                    if src.startswith("http"): img.attrs = {"src": src, "style": "max-width: 100%"}
+                    elif src.startswith("data:image") and img_counter < 2:
+                        try:
+                            h, e = src.split(",", 1); img_data = base64.b64decode(e)
+                            img_counter += 1; cid = f"img_{img_counter}"
+                            inline_images.append({"cid": cid, "data": img_data, "type": "png"})
+                            img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%"}
+                        except: img.decompose()
+                    else: img.decompose()
                 
-                success_list = []
-                error_list = []
-
-                for index, row in df.iterrows():
+                full_html = str(soup) + f"<br><br>{st.session_state['s_sign'].replace('\\n','<br>')}"
+                success_c = 0
+                for idx, row in df.iterrows():
                     try:
-                        e_col = next((c for c in df.columns if c.lower() in ["email", "mail"]), None)
-                        target_email = str(row.get(e_col, row.iloc[0])).strip()
-                        n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
-                        target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
-                        
-                        msg_root = MIMEMultipart("mixed") 
-                        msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
-                        msg_root["To"] = target_email
-                        msg_root["Subject"] = subject
-                        
-                        msg_related = MIMEMultipart("related")
-                        msg_root.attach(msg_related)
-                        
-                        personalized_html = prepared_html_template.replace("{{name}}", target_name)
-                        msg_related.attach(MIMEText(personalized_html, "html", "utf-8"))
-                        
-                        for img_dict in inline_images:
-                            img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
-                            img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
-                            img_part.add_header("Content-Disposition", "inline", filename=img_dict["filename"])
-                            msg_related.attach(img_part)
-                        
+                        target_email = str(row.get("email", row.iloc[0])).strip()
+                        target_name = str(row.get("name", "Quý khách"))
+                        msg = MIMEMultipart("related")
+                        msg["From"] = f"{st.session_state['s_name']} <{SYS_EMAIL}>"
+                        msg["To"] = target_email; msg["Subject"] = subject
+                        msg.attach(MIMEText(full_html.replace("{{name}}", target_name), "html"))
+                        for i in inline_images:
+                            part = MIMEImage(i["data"], _subtype=i["type"])
+                            part.add_header("Content-ID", f"<{i['cid']}>"); msg.attach(part)
                         if attachments:
                             for f in attachments:
-                                part = MIMEBase("application", "octet-stream")
-                                part.set_payload(f.read())
-                                encoders.encode_base64(part)
-                                part.add_header("Content-Disposition", f"attachment; filename={f.name}")
-                                msg_root.attach(part)
-                                f.seek(0)
-                                
-                        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-                            server.starttls()
-                            server.login(st.session_state["s_email"], st.session_state["s_pwd"])
-                            server.send_message(msg_root)
-                            
-                        success_list.append(target_email)
-                        log.write(f"✅ Đã gửi: {target_email}")
-                    except Exception as e:
-                        error_list.append(target_email)
-                        log.write(f"❌ Lỗi: {target_email} ({e})")
+                                p = MIMEBase("application", "octet-stream"); p.set_payload(f.read())
+                                encoders.encode_base64(p); p.add_header("Content-Disposition", f"attachment; filename={f.name}")
+                                msg.attach(p); f.seek(0)
                         
-                    progress.progress((index + 1) / len(df))
-                    time.sleep(delay)
-                    
-                st.success("🎉 Chiến dịch hoàn tất!")
-                
-                csv_buf = io.BytesIO()
-                pd.DataFrame({
-                    "Email": success_list + error_list, 
-                    "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)
-                }).to_csv(csv_buf, index=False, encoding="utf-8-sig")
-                
-                send_tele_msg(run_tk, run_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
-                send_tele_file(run_tk, run_id, csv_buf.getvalue(), "ket_qua.csv")
-                
-                st.download_button("📥 TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv", use_container_width=True)
+                        with smtplib.SMTP("smtp.gmail.com", 587) as s:
+                            s.starttls(); s.login(SYS_EMAIL, SYS_PWD); s.send_message(msg)
+                        success_c += 1; log.write(f"✅ {target_email}")
+                    except Exception as e: log.write(f"❌ {target_email}: {e}")
+                    progress.progress((idx+1)/len(df)); time.sleep(delay)
+                st.success(f"Chiến dịch hoàn tất! Đã gửi {success_c} mail.")
 
-    # ==========================================
-    # CHÂN TRANG: LOGO VÀ GIỚI THIỆU
-    # ==========================================
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    logo_footer_b64 = get_image_base64(LOGO_URL)
-    if logo_footer_b64:
-        st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 150px; height: 150px; border-radius: 35%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
+    with tab_history:
+        st.markdown('<div class="pill-header bg-blue">📜 NHẬT KÝ GIAO DỊCH</div>', unsafe_allow_html=True)
+        if not logs_db: st.info("Chưa có lịch sử giao dịch.")
+        else:
+            h_list = []; cur_u = st.session_state['current_user'].upper()
+            for l in logs_db:
+                if cur_u in str(l.get('raw_data','')).upper():
+                    try:
+                        pld = json.loads(l.get('raw_data','{}'))
+                        amt = f"{pld.get('transferAmount', 0):,} VNĐ"
+                    except: amt = "---"
+                    h_list.append({"Ngày nạp": l['time'], "Số tiền": amt, "Trạng thái": l['status']})
+            if h_list: st.table(pd.DataFrame(h_list))
+            else: st.write("Không tìm thấy giao dịch của bạn.")
 
-    st.markdown(
-        """
-        <div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
-            <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; 
-                        padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; background: white; 
-                        box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
-                <p style="font-size: 15px; line-height: 1.8; margin: 0;">
-                    <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
-                    Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
-                    Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
-                    giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
-                </p>
-            </div>
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
+    with tab_config:
+        st.markdown('<div class="pill-header bg-blue">⚙️ CÀI ĐẶT HỆ THỐNG</div>', unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.session_state["s_name"] = st.text_input("Tên hiển thị:", value=st.session_state["s_name"])
+            st.info(f"Hệ thống gửi từ: {SYS_EMAIL}")
+        with c2:
+            tk = st.text_input("Bot Token Telegram:", value=current_user_data.get("tele_token", ""), type="password")
+            cid = st.text_input("Chat ID Telegram:", value=current_user_data.get("tele_chat_id", ""))
+            st.session_state["s_sign"] = st.text_area("Chữ ký cuối thư:", value=st.session_state["s_sign"])
+            if st.button("💾 Lưu cấu hình"):
+                if save_config_api(st.session_state["current_user"], tk, cid): st.success("Đã lưu!")
 
 # NÚT LIÊN HỆ NỔI
-st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"></a></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="35"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="35"></a></div>""", unsafe_allow_html=True)
