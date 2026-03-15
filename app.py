@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import io
 import smtplib
@@ -156,6 +157,11 @@ if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "otp_verified" not in st.session_state: st.session_state["otp_verified"] = False
 if "otp_sent" not in st.session_state: st.session_state["otp_sent"] = False
 
+# Thêm state cho vụ QR Code nạp tiền
+if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
+if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 0
+if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
+
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
 if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
@@ -272,37 +278,90 @@ else:
             st.session_state["logged_in"] = False
             st.rerun()
 
-    # --- KHỐI TÍCH HỢP NẠP TIỀN API SEPAY ---
+    # ========================================================
+    # --- KHỐI TÍCH HỢP NẠP TIỀN API SEPAY (NHẬP SỐ TIỀN) ---
+    # ========================================================
     st.markdown('<div class="pill-header bg-orange">💎 NẠP TIỀN & KÍCH HOẠT VIP</div>', unsafe_allow_html=True)
     with st.expander("Bấm vào đây để Nạp tiền tự động 24/7", expanded=False):
-        col_qr, col_info = st.columns([1, 2], gap="large")
         
-        # BẠN HÃY SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY
-        SEPAY_ACC = "VQRQAHQHF1360" # Điền ID SePay của bạn (VD: VQRQAHQHF1360)
-        SEPAY_BANK = "MBBank"       # Điền Tên Ngân hàng (VD: MBBank, Vietcombank)
+        st.markdown("<b style='color:#1e40af; font-size: 15px;'>Nhập số tiền bạn muốn nạp (Tối thiểu 10.000 VNĐ):</b>", unsafe_allow_html=True)
+        col_input, col_btn = st.columns([2, 1])
         
-        transfer_content = f"NAP {st.session_state['current_user']}"
-        transfer_content_url = transfer_content.replace(' ', '%20') 
-        
-        qr_url = f"https://qr.sepay.vn/img?acc={SEPAY_ACC}&bank={SEPAY_BANK}&amount=100000&des={transfer_content_url}"
-        
-        with col_qr:
-            st.image(qr_url, width=220, caption="Mã QR tự động")
+        with col_input:
+            amount_input = st.number_input("Số tiền (VNĐ):", min_value=0, step=10000, value=100000, label_visibility="collapsed")
             
-        with col_info:
-            st.markdown(f"""
-            <h3 style='color: #1e40af; margin-top:0;'>Thông tin thanh toán tự động</h3>
-            <p>Hệ thống sẽ cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
-            <ul style='font-size: 15px; line-height: 1.8; color: #334155; background: #f1f5f9; padding: 15px 30px; border-radius: 8px;'>
-                <li>Ngân hàng: <b>{SEPAY_BANK}</b></li>
-                <li>Số tiền nạp tối thiểu: <b>10,000 VNĐ</b></li>
-                <li>Nội dung chuyển khoản: <code style='color: #b91c1c; font-size: 18px; font-weight: bold; background: #fee2e2; padding: 2px 8px;'>{transfer_content}</code></li>
-            </ul>
-            <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc quét mã QR hoặc nhập chính xác nội dung chuyển khoản để hệ thống nhận diện!</i></p>
-            """, unsafe_allow_html=True)
+        with col_btn:
+            if st.button("TẠO MÃ QR THANH TOÁN", type="primary", use_container_width=True):
+                if amount_input < 10000:
+                    st.error("⚠️ Số tiền nạp tối thiểu là 10.000 VNĐ")
+                else:
+                    st.session_state["show_qr"] = True
+                    st.session_state["deposit_amount"] = amount_input
+                    st.session_state["qr_expire_time"] = time.time() + 600 # 10 phút = 600 giây
+                    st.rerun()
+
+        # Hiện QR Code nếu khách đã bấm nút và chưa hết hạn
+        if st.session_state.get("show_qr"):
+            time_left = int(st.session_state["qr_expire_time"] - time.time())
             
-            if st.button("🔄 Làm mới số dư & Trạng thái", type="secondary"):
-                st.rerun()
+            if time_left <= 0:
+                st.warning("⏳ Mã QR đã hết hạn. Vui lòng nhập lại số tiền và bấm Tạo mã mới.")
+                st.session_state["show_qr"] = False
+            else:
+                st.markdown("<hr style='margin: 15px 0; border: 1px dashed #cbd5e1;'>", unsafe_allow_html=True)
+                col_qr, col_info = st.columns([1, 1.5], gap="large")
+                
+                # --- ĐIỀN THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY ---
+                SEPAY_ACC = "VQRQAHQHF1360" # ID tài khoản SePay của bạn
+                SEPAY_BANK = "MBBank"       # Tên Ngân hàng (Ví dụ: MBBank, Vietcombank)
+                MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON"
+                # ------------------------------------------------
+
+                amount = st.session_state["deposit_amount"]
+                transfer_content = f"NAP {st.session_state['current_user']}"
+                transfer_content_url = transfer_content.replace(' ', '%20') 
+                
+                # Tạo link QR động chuẩn xác 100%
+                qr_url = f"https://qr.sepay.vn/img?acc={SEPAY_ACC}&bank={SEPAY_BANK}&amount={amount}&des={transfer_content_url}"
+                
+                with col_qr:
+                    st.image(qr_url, width=250, caption="Mở App ngân hàng quét mã")
+                    
+                    # Đồng hồ đếm ngược bằng Javascript (Chạy ngầm, không lag web)
+                    components.html(f"""
+                        <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ef4444; font-weight: 800; font-size: 15px; padding: 10px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
+                            ⏳ Hết hạn sau: <span id="time">10:00</span>
+                        </div>
+                        <script>
+                            var timeLeft = {time_left};
+                            var timerId = setInterval(function() {{
+                                if (timeLeft <= 0) {{
+                                    clearInterval(timerId);
+                                    document.getElementById("time").innerHTML = "ĐÃ HẾT HẠN";
+                                }} else {{
+                                    var m = Math.floor(timeLeft / 60);
+                                    var s = timeLeft % 60;
+                                    document.getElementById("time").innerHTML = m + ":" + (s < 10 ? "0" : "") + s;
+                                    timeLeft--;
+                                }}
+                            }}, 1000);
+                        </script>
+                    """, height=50)
+                    
+                with col_info:
+                    st.markdown(f"<h3 style='color: #1e40af; margin-top:0;'>Thông tin chuyển khoản</h3>", unsafe_allow_html=True)
+                    st.markdown(f"**🏦 Ngân hàng:** {SEPAY_BANK}")
+                    st.markdown(f"**👤 Chủ tài khoản:** {MY_ACCOUNT_NAME}")
+                    st.markdown(f"**💳 Số tài khoản:** `{SEPAY_ACC}`")
+                    st.markdown(f"**💰 Số tiền nạp:** <b style='color:#047857; font-size: 18px;'>{amount:,} VNĐ</b>", unsafe_allow_html=True)
+                    
+                    st.markdown("**📝 Nội dung chuyển khoản (Bấm biểu tượng 📋 ở góc phải để Copy):**")
+                    st.code(transfer_content, language="text")
+                    
+                    st.info("💡 Trạng thái: Hệ thống đang chờ thanh toán. Tiền sẽ tự động cộng vào số dư của bạn trong 1-3 phút.")
+                    
+                    if st.button("🔄 Bấm vào đây để làm mới số dư", type="secondary", use_container_width=True):
+                        st.rerun()
 
     # --- KHỐI CẤU HÌNH ---
     st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
