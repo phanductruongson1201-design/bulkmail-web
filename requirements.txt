@@ -1,6 +1,6 @@
-streamlit>=1.32.0
+streamlit
 pandas
 openpyxl
 requests
-streamlit-paste-button
-Pillow
+streamlit-quill
+beautifulsoup4
