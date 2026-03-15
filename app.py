@@ -170,6 +170,7 @@ if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+        
         logo_b64 = get_image_base64(LOGO_URL)
         if logo_b64:
             st.markdown(f'<div class="logo-container"><img src="data:image/png;base64,{logo_b64}"></div>', unsafe_allow_html=True)
@@ -247,21 +248,20 @@ if not st.session_state["logged_in"]:
 # 2. DASHBOARD CHÍNH
 # ==========================================
 else:
-    # --- TẢI DỮ LIỆU ĐỂ KIỂM TRA SỐ DƯ ---
+    # --- TẢI DỮ LIỆU & KIỂM TRA SỐ DƯ ---
     users_db = load_users()
     current_user_data = users_db.get(st.session_state["current_user"], {})
     
-    # Lấy số dư từ cột G của Google Sheet
     balance = current_user_data.get("balance", 0)
     try: balance = int(float(balance))
     except: balance = 0
 
+    # --- HEADER ---
     head_col1, head_col2 = st.columns([5, 1.5])
     with head_col1:
         st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
         st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Thiết lập và vận hành hàng ngàn email cá nhân hóa chỉ trong tích tắc.</p>', unsafe_allow_html=True)
     with head_col2:
-        # HIỂN THỊ SỐ DƯ TẠI ĐÂY
         st.markdown(f"""
         <div style='text-align: right; padding-top: 5px;'>
             <div style='font-weight: bold; color: #1e40af; font-size: 15px;'>👤 {st.session_state['current_user']}</div>
@@ -272,18 +272,19 @@ else:
             st.session_state["logged_in"] = False
             st.rerun()
 
-    # --- KHỐI TÍCH HỢP NẠP TIỀN API ---
+    # --- KHỐI TÍCH HỢP NẠP TIỀN API SEPAY ---
     st.markdown('<div class="pill-header bg-orange">💎 NẠP TIỀN & KÍCH HOẠT VIP</div>', unsafe_allow_html=True)
     with st.expander("Bấm vào đây để Nạp tiền tự động 24/7", expanded=False):
         col_qr, col_info = st.columns([1, 2], gap="large")
         
         # BẠN HÃY SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY
-        MY_BANK = "MB"      # Ví dụ: MB, VCB, ACB, TPB...
-        MY_ACCOUNT_NO = "VQRQAHQHF1360" # Số tài khoản
-        MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON" # Tên chủ thẻ (Không dấu)
+        SEPAY_ACC = "VQRQAHQHF1360" # Điền ID SePay của bạn (VD: VQRQAHQHF1360)
+        SEPAY_BANK = "MBBank"       # Điền Tên Ngân hàng (VD: MBBank, Vietcombank)
         
         transfer_content = f"NAP {st.session_state['current_user']}"
-        qr_url = f"https://img.vietqr.io/image/{MY_BANK}-{MY_ACCOUNT_NO}-compact2.png?amount=100000&addInfo={transfer_content}&accountName={MY_ACCOUNT_NAME.replace(' ', '%20')}"
+        transfer_content_url = transfer_content.replace(' ', '%20') 
+        
+        qr_url = f"https://qr.sepay.vn/img?acc={SEPAY_ACC}&bank={SEPAY_BANK}&amount=100000&des={transfer_content_url}"
         
         with col_qr:
             st.image(qr_url, width=220, caption="Mã QR tự động")
@@ -293,40 +294,57 @@ else:
             <h3 style='color: #1e40af; margin-top:0;'>Thông tin thanh toán tự động</h3>
             <p>Hệ thống API sẽ <b>tự động dò tìm giao dịch</b> và cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
             <ul style='font-size: 15px; line-height: 1.8; color: #334155; background: #f1f5f9; padding: 15px 30px; border-radius: 8px;'>
-                <li>Ngân hàng: <b>{MY_BANK}</b></li>
-                <li>Chủ tài khoản: <b>{MY_ACCOUNT_NAME}</b></li>
-                <li>Số tài khoản: <b>{MY_ACCOUNT_NO}</b></li>
+                <li>Ngân hàng: <b>{SEPAY_BANK}</b></li>
                 <li>Số tiền nạp tối thiểu: <b>100,000 VNĐ</b></li>
                 <li>Nội dung chuyển khoản: <code style='color: #b91c1c; font-size: 18px; font-weight: bold; background: #fee2e2; padding: 2px 8px;'>{transfer_content}</code></li>
             </ul>
-            <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc nhập chính xác nội dung chuyển khoản để hệ thống tự động nhận diện!</i></p>
+            <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc quét mã QR hoặc nhập chính xác nội dung chuyển khoản để hệ thống nhận diện!</i></p>
             """, unsafe_allow_html=True)
             
             if st.button("🔄 Làm mới số dư & Trạng thái", type="secondary"):
                 st.rerun()
 
+    # --- KHỐI CẤU HÌNH ---
     st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
+    
     with st.expander("Bấm để mở rộng Cài đặt Máy chủ", expanded=True):
         cfg_col1, cfg_col2 = st.columns(2, gap="large")
+        
         with cfg_col1:
             st.markdown("<b style='color:#1e40af;'>📧 Thông tin Gửi thư (Gmail)</b>", unsafe_allow_html=True)
             st.session_state["s_name"] = st.text_input("Tên người gửi (Ví dụ: Trường Sơn Marketing):", value=st.session_state["s_name"])
             st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
+            
+            with st.expander("❓ Bấm vào đây để xem Hướng dẫn lấy Mật khẩu ứng dụng (Rất dễ)"):
+                st.markdown("""
+                <div style="font-size: 14.5px; color: #334155; line-height: 1.6;">
+                    <b>Làm theo 4 bước sau (chỉ mất 1 phút):</b><br>
+                    <b>1.</b> Mở tab mới, truy cập link này: <a href="https://myaccount.google.com/security" target="_blank" style="color:#3b82f6; text-decoration:none;"><b>Bảo mật Tài khoản Google</b></a>.<br>
+                    <b>2.</b> Đảm bảo tính năng <b>Xác minh 2 bước</b> đã được <b>BẬT</b>.<br>
+                    <b>3.</b> Kéo lên trên cùng, tìm ô <b>Tìm kiếm</b> (biểu tượng kính lúp) ➔ Gõ chữ <b>"Mật khẩu ứng dụng"</b> (hoặc App Passwords) ➔ Bấm chọn kết quả hiện ra.<br>
+                    <b>4.</b> Gõ tên ứng dụng là <i>"BulkMail"</i> ➔ Bấm <b>Tạo</b>. Google sẽ cấp cho bạn một dải gồm <b>16 chữ cái</b>. Hãy copy và dán vào ô bên trên.
+                </div>
+                """, unsafe_allow_html=True)
+            
         with cfg_col2:
             st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
             new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=current_user_data.get("tele_token", ""), type="password")
             new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=current_user_data.get("tele_chat_id", ""))
             st.session_state["s_sign"] = st.text_area("Chữ ký mặc định cuối thư:", value=st.session_state["s_sign"], height=68)
+            
             if st.button("💾 Lưu cấu hình Telegram"):
                 if save_config_api(st.session_state["current_user"], new_tk, new_id):
                     st.success("✅ Đã lưu cấu hình!")
 
     st.markdown("<hr style='margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
 
+    # --- KHỐI DỮ LIỆU & NỘI DUNG (CHIA 2 CỘT) ---
     col_data, col_content = st.columns([1, 1.2], gap="large")
+    
     with col_data:
         st.markdown('<div class="pill-header bg-purple">📁 BƯỚC 2: DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
+        
         sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
         try:
             excel_buf = io.BytesIO()
@@ -337,6 +355,7 @@ else:
             dl_data = sample_df.to_csv(index=False).encode("utf-8-sig")
             
         st.download_button("📥 Tải File Mẫu (Excel)", data=dl_data, file_name="danh_sach_mau.xlsx", use_container_width=True)
+        
         up = st.file_uploader("Tải tệp danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
         df = None
         if up:
@@ -344,20 +363,22 @@ else:
             st.success(f"✅ Hợp lệ! Đã nhận {len(df)} địa chỉ email.")
             
         st.markdown("<br>", unsafe_allow_html=True)
+        
         st.markdown('<div class="pill-header bg-purple" style="font-size: 13px; padding: 6px 18px; margin-bottom: 10px;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
         attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
 
     with col_content:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
+        
         subject = st.text_input("Tiêu đề Email:")
         
         st.markdown("""
         <p style='font-size: 14px; font-weight: 600; color: #b91c1c; margin-bottom: 5px;'>
-        ⚠️ LƯU Ý QUAN TRỌNG: Để tránh Google chặn thư rác, hãy HẠN CHẾ dán (paste) quá nhiều ảnh trực tiếp. Nên bôi đen COPY từ web để giữ nguyên link gốc.
+        ⚠️ LƯU Ý: Vui lòng cuộn chuột từ trên xuống dưới bài viết trên Web cho ảnh hiện lên đầy đủ, SAU ĐÓ mới bôi đen Copy và Dán vào đây nhé.
         </p>
         """, unsafe_allow_html=True)
         
-        raw_body = st_quill(placeholder="Bôi đen Copy/Paste bài viết từ Website vào đây...", html=True, key="quill_editor")
+        raw_body = st_quill(placeholder="Bôi đen Copy/Paste trực tiếp từ Website vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
         
         col_delay, col_blank = st.columns([1, 1])
@@ -373,7 +394,9 @@ else:
 
     st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
 
+    # --- KHỐI BẢNG LƯU Ý & NÚT GỬI ---
     col_action1, col_action2 = st.columns([1.5, 1])
+    
     with col_action1:
         st.markdown("""
         <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
@@ -412,9 +435,7 @@ else:
                 progress = st.progress(0)
                 log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
                 
-                success_list = []
-                error_list = []
-                
+                # --- THUẬT TOÁN TỐI ƯU: KHÔNG TẢI ẢNH ĐỂ LÁCH LỖI 5.7.0 ---
                 log.write("🔄 Đang cấu trúc lại hình ảnh để vượt tường lửa Google...")
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 
@@ -439,7 +460,7 @@ else:
                     elif not src.startswith("http") and not src.startswith("data:"):
                         src = "https://taynguyenfilm.com/" + src
 
-                    # Nếu là Link web chuẩn: Giữ nguyên để Gmail TỰ TẢI (Tránh lỗi 25MB)
+                    # GIẢI PHÁP CHỐT HẠ: KHÔNG TẢI ẢNH WEB VỀ
                     if src.startswith("http"):
                         img.attrs = {
                             "src": src, 
@@ -447,10 +468,9 @@ else:
                             "alt": "Hình ảnh"
                         }
                     
-                    # Nếu là ảnh dán từ máy (Base64)
+                    # CẦU CHÌ AN TOÀN: CHỈ CHO PHÉP TỐI ĐA 2 ẢNH ĐÍNH KÈM (Base64) TỪ MÁY
                     elif src.startswith("data:image"):
-                        # CẦU CHÌ AN TOÀN: CHỈ CHO PHÉP NHÚNG TỐI ĐA 3 ẢNH ĐỂ TRÁNH LỖI 5.7.0
-                        if img_counter < 3:
+                        if img_counter < 2:
                             try:
                                 header, encoded = src.split(",", 1)
                                 img_data = base64.b64decode(encoded)
@@ -471,17 +491,19 @@ else:
                             except:
                                 img.decompose()
                         else:
-                            # TỪ ẢNH THỨ 4 TRỞ ĐI (DẠNG ĐÍNH KÈM) SẼ BỊ CẮT BỎ ĐỂ CỨU EMAIL KHỎI BỊ CHẶN
                             img.decompose()
                     else:
                         img.decompose()
 
                 prepared_html_template = str(soup) 
-                log.write(f"✅ Tối ưu thành công. Đã đóng gói {len(inline_images)} ảnh đính kèm (Để tránh spam).")
+                log.write(f"✅ Tối ưu thành công. Đã đóng gói {len(inline_images)} ảnh đính kèm nội bộ.")
 
                 run_tk = current_user_data.get("tele_token", "")
                 run_id = current_user_data.get("tele_chat_id", "")
                 send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
+                
+                success_list = []
+                error_list = []
 
                 for index, row in df.iterrows():
                     try:
