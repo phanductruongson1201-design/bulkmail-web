@@ -295,7 +295,7 @@ else:
             <p>Hệ thống sẽ cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
             <ul style='font-size: 15px; line-height: 1.8; color: #334155; background: #f1f5f9; padding: 15px 30px; border-radius: 8px;'>
                 <li>Ngân hàng: <b>{SEPAY_BANK}</b></li>
-                <li>Số tiền nạp tối thiểu: <b>100,000 VNĐ</b></li>
+                <li>Số tiền nạp tối thiểu: <b>10,000 VNĐ</b></li>
                 <li>Nội dung chuyển khoản: <code style='color: #b91c1c; font-size: 18px; font-weight: bold; background: #fee2e2; padding: 2px 8px;'>{transfer_content}</code></li>
             </ul>
             <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc quét mã QR hoặc nhập chính xác nội dung chuyển khoản để hệ thống nhận diện!</i></p>
