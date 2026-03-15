@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage 
+from email.mime.image import MIMEImage
 from email import encoders
 import time
 import requests
@@ -424,11 +424,11 @@ else:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         subject = st.text_input("Tiêu đề Email:")
         
-        # --- THAY ĐỔI 1: Ô SOẠN THẢO QUIL ĐỂ DÁN ẢNH ĐƯỢC ---
+        # --- CHỈ SỬA ĐOẠN NÀY 1: Thay thế Text Area bằng Quill Editor ---
         st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Gọi tên bằng biến {{name}}):</p>", unsafe_allow_html=True)
         raw_body = st_quill(placeholder="Bôi đen chữ và hình ảnh trên trang web khác, sau đó Copy và dán (Paste) thẳng vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
-        # ---------------------------------------------------
+        # -----------------------------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
@@ -485,43 +485,57 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- THAY ĐỔI 2: TỐI ƯU ẢNH TRÁNH LỖI OVER SIZE 25MB CỦA GOOGLE ---
-                log.write("🔄 Đang phân tích nội dung...")
+                # --- CHỈ SỬA ĐOẠN NÀY 2: Xử lý A.I lấy ảnh tránh lỗi Gmail 25MB ---
+                log.write("🔄 Đang phân tích và nhúng hình ảnh...")
                 base_soup = BeautifulSoup(full_email_content, "html.parser")
                 inline_images = []
                 img_counter = 0
+                total_size = 0
+                MAX_EMAIL_SIZE = 18 * 1024 * 1024 # Cài giới hạn an toàn 18MB cho Gmail
                 
                 for img in base_soup.find_all("img"):
                     src = img.get("src", "")
                     if not src: continue
                     
+                    img_data = None
+                    img_type = "png"
+                    
                     try:
-                        # KIỂU 1: Ảnh là một link web (http) -> Cứ để nguyên link đó.
-                        # Tuyệt đối không tải về để thư không bị nặng vượt 25MB (Gmail sẽ tự load ảnh)
-                        if src.startswith("http"):
-                            continue 
-                        
-                        # KIỂU 2: Ảnh dán trực tiếp từ máy tính (Mã base64) -> Chuyển thành file đính kèm ẩn
-                        elif src.startswith("data:image"):
-                            img_counter += 1
-                            cid = f"img_inline_{img_counter}"
-                            
+                        # 1. Nếu ảnh dán từ máy tính lên (dạng mã hoá)
+                        if src.startswith("data:image"):
                             header, encoded = src.split(",", 1)
                             img_data = base64.b64decode(encoded)
                             match = re.search(r"image/(.*?);", header)
-                            img_type = match.group(1) if match else "png"
+                            if match: img_type = match.group(1).split(';')[0]
                             
-                            inline_images.append({"cid": cid, "data": img_data, "type": img_type})
-                            img["src"] = f"cid:{cid}" # Đổi thành link ẩn nội bộ
-                    except Exception as e:
+                        # 2. Nếu ảnh là link copy từ website khác
+                        elif src.startswith("http"):
+                            # Giả lập trình duyệt để không bị web khác chặn tải
+                            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+                            res = requests.get(src, headers=headers, timeout=5)
+                            if res.status_code == 200:
+                                img_data = res.content
+                                c_type = res.headers.get('Content-Type', '')
+                                if 'image/' in c_type:
+                                    img_type = c_type.split(';')[0].split('/')[-1]
+                        
+                        # 3. Kỹ thuật nhúng an toàn
+                        if img_data:
+                            if total_size + len(img_data) <= MAX_EMAIL_SIZE:
+                                total_size += len(img_data)
+                                img_counter += 1
+                                cid = f"img_inline_{img_counter}"
+                                inline_images.append({"cid": cid, "data": img_data, "type": img_type})
+                                img["src"] = f"cid:{cid}" # Biến thành link ảnh ẩn an toàn
+                            else:
+                                # Nếu quá 18MB, hệ thống tự động bỏ qua để chống sập thư
+                                pass 
+                    except Exception:
                         pass
                 
-                prepared_html_template = str(base_soup) # Gói HTML cuối cùng để gửi
-                if inline_images:
-                    log.write(f"✅ Đã xử lý đính kèm {len(inline_images)} ảnh gốc.")
-                else:
-                    log.write("✅ Cấu trúc ảnh đã sẵn sàng (Load trực tiếp từ Web).")
-                # ------------------------------------------------------------------
+                prepared_html_template = str(base_soup) # HTML cuối cùng
+                log.write(f"✅ Đã chuẩn bị xong {len(inline_images)} hình ảnh nhúng vào thư.")
+                # -------------------------------------------------------------------
 
                 u_data_run = load_users().get(st.session_state["current_user"], {})
                 run_tk = u_data_run.get("tele_token", "")
@@ -540,16 +554,17 @@ else:
                         msg["To"] = target_email
                         msg["Subject"] = subject
                         
-                        # Đổ nội dung HTML đã xử lý ảnh vào
+                        # Chèn nội dung thư (đã cá nhân hoá tên khách)
                         personalized_html = prepared_html_template.replace("{{name}}", target_name)
                         msg.attach(MIMEText(personalized_html, "html"))
                         
-                        # Đính kèm ảnh ẩn (CID) nếu có
+                        # --- CHỈ SỬA ĐOẠN NÀY 3: Đính kèm kho ảnh ẩn vào email ---
                         for img_dict in inline_images:
                             img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
                             img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
                             img_part.add_header("Content-Disposition", "inline")
                             msg.attach(img_part)
+                        # ----------------------------------------------------------
                         
                         if attachments:
                             for f in attachments:
