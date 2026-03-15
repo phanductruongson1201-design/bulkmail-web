@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage # <-- Thêm MIMEImage để nhúng ảnh
+from email.mime.image import MIMEImage # Thêm để xử lý ảnh
 from email import encoders
 import time
 import requests
@@ -14,9 +14,9 @@ import string
 import random
 import base64
 import os
-import re # <-- Thêm để tìm chuỗi ảnh base64
-from bs4 import BeautifulSoup # <-- Thêm để phân tích thẻ <img>
-from streamlit_quill import st_quill # <-- Thêm để dùng Text Editor dán ảnh
+import re # Thêm để lọc mã ảnh
+from bs4 import BeautifulSoup # Thêm để phân tích và tải ảnh
+from streamlit_quill import st_quill # Thêm ô soạn thảo dán ảnh
 
 # 1. Cấu hình trang Web (Giao diện rộng)
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
@@ -459,13 +459,11 @@ else:
         
         subject = st.text_input("Tiêu đề Email:")
         
-        # --- CHỈ SỬA ĐOẠN NÀY 1: Thay thế Text Area thành Quill Editor để dán ảnh ---
-        st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Mẹo: Chụp màn hình (Zalo/Snipping Tool) rồi Paste thẳng vào đây để không bị lỗi nét đứt):</p>", unsafe_allow_html=True)
-        
-        # Ô soạn thảo cao cấp Quill
-        raw_body = st_quill(placeholder="Soạn nội dung và dán ảnh vào đây...", html=True, key="quill_editor")
+        # --- ĐÃ SỬA: Thay text_area bằng Quill Editor để dán ảnh ---
+        st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Gọi tên bằng biến {{name}}):</p>", unsafe_allow_html=True)
+        raw_body = st_quill(placeholder="Soạn văn bản hoặc Copy/Paste ảnh trực tiếp vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
-        # -----------------------------------------------------------------------------
+        # -----------------------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
@@ -525,41 +523,55 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- CHỈ SỬA ĐOẠN NÀY 2: Cấu trúc đóng gói ảnh chuẩn quốc tế (MIME) chống lỗi hiển thị ---
-                log.write("🔄 Đang đóng gói dữ liệu và mã hóa hình ảnh...")
+                # --- ĐÃ SỬA: Xử lý nhúng ảnh an toàn ---
+                log.write("🔄 Đang phân tích và xử lý hình ảnh...")
                 
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 inline_images = []
                 img_counter = 0
+                total_size = 0
+                MAX_SIZE = 18 * 1024 * 1024 # Giới hạn 18MB
                 
                 for img in soup.find_all("img"):
                     src = img.get("src", "")
                     if not src: continue
                     
-                    # Nếu là ảnh vừa Paste vào (Định dạng Base64) -> Chuyển thành CID nhúng
-                    if src.startswith("data:image"):
-                        try:
-                            img_counter += 1
-                            cid = f"img_inline_{img_counter}"
-                            
+                    img_data = None
+                    img_type = "png"
+                    
+                    try:
+                        if src.startswith("data:image"):
                             header, encoded = src.split(",", 1)
                             img_data = base64.b64decode(encoded)
-                            
-                            # Xác định loại ảnh (png, jpg, jpeg)
-                            img_type = "png"
                             match = re.search(r"image/(.*?);", header)
                             if match:
                                 ext = match.group(1).lower()
                                 img_type = ext if ext in ['jpg', 'jpeg', 'png', 'gif'] else "png"
-                            
-                            inline_images.append({"cid": cid, "data": img_data, "type": img_type})
-                            img["src"] = f"cid:{cid}" # Đổi link mã hóa thành link ẩn nội bộ
-                        except: pass
+                                
+                        elif src.startswith("http"):
+                            headers = {'User-Agent': 'Mozilla/5.0'}
+                            res = requests.get(src, headers=headers, timeout=5)
+                            if res.status_code == 200:
+                                img_data = res.content
+                                c_type = res.headers.get('Content-Type', '')
+                                if 'image/' in c_type:
+                                    ext = c_type.split(';')[0].split('/')[-1].lower()
+                                    img_type = ext if ext in ['jpg', 'jpeg', 'png', 'gif'] else "png"
+                                    
+                        if img_data:
+                            if total_size + len(img_data) <= MAX_SIZE:
+                                total_size += len(img_data)
+                                img_counter += 1
+                                cid = f"img_inline_{img_counter}"
+                                inline_images.append({"cid": cid, "data": img_data, "type": img_type})
+                                img["src"] = f"cid:{cid}"
+                    except Exception:
+                        pass
 
-                prepared_html_template = str(soup) # Bản HTML đã gắn mã ẩn
-                log.write(f"✅ Đã đóng gói thành công {len(inline_images)} ảnh nội bộ.")
-                # ---------------------------------------------------------------------------------------
-
+                prepared_html_template = str(soup)
+                log.write(f"✅ Đã đóng gói {len(inline_images)} ảnh vào thư.")
+                # ---------------------------------------
+                
                 u_data_run = load_users().get(st.session_state["current_user"], {})
                 run_tk = u_data_run.get("tele_token", "")
                 run_id = u_data_run.get("tele_chat_id", "")
@@ -572,29 +584,24 @@ else:
                         n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
                         target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
                         
-                        # --- CHỈ SỬA ĐOẠN NÀY 3: Lắp ráp thư chuẩn "Multipart/Mixed" ---
-                        # Thân chính của email (Mixed)
+                        # --- ĐÃ SỬA: Cấu trúc thư Multipart/Mixed chuẩn ---
                         msg_root = MIMEMultipart("mixed") 
                         msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
                         msg_root["To"] = target_email
                         msg_root["Subject"] = subject
                         
-                        # Nhánh con chứa HTML và Ảnh nhúng (Related)
                         msg_related = MIMEMultipart("related")
                         msg_root.attach(msg_related)
                         
-                        # Đổ HTML vào nhánh con
                         personalized_html = prepared_html_template.replace("{{name}}", target_name)
                         msg_related.attach(MIMEText(personalized_html, "html"))
                         
-                        # Đổ từng bức ảnh vào nhánh con (Google sẽ hiểu đây là ảnh để hiển thị)
                         for img_dict in inline_images:
                             img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
                             img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
-                            img_part.add_header("Content-Disposition", "inline") # Bắt buộc hiện inline
+                            img_part.add_header("Content-Disposition", "inline")
                             msg_related.attach(img_part)
                         
-                        # Gắn file đính kèm (PDF, DOCX) vào nhánh gốc (Root)
                         if attachments:
                             for f in attachments:
                                 part = MIMEBase("application", "octet-stream")
@@ -603,13 +610,12 @@ else:
                                 part.add_header("Content-Disposition", f"attachment; filename={f.name}")
                                 msg_root.attach(part)
                                 f.seek(0)
-                        # ---------------------------------------------------------------
-                                
+                        
                         with smtplib.SMTP("smtp.gmail.com", 587) as server:
                             server.starttls()
                             server.login(st.session_state["s_email"], st.session_state["s_pwd"])
-                            # Gửi đi gói thư msg_root (Đã chứa cả Related và Mixed)
                             server.send_message(msg_root)
+                        # --------------------------------------------------
                             
                         success_list.append(target_email)
                         log.write(f"✅ Đã gửi: {target_email}")
