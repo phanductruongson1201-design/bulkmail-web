@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
+from email.mime.image import MIMEImage # Cần để gửi ảnh an toàn
 from email import encoders
 import time
 import requests
@@ -15,7 +15,7 @@ import random
 import base64
 import os
 import re 
-from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup # Cần để vá link ảnh tự động
 from streamlit_quill import st_quill 
 
 # 1. Cấu hình trang Web (Giao diện rộng)
@@ -136,6 +136,7 @@ st.markdown("""
     .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); border: 2px solid #93c5fd; }
     .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); box-shadow: 0 6px 15px rgba(168, 85, 247, 0.4); border: 2px solid #d8b4fe; }
     .bg-green { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); border: 2px solid #6ee7b7; }
+    .bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.4); border: 2px solid #fcd34d; }
 
     .auth-box { max-width: 440px; margin: 10px auto; padding: 35px; background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); }
     
@@ -256,6 +257,40 @@ else:
             st.session_state["logged_in"] = False
             st.rerun()
 
+    # --- KHỐI TÍCH HỢP NẠP TIỀN API ---
+    st.markdown('<div class="pill-header bg-orange">💎 NẠP TIỀN & KÍCH HOẠT VIP</div>', unsafe_allow_html=True)
+    with st.expander("Bấm vào đây để Nạp tiền / Gia hạn tài khoản tự động 24/7", expanded=False):
+        col_qr, col_info = st.columns([1, 2], gap="large")
+        
+        # BẠN HÃY SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY
+        MY_BANK = "MB"      # Ví dụ: MB, VCB, ACB, TPB...
+        MY_ACCOUNT_NO = "0123456789" # Số tài khoản
+        MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON" # Tên chủ thẻ (Không dấu)
+        
+        transfer_content = f"NAP {st.session_state['current_user']}"
+        qr_url = f"https://img.vietqr.io/image/{MY_BANK}-{MY_ACCOUNT_NO}-compact2.png?amount=100000&addInfo={transfer_content}&accountName={MY_ACCOUNT_NAME.replace(' ', '%20')}"
+        
+        with col_qr:
+            st.image(qr_url, width=220, caption="Mã QR tự động")
+            
+        with col_info:
+            st.markdown(f"""
+            <h3 style='color: #1e40af; margin-top:0;'>Thông tin thanh toán tự động</h3>
+            <p>Hệ thống API sẽ <b>tự động dò tìm giao dịch</b> và cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
+            <ul style='font-size: 15px; line-height: 1.8; color: #334155; background: #f1f5f9; padding: 15px 30px; border-radius: 8px;'>
+                <li>Ngân hàng: <b>{MY_BANK}</b></li>
+                <li>Chủ tài khoản: <b>{MY_ACCOUNT_NAME}</b></li>
+                <li>Số tài khoản: <b>{MY_ACCOUNT_NO}</b></li>
+                <li>Số tiền nạp: <b>100,000 VNĐ</b></li>
+                <li>Nội dung chuyển khoản: <code style='color: #b91c1c; font-size: 18px; font-weight: bold; background: #fee2e2; padding: 2px 8px;'>{transfer_content}</code></li>
+            </ul>
+            <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc nhập chính xác nội dung chuyển khoản để hệ thống tự động nhận diện!</i></p>
+            """, unsafe_allow_html=True)
+            
+            if st.button("🔄 Làm mới số dư & Trạng thái", type="secondary"):
+                st.rerun()
+    # ----------------------------------------
+
     st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
     with st.expander("Bấm để mở rộng Cài đặt Máy chủ", expanded=True):
         cfg_col1, cfg_col2 = st.columns(2, gap="large")
@@ -317,12 +352,14 @@ else:
         
         st.markdown("""
         <p style='font-size: 14px; font-weight: 600; color: #b91c1c; margin-bottom: 5px;'>
-        ⚠️ QUAN TRỌNG: Bạn PHẢI cuộn chuột từ trên xuống dưới bài viết trên Web cho ảnh hiện lên rõ nét, SAU ĐÓ mới bôi đen Copy và Dán vào đây nhé.
+        ⚠️ LƯU Ý: Vui lòng cuộn chuột từ trên xuống dưới bài viết trên Web cho ảnh hiện lên đầy đủ, SAU ĐÓ mới bôi đen Copy và Dán vào đây nhé.
         </p>
         """, unsafe_allow_html=True)
         
-        raw_body = st_quill(placeholder="Dán (Paste) nội dung và hình ảnh vào đây...", html=True, key="quill_editor")
+        # --- SỬ DỤNG QUILL CHO PHÉP DÁN MỌI THỨ ---
+        raw_body = st_quill(placeholder="Bôi đen Copy/Paste trực tiếp từ Website vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
+        # ------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
@@ -379,33 +416,36 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- ĐỘNG CƠ LỌC RÁC HIỆU SUẤT CAO CHỐNG LỖI 5.7.0 ---
-                log.write("🔄 Đang dọn dẹp rác HTML và mã độc...")
+                # --- THUẬT TOÁN TỰ ĐỘNG VÁ LINK & LỌC ẢNH AN TOÀN ---
+                log.write("🔄 Đang dọn dẹp rác HTML và mã hóa hình ảnh...")
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 
-                # Xóa toàn bộ script/iframe rác gây lỗi bảo mật Gmail
+                # Quét dọn các thẻ rác/mã độc khi copy từ web ngoài
                 for tag in soup(["script", "style", "meta", "noscript", "iframe"]):
                     tag.decompose()
                     
                 inline_images = []
                 img_counter = 0
                 total_size = 0
-                MAX_SIZE = 15 * 1024 * 1024 
+                MAX_SIZE = 15 * 1024 * 1024 # Tránh quá tải dung lượng 25MB
                 
                 for img in soup.find_all("img"):
+                    # Quét tìm nguồn ảnh gốc, ưu tiên chống lazy-load
                     src = img.get("data-src") or img.get("data-lazy-src") or img.get("data-original") or img.get("src", "")
                     
                     if not src:
                         img.decompose()
                         continue
-
-                    # Sửa lỗi link web bị thiếu giao thức (thường gặp khi copy web VN)
+                    
+                    # Fix lỗi Link tương đối khi copy (Quan trọng nhất)
                     if src.startswith("//"):
                         src = "https:" + src
                     elif src.startswith("/") and not src.startswith("//"):
                         src = "https://taynguyenfilm.com" + src
+                    elif not src.startswith("http") and not src.startswith("data:"):
+                        src = "https://taynguyenfilm.com/" + src
 
-                    # 1. Nếu là Link web chuẩn: Giữ nguyên để Gmail TỰ TẢI (Tránh lỗi 25MB)
+                    # 1. Nếu là Link web chuẩn: Giữ nguyên để Gmail tự load
                     if src.startswith("http"):
                         img.attrs = {
                             "src": src, 
@@ -413,7 +453,7 @@ else:
                             "alt": "Hình ảnh"
                         }
                     
-                    # 2. Nếu là ảnh dán từ máy (Base64): Đóng gói an toàn (CID)
+                    # 2. Nếu là ảnh chụp màn hình/dán từ máy tính (Base64)
                     elif src.startswith("data:image"):
                         try:
                             header, encoded = src.split(",", 1)
@@ -438,9 +478,8 @@ else:
                                 img.decompose() 
                         except:
                             img.decompose()
-                            
-                    # 3. TRỌNG TÂM: Nếu là tên file rác từ Clipboard (ví dụ: image.png, 4600..._n.jpg)
-                    # BẮT BUỘC PHẢI XÓA SẠCH để không bị Gmail báo lỗi bảo mật 5.7.0
+                    
+                    # Bỏ các ảnh rác/lỗi (image.png, blank.gif)
                     else:
                         img.decompose()
 
@@ -460,6 +499,7 @@ else:
                         n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
                         target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
                         
+                        # --- Cấu trúc thư an toàn Multipart/Mixed ---
                         msg_root = MIMEMultipart("mixed") 
                         msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
                         msg_root["To"] = target_email
