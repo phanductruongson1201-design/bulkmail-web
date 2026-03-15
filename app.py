@@ -5,7 +5,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
 from email import encoders
 import time
 import requests
@@ -14,9 +13,6 @@ import string
 import random
 import base64
 import os
-import re 
-from bs4 import BeautifulSoup 
-from streamlit_quill import st_quill 
 
 # 1. Cấu hình trang Web (Giao diện rộng)
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
@@ -111,41 +107,167 @@ st.markdown("""
     
     #MainMenu, footer, header, .stDeployButton, [data-testid="manage-app-button"], [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"], iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
 
-    .block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; }
+    /* CẮT BỎ KHOẢNG TRẮNG THỪA Ở TRÊN CÙNG CỦA STREAMLIT */
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Nền ứng dụng Xám sáng làm nổi bật các khối màu */
     .stApp { background-color: #f8fafc; }
-    .gradient-text { background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 46px; margin-bottom: 5px; letter-spacing: -1px; }
+    
+    /* Chữ Gradient cực ngầu cho Tiêu đề */
+    .gradient-text {
+        background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 900;
+        font-size: 46px;
+        margin-bottom: 5px;
+        letter-spacing: -1px;
+    }
 
-    div[data-baseweb="tab-list"] { background-color: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 20px !important; }
-    div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; border: none !important; color: #64748b !important; font-weight: 600 !important; font-size: 14px !important; padding: 8px 12px !important; margin: 0 !important; height: auto !important; }
-    div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #1e40af !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important; }
-    div[data-baseweb="tab"][aria-selected="true"] p { color: #1e40af !important; font-weight: 800 !important; }
-    div[data-baseweb="tab-highlight"] { display: none !important; }
+    /* ========================================================
+       THIẾT KẾ CÁC KHỐI TAB ĐĂNG NHẬP (CHUẨN APP MOBILE)
+       ======================================================== */
+    div[data-baseweb="tab-list"] {
+        background-color: #f1f5f9 !important;
+        border-radius: 12px !important;
+        padding: 4px !important;
+        gap: 4px !important;
+        border-bottom: none !important;
+        margin-bottom: 20px !important;
+    }
+    div[data-baseweb="tab"] {
+        background-color: transparent !important;
+        border-radius: 8px !important;
+        border: none !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        margin: 0 !important;
+        height: auto !important;
+    }
+    div[data-baseweb="tab"][aria-selected="true"] {
+        background-color: #ffffff !important;
+        color: #1e40af !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    }
+    div[data-baseweb="tab"][aria-selected="true"] p {
+        color: #1e40af !important;
+        font-weight: 800 !important;
+    }
+    /* Ẩn đường gạch chân màu đỏ mặc định của tab */
+    div[data-baseweb="tab-highlight"] {
+        display: none !important;
+    }
        
-    div[data-testid="stExpander"] { background-color: #eff6ff !important; border: 2px solid #bfdbfe !important; border-radius: 16px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08); }
-    div[data-testid="stExpander"] summary { background-color: transparent !important; }
+    /* 1. Đổ màu Xanh Dương Nhạt cho Khối Cài đặt (Expander) */
+    div[data-testid="stExpander"] {
+        background-color: #eff6ff !important;
+        border: 2px solid #bfdbfe !important;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08);
+    }
+    div[data-testid="stExpander"] summary {
+        background-color: transparent !important; 
+    }
 
-    div[data-testid="stFileUploader"] { background-color: #faf5ff !important; border: 2px solid #e9d5ff !important; border-radius: 16px; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.08); padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    /* 2. Đổ màu Tím Nhạt cho Khối Tải File (File Uploader) */
+    div[data-testid="stFileUploader"] {
+        background-color: #faf5ff !important;
+        border: 2px solid #e9d5ff !important;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(168, 85, 247, 0.08);
+        padding: 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
     div[data-testid="stFileUploader"]:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(168, 85, 247, 0.15); }
 
-    .stButton>button[kind="primary"] { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; color: white !important; border-radius: 16px; font-weight: 900; font-size: 18px !important; padding: 15px 24px; border: none !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
-    .stButton>button[kind="primary"]:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important; }
-    
-    .auth-box .stButton>button[kind="primary"] { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important; font-size: 16px !important; padding: 10px 20px; }
-    
-    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button { border-radius: 12px; border: 2px solid #cbd5e1 !important; color: #475569 !important; font-weight: 700; background-color: white !important; transition: all 0.3s ease; }
-    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover { border-color: #3b82f6 !important; color: #3b82f6 !important; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15); }
+    /* ========================================================
+       CÁC NÚT BẤM (BUTTONS) - MÀU XANH DƯƠNG CHUẨN
+       ======================================================== */
 
-    .pill-header { color: white; padding: 10px 24px; border-radius: 50px; font-size: 15px; font-weight: 800; margin-bottom: 20px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    /* NÚT BẮT ĐẦU CHÍNH */
+    .stButton>button[kind="primary"] { 
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; 
+        color: white !important; 
+        border-radius: 16px; 
+        font-weight: 900; 
+        font-size: 18px !important;
+        padding: 15px 24px; 
+        border: none !important; 
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important;
+        transition: all 0.3s ease; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .stButton>button[kind="primary"]:hover { 
+        transform: translateY(-4px); 
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important; 
+    }
+    
+    /* Nút Đăng nhập trong Auth Box */
+    .auth-box .stButton>button[kind="primary"] {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+        font-size: 16px !important;
+        padding: 10px 20px;
+    }
+    
+    /* CÁC NÚT PHỤ (Tải File, Đăng xuất, Lưu) */
+    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button {
+        border-radius: 12px; 
+        border: 2px solid #cbd5e1 !important; 
+        color: #475569 !important; 
+        font-weight: 700;
+        background-color: white !important;
+        transition: all 0.3s ease;
+    }
+    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover {
+        border-color: #3b82f6 !important; 
+        color: #3b82f6 !important; 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15);
+    }
+
+    /* KHUNG TIÊU ĐỀ NỔI BẬT (PILL DESIGN) */
+    .pill-header {
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px; 
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        margin-top: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block; 
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    /* Màu các Pill Tiêu đề */
     .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); border: 2px solid #93c5fd; }
     .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); box-shadow: 0 6px 15px rgba(168, 85, 247, 0.4); border: 2px solid #d8b4fe; }
     .bg-green { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); border: 2px solid #6ee7b7; }
 
-    .auth-box { max-width: 440px; margin: 10px auto; padding: 35px; background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); }
+    /* KHỐI ĐĂNG NHẬP (Đã Dời Lên Trên) */
+    .auth-box { 
+        max-width: 440px; margin: 10px auto; padding: 35px; 
+        background: rgba(255, 255, 255, 0.95); 
+        border-radius: 24px; 
+        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); 
+        border: 1px solid rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+    }
     
+    /* Logo Login */
     .logo-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 20px; }
     .logo-container img { width: 120px; height: 120px; border-radius: 35%; object-fit: cover; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); border: 4px solid white;}
     .alt-logo { width: 120px; height: 120px; border-radius: 35%; background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 16px; text-align: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); }
 
+    /* Nút liên hệ nổi */
     .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 999999; }
     .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; background: white; transition: 0.3s; border: 2px solid #e2e8f0; }
     .float-btn:hover { transform: translateY(-5px); border-color: #3b82f6; }
@@ -332,20 +454,16 @@ else:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         
         subject = st.text_input("Tiêu đề Email:")
-        
-        # --- ĐÃ SỬA: Quill Editor để bôi đen, copy và dán trực tiếp từ web ---
-        st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Bôi đen copy bài viết từ website và dán trực tiếp vào đây):</p>", unsafe_allow_html=True)
-        raw_body = st_quill(placeholder="Dán (Paste) nội dung và hình ảnh vào đây...", html=True, key="quill_editor")
-        if not raw_body: raw_body = ""
-        # ----------------------------------------------------------------------
+        raw_body = st.text_area("Nội dung (Gọi tên bằng biến {{name}}):", height=230, value="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...")
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
             delay = st.number_input("⏳ Khoảng nghỉ/Mail (Giây):", value=15, min_value=5, help="Thời gian nghỉ giữa mỗi mail. Đề xuất: 15-30s.")
 
         # Xem trước
+        body_html = raw_body.replace("\n", "<br>")
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
-        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{raw_body}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
+        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{body_html}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
         
         with st.expander("👁️ Xem trước giao diện thực tế", expanded=False):
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
@@ -397,65 +515,6 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- ĐÃ SỬA: Robot tự động nhận diện và khôi phục link ảnh bị gãy ---
-                log.write("🔄 Đang phân tích nội dung và xử lý hình ảnh...")
-                
-                soup = BeautifulSoup(full_email_content, "html.parser")
-                inline_images = []
-                img_counter = 0
-                total_size = 0
-                MAX_SIZE = 15 * 1024 * 1024 # Giới hạn an toàn 15MB
-                
-                for img in soup.find_all("img"):
-                    # Tìm nguồn ảnh thật (quét qua các thuộc tính Lazy Load phổ biến)
-                    src = img.get("data-src") or img.get("data-lazy-src") or img.get("data-original") or img.get("src", "")
-                    
-                    if not src:
-                        img.decompose()
-                        continue
-                        
-                    # Vá lỗi copy từ Tây Nguyên Phim (Tránh lỗi: src="image.png" hoặc src="/hinh-anh.jpg")
-                    if src.startswith("//"):
-                        src = "https:" + src
-                    elif src.startswith("/"):
-                        src = "https://taynguyenfilm.com" + src
-                    elif not src.startswith("http") and not src.startswith("data:"):
-                        src = "https://taynguyenfilm.com/" + src
-                    
-                    try:
-                        # 1. Nếu ảnh là Base64 (Do dán trực tiếp ảnh từ máy)
-                        if src.startswith("data:image"):
-                            header, encoded = src.split(",", 1)
-                            img_data = base64.b64decode(encoded)
-                            
-                            ext = "png"
-                            match = re.search(r"image/(.*?);", header)
-                            if match:
-                                ext = match.group(1).lower()
-                                if ext not in ['jpg', 'jpeg', 'png', 'gif']: ext = "png"
-                                
-                            if total_size + len(img_data) <= MAX_SIZE:
-                                total_size += len(img_data)
-                                img_counter += 1
-                                cid = f"img_inline_{img_counter}"
-                                inline_images.append({"cid": cid, "data": img_data, "type": ext, "filename": f"image_{img_counter}.{ext}"})
-                                img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; height: auto; display: block; margin: 10px 0;"}
-                            else:
-                                img.decompose()
-                                
-                        # 2. Nếu ảnh là Link Web -> Giữ nguyên link tuyệt đối để Email cực nhẹ (Chống lỗi 25MB và 5.7.0)
-                        elif src.startswith("http"):
-                            img.attrs = {"src": src, "style": "max-width: 100%; height: auto; display: block; margin: 10px 0;", "alt": "Hình ảnh"}
-                            
-                        else:
-                            img.decompose()
-                    except:
-                        img.decompose() # Bỏ ảnh lỗi để thư an toàn
-
-                prepared_html_template = str(soup) 
-                log.write("✅ Đã xử lý xong HTML. Các đường link ảnh đã được tự động phục hồi.")
-                # ----------------------------------------------------------------------
-
                 u_data_run = load_users().get(st.session_state["current_user"], {})
                 run_tk = u_data_run.get("tele_token", "")
                 run_id = u_data_run.get("tele_chat_id", "")
@@ -468,24 +527,11 @@ else:
                         n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
                         target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
                         
-                        # --- Cấu trúc MIME Multipart chuẩn ---
-                        msg_root = MIMEMultipart("mixed") 
-                        msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
-                        msg_root["To"] = target_email
-                        msg_root["Subject"] = subject
-                        
-                        msg_related = MIMEMultipart("related")
-                        msg_root.attach(msg_related)
-                        
-                        personalized_html = prepared_html_template.replace("{{name}}", target_name)
-                        msg_related.attach(MIMEText(personalized_html, "html", "utf-8"))
-                        
-                        # Chèn ảnh nhúng (CID) nếu người dùng có dán ảnh Base64
-                        for img_dict in inline_images:
-                            img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
-                            img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
-                            img_part.add_header("Content-Disposition", "inline", filename=img_dict["filename"])
-                            msg_related.attach(img_part)
+                        msg = MIMEMultipart()
+                        msg["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
+                        msg["To"] = target_email
+                        msg["Subject"] = subject
+                        msg.attach(MIMEText(full_email_content.replace("{{name}}", target_name), "html"))
                         
                         if attachments:
                             for f in attachments:
@@ -493,14 +539,13 @@ else:
                                 part.set_payload(f.read())
                                 encoders.encode_base64(part)
                                 part.add_header("Content-Disposition", f"attachment; filename={f.name}")
-                                msg_root.attach(part)
+                                msg.attach(part)
                                 f.seek(0)
                                 
                         with smtplib.SMTP("smtp.gmail.com", 587) as server:
                             server.starttls()
                             server.login(st.session_state["s_email"], st.session_state["s_pwd"])
-                            server.send_message(msg_root)
-                        # -------------------------------------
+                            server.send_message(msg)
                             
                         success_list.append(target_email)
                         log.write(f"✅ Đã gửi: {target_email}")
