@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage # Giữ nguyên thư viện xử lý ảnh
+from email.mime.image import MIMEImage 
 from email import encoders
 import time
 import requests
@@ -424,11 +424,11 @@ else:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         subject = st.text_input("Tiêu đề Email:")
         
-        # --- CHỈ SỬA ĐOẠN NÀY: Thay ô nhập liệu chữ thành ô soạn thảo hỗ trợ dán ảnh ---
+        # --- THAY ĐỔI 1: Ô SOẠN THẢO QUIL ĐỂ DÁN ẢNH ĐƯỢC ---
         st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Gọi tên bằng biến {{name}}):</p>", unsafe_allow_html=True)
         raw_body = st_quill(placeholder="Bôi đen chữ và hình ảnh trên trang web khác, sau đó Copy và dán (Paste) thẳng vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
-        # -------------------------------------------------------------------------------
+        # ---------------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
@@ -485,8 +485,8 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- CHỈ SỬA ĐOẠN NÀY: Xử lý và tải ảnh trước để tránh tải đi tải lại nhiều lần ---
-                log.write("🔄 Đang phân tích và xử lý hình ảnh...")
+                # --- THAY ĐỔI 2: TỐI ƯU ẢNH TRÁNH LỖI OVER SIZE 25MB CỦA GOOGLE ---
+                log.write("🔄 Đang phân tích nội dung...")
                 base_soup = BeautifulSoup(full_email_content, "html.parser")
                 inline_images = []
                 img_counter = 0
@@ -495,38 +495,33 @@ else:
                     src = img.get("src", "")
                     if not src: continue
                     
-                    img_data = None
-                    img_type = "png"
-                    
                     try:
-                        # Trường hợp 1: Ảnh là một đường link copy từ website khác
+                        # KIỂU 1: Ảnh là một link web (http) -> Cứ để nguyên link đó.
+                        # Tuyệt đối không tải về để thư không bị nặng vượt 25MB (Gmail sẽ tự load ảnh)
                         if src.startswith("http"):
-                            res = requests.get(src, timeout=10)
-                            if res.status_code == 200:
-                                img_data = res.content
-                                c_type = res.headers.get('Content-Type', '')
-                                if 'image/' in c_type:
-                                    img_type = c_type.split('/')[-1]
+                            continue 
                         
-                        # Trường hợp 2: Ảnh dán trực tiếp từ máy tính (dạng base64)
+                        # KIỂU 2: Ảnh dán trực tiếp từ máy tính (Mã base64) -> Chuyển thành file đính kèm ẩn
                         elif src.startswith("data:image"):
+                            img_counter += 1
+                            cid = f"img_inline_{img_counter}"
+                            
                             header, encoded = src.split(",", 1)
                             img_data = base64.b64decode(encoded)
                             match = re.search(r"image/(.*?);", header)
-                            if match: img_type = match.group(1)
+                            img_type = match.group(1) if match else "png"
                             
-                        # Lưu ảnh đã tải thành công vào bộ nhớ để chuẩn bị gửi
-                        if img_data:
-                            img_counter += 1
-                            cid = f"img_inline_{img_counter}"
                             inline_images.append({"cid": cid, "data": img_data, "type": img_type})
-                            img["src"] = f"cid:{cid}" # Thay thế link ngoài bằng link ẩn CID
+                            img["src"] = f"cid:{cid}" # Đổi thành link ẩn nội bộ
                     except Exception as e:
                         pass
                 
-                prepared_html_template = str(base_soup) # Nội dung HTML đã xử lý xong ảnh
-                log.write(f"✅ Đã chuẩn bị xong {len(inline_images)} hình ảnh nhúng vào thư.")
-                # -------------------------------------------------------------------------------
+                prepared_html_template = str(base_soup) # Gói HTML cuối cùng để gửi
+                if inline_images:
+                    log.write(f"✅ Đã xử lý đính kèm {len(inline_images)} ảnh gốc.")
+                else:
+                    log.write("✅ Cấu trúc ảnh đã sẵn sàng (Load trực tiếp từ Web).")
+                # ------------------------------------------------------------------
 
                 u_data_run = load_users().get(st.session_state["current_user"], {})
                 run_tk = u_data_run.get("tele_token", "")
@@ -545,17 +540,16 @@ else:
                         msg["To"] = target_email
                         msg["Subject"] = subject
                         
-                        # --- CHỈ SỬA ĐOẠN NÀY: Gọi dữ liệu ảnh đã xử lý để nhúng vào từng email ---
+                        # Đổ nội dung HTML đã xử lý ảnh vào
                         personalized_html = prepared_html_template.replace("{{name}}", target_name)
                         msg.attach(MIMEText(personalized_html, "html"))
                         
-                        # Đính kèm toàn bộ số ảnh đã lấy được vào gói dữ liệu ẩn
+                        # Đính kèm ảnh ẩn (CID) nếu có
                         for img_dict in inline_images:
                             img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
                             img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
                             img_part.add_header("Content-Disposition", "inline")
                             msg.attach(img_part)
-                        # --------------------------------------------------------------------------
                         
                         if attachments:
                             for f in attachments:
