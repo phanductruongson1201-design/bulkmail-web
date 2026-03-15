@@ -411,7 +411,7 @@ else:
                 """, unsafe_allow_html=True)
             
         with cfg_col2:
-            st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
+            st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký số</b>", unsafe_allow_html=True)
             u_data = load_users().get(st.session_state["current_user"], {})
             new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=u_data.get("tele_token", ""), type="password")
             new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=u_data.get("tele_chat_id", ""))
@@ -461,7 +461,7 @@ else:
         
         # --- CHỈ SỬA ĐOẠN NÀY: Thay đổi ô nhập liệu ---
         st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Gọi tên bằng biến {{name}}):</p>", unsafe_allow_html=True)
-        raw_body = st_quill(placeholder="Bôi đen chữ và hình ảnh trên trang web khác, sau đó Copy và dán (Paste) thẳng vào đây...", html=True, key="quill_editor")
+        raw_body = st_quill(placeholder="Nhập nội dung Mail tại đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
         # ----------------------------------------------
         
