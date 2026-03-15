@@ -5,6 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage # <-- Cần cho việc gửi ảnh
 from email import encoders
 import time
 import requests
@@ -13,6 +14,9 @@ import string
 import random
 import base64
 import os
+import re # <-- Cần để lọc ảnh
+from bs4 import BeautifulSoup # <-- Robot tự động lấy ảnh từ web
+from streamlit_quill import st_quill # <-- Trình soạn thảo cho phép Paste ảnh
 
 # 1. Cấu hình trang Web (Giao diện rộng)
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide")
@@ -454,16 +458,20 @@ else:
         st.markdown('<div class="pill-header bg-green">✍️ BƯỚC 3: SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
         
         subject = st.text_input("Tiêu đề Email:")
-        raw_body = st.text_area("Nội dung (Gọi tên bằng biến {{name}}):", height=230, value="Kính chào Anh/Chị {{name}},\n\nNhập nội dung thư tại đây...")
+        
+        # --- ĐÃ SỬA: Thay thế Text Area thành Quill Editor cho phép dán ảnh ---
+        st.markdown("<p style='font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 5px;'>Nội dung (Bôi đen copy văn bản và hình ảnh trực tiếp từ bất kỳ đâu rồi dán vào đây):</p>", unsafe_allow_html=True)
+        raw_body = st_quill(placeholder="Dán (Paste) nội dung và hình ảnh vào đây...", html=True, key="quill_editor")
+        if not raw_body: raw_body = ""
+        # ---------------------------------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
             delay = st.number_input("⏳ Khoảng nghỉ/Mail (Giây):", value=15, min_value=5, help="Thời gian nghỉ giữa mỗi mail. Đề xuất: 15-30s.")
 
         # Xem trước
-        body_html = raw_body.replace("\n", "<br>")
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
-        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{body_html}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
+        full_email_content = f"<div style='font-family:Arial; line-height:1.8; color:#333;'>{raw_body}<br><br><div style='color:#666; border-top:1px solid #eee; padding-top:10px;'>{sign_html}</div></div>"
         
         with st.expander("👁️ Xem trước giao diện thực tế", expanded=False):
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
@@ -515,6 +523,75 @@ else:
                 success_list = []
                 error_list = []
                 
+                # --- ĐÃ SỬA: Robot tự động tải và nhúng ảnh ---
+                log.write("🔄 Đang xử lý nội dung và tải ảnh...")
+                
+                # Xóa script độc hại (nếu có) khi copy từ web
+                soup = BeautifulSoup(full_email_content, "html.parser")
+                for tag in soup(["script", "style", "meta"]):
+                    tag.decompose()
+                
+                inline_images = []
+                img_counter = 0
+                total_size = 0
+                MAX_SIZE = 15 * 1024 * 1024 # Khóa an toàn 15MB để tránh lỗi Google 25MB
+                
+                for img in soup.find_all("img"):
+                    # Quét link thật (Tránh ảnh bị ẩn bằng Lazy-load)
+                    src = img.get("data-src") or img.get("data-lazy-src") or img.get("src", "")
+                    if not src:
+                        img.decompose()
+                        continue
+                    
+                    # Fix lỗi đường link ảnh bị thiếu tên miền (khi copy từ website)
+                    if src.startswith("//"):
+                        src = "https:" + src
+                    elif src.startswith("/") and not src.startswith("//"):
+                        src = "https://taynguyenfilm.com" + src
+                        
+                    img_data = None
+                    img_type = "jpeg"
+                    
+                    try:
+                        # Trường hợp 1: Tự động tải ảnh từ Website
+                        if src.startswith("http"):
+                            # Gắn headers để giả làm người dùng thật, tránh web chặn tải
+                            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+                            res = requests.get(src, headers=headers, timeout=5)
+                            if res.status_code == 200:
+                                img_data = res.content
+                                ctype = res.headers.get("Content-Type", "").lower()
+                                if "png" in ctype: img_type = "png"
+                                elif "gif" in ctype: img_type = "gif"
+                                
+                        # Trường hợp 2: Ảnh dán trực tiếp (Base64)
+                        elif src.startswith("data:image"):
+                            header, encoded = src.split(",", 1)
+                            img_data = base64.b64decode(encoded)
+                            if "png" in header.lower(): img_type = "png"
+                            elif "gif" in header.lower(): img_type = "gif"
+                            
+                        # Đóng gói ảnh thành dạng an toàn (CID) để Gmail hiển thị
+                        if img_data and (total_size + len(img_data) <= MAX_SIZE):
+                            total_size += len(img_data)
+                            img_counter += 1
+                            cid = f"img_{img_counter}_{int(time.time())}"
+                            
+                            inline_images.append({
+                                "cid": cid,
+                                "data": img_data,
+                                "type": img_type
+                            })
+                            img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; height: auto;"}
+                        else:
+                            img.decompose() # Vứt bỏ ảnh nếu dung lượng quá lớn
+                    except:
+                        img.decompose() # Vứt bỏ ảnh nếu web kia chống tải (Tránh lỗi 5.7.0)
+
+                prepared_html_template = str(soup) 
+                log.write(f"✅ Đã tải và nhúng thành công {len(inline_images)} hình ảnh.")
+                # --------------------------------------------------------------
+
                 u_data_run = load_users().get(st.session_state["current_user"], {})
                 run_tk = u_data_run.get("tele_token", "")
                 run_id = u_data_run.get("tele_chat_id", "")
@@ -527,25 +604,39 @@ else:
                         n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
                         target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
                         
-                        msg = MIMEMultipart()
-                        msg["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
-                        msg["To"] = target_email
-                        msg["Subject"] = subject
-                        msg.attach(MIMEText(full_email_content.replace("{{name}}", target_name), "html"))
+                        # --- Cấu trúc thư an toàn Multipart/Mixed ---
+                        msg_root = MIMEMultipart("mixed") 
+                        msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
+                        msg_root["To"] = target_email
+                        msg_root["Subject"] = subject
                         
+                        msg_related = MIMEMultipart("related")
+                        msg_root.attach(msg_related)
+                        
+                        personalized_html = prepared_html_template.replace("{{name}}", target_name)
+                        msg_related.attach(MIMEText(personalized_html, "html", "utf-8"))
+                        
+                        # Chèn ảnh đã tải vào email
+                        for img_dict in inline_images:
+                            img_part = MIMEImage(img_dict["data"], _subtype=img_dict["type"])
+                            img_part.add_header("Content-ID", f"<{img_dict['cid']}>")
+                            img_part.add_header("Content-Disposition", "inline")
+                            msg_related.attach(img_part)
+                        
+                        # Chèn file đính kèm ngoài nếu có
                         if attachments:
                             for f in attachments:
                                 part = MIMEBase("application", "octet-stream")
                                 part.set_payload(f.read())
                                 encoders.encode_base64(part)
                                 part.add_header("Content-Disposition", f"attachment; filename={f.name}")
-                                msg.attach(part)
+                                msg_root.attach(part)
                                 f.seek(0)
                                 
                         with smtplib.SMTP("smtp.gmail.com", 587) as server:
                             server.starttls()
                             server.login(st.session_state["s_email"], st.session_state["s_pwd"])
-                            server.send_message(msg)
+                            server.send_message(msg_root)
                             
                         success_list.append(target_email)
                         log.write(f"✅ Đã gửi: {target_email}")
