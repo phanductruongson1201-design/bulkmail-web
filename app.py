@@ -292,7 +292,7 @@ else:
         with col_info:
             st.markdown(f"""
             <h3 style='color: #1e40af; margin-top:0;'>Thông tin thanh toán tự động</h3>
-            <p>Hệ thống API sẽ <b>tự động dò tìm giao dịch</b> và cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
+            <p>Hệ thống sẽ cộng số dư/kích hoạt VIP vào tài khoản của bạn sau 1-3 phút kể từ khi chuyển khoản thành công.</p>
             <ul style='font-size: 15px; line-height: 1.8; color: #334155; background: #f1f5f9; padding: 15px 30px; border-radius: 8px;'>
                 <li>Ngân hàng: <b>{SEPAY_BANK}</b></li>
                 <li>Số tiền nạp tối thiểu: <b>100,000 VNĐ</b></li>
