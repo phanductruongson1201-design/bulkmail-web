@@ -264,7 +264,7 @@ else:
         
         # BẠN HÃY SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY
         MY_BANK = "MB"      # Ví dụ: MB, VCB, ACB, TPB...
-        MY_ACCOUNT_NO = "0123456789" # Số tài khoản
+        MY_ACCOUNT_NO = "VQRQAHQHF1360" # Số tài khoản
         MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON" # Tên chủ thẻ (Không dấu)
         
         transfer_content = f"NAP {st.session_state['current_user']}"
