@@ -4,3 +4,4 @@ openpyxl
 requests
 streamlit-quill
 beautifulsoup4
+pip install streamlit-paste-button
