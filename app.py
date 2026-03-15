@@ -164,6 +164,7 @@ if "show_deposit_form" not in st.session_state: st.session_state["show_deposit_f
 if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
+if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None # Dùng để bắt sự kiện cộng tiền
 
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
@@ -264,6 +265,17 @@ else:
     balance = current_user_data.get("balance", 0)
     try: balance = int(float(balance))
     except: balance = 0
+
+    # THUẬT TOÁN KÍCH HOẠT BÁO CÁO THÀNH CÔNG
+    if st.session_state["previous_balance"] is None:
+        st.session_state["previous_balance"] = balance
+    elif balance > st.session_state["previous_balance"]:
+        st.balloons()
+        st.success(f"🎉 THANH TOÁN THÀNH CÔNG! Tài khoản của bạn vừa được cộng thêm {balance - st.session_state['previous_balance']:,} VNĐ.")
+        st.session_state["previous_balance"] = balance
+        # Đóng form QR cho gọn
+        st.session_state["show_deposit_form"] = False
+        st.session_state["show_qr"] = False
 
     # --- HEADER ---
     head_col1, head_col2 = st.columns([5, 1.5])
@@ -377,9 +389,9 @@ else:
                     st.markdown("**📝 Nội dung chuyển khoản (Bấm biểu tượng 📋 ở góc phải để Copy):**")
                     st.code(transfer_content, language="text")
                     
-                    st.info("💡 Trạng thái: Đang chờ thanh toán. Hệ thống sẽ tự động đối soát và cộng tiền trong 1-3 phút.")
+                    st.info("💡 Trạng thái: Đang chờ thanh toán. Sau khi chuyển xong, vui lòng bấm nút bên dưới để xác nhận.")
                     
-                    if st.button("🔄 Bấm vào đây để làm mới số dư", type="secondary", use_container_width=True):
+                    if st.button("🔄 LÀM MỚI SỐ DƯ ĐỂ HOÀN TẤT", type="primary", use_container_width=True):
                         st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -538,7 +550,6 @@ else:
                     elif not src.startswith("http") and not src.startswith("data:"):
                         src = "https://taynguyenfilm.com/" + src
 
-                    # GIẢI PHÁP CHỐT HẠ: KHÔNG TẢI ẢNH WEB VỀ
                     if src.startswith("http"):
                         img.attrs = {
                             "src": src, 
@@ -546,7 +557,6 @@ else:
                             "alt": "Hình ảnh"
                         }
                     
-                    # CẦU CHÌ AN TOÀN: CHỈ CHO PHÉP TỐI ĐA 2 ẢNH ĐÍNH KÈM (Base64) TỪ MÁY
                     elif src.startswith("data:image"):
                         if img_counter < 2:
                             try:
