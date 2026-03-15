@@ -149,6 +149,9 @@ st.markdown("""
     .float-btn { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; background: white; transition: 0.3s; border: 2px solid #e2e8f0; }
     .float-btn:hover { transform: translateY(-5px); border-color: #3b82f6; }
     .float-btn img { width: 65%; height: 65%; object-fit: contain; }
+    
+    /* Giao diện Form Deposit */
+    .deposit-box { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 25px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -157,9 +160,9 @@ if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "otp_verified" not in st.session_state: st.session_state["otp_verified"] = False
 if "otp_sent" not in st.session_state: st.session_state["otp_sent"] = False
 
-# Thêm state cho vụ QR Code nạp tiền
+if "show_deposit_form" not in st.session_state: st.session_state["show_deposit_form"] = False
 if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
-if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 0
+if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
 
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
@@ -279,55 +282,71 @@ else:
             st.rerun()
 
     # ========================================================
-    # --- KHỐI TÍCH HỢP NẠP TIỀN API SEPAY (NHẬP SỐ TIỀN) ---
+    # --- KHỐI GIAO DIỆN NẠP TIỀN (CHUẨN FORM POPUP) ---
     # ========================================================
-    st.markdown('<div class="pill-header bg-orange">💎 NẠP TIỀN & KÍCH HOẠT VIP</div>', unsafe_allow_html=True)
-    with st.expander("Bấm vào đây để Nạp tiền tự động 24/7", expanded=False):
-        
-        st.markdown("<b style='color:#1e40af; font-size: 15px;'>Nhập số tiền bạn muốn nạp (Tối thiểu 10.000 VNĐ):</b>", unsafe_allow_html=True)
-        col_input, col_btn = st.columns([2, 1])
-        
-        with col_input:
-            amount_input = st.number_input("Số tiền (VNĐ):", min_value=0, step=10000, value=100000, label_visibility="collapsed")
+    btn_col1, btn_col2 = st.columns([6, 2])
+    with btn_col2:
+        if st.button("💳 NẠP TIỀN TỰ ĐỘNG", type="primary", use_container_width=True):
+            st.session_state["show_deposit_form"] = True
+            st.session_state["show_qr"] = False
             
-        with col_btn:
-            if st.button("TẠO MÃ QR THANH TOÁN", type="primary", use_container_width=True):
+    if st.session_state.get("show_deposit_form"):
+        # Khung Form thiết kế y hệt ảnh mockup
+        st.markdown('<div class="deposit-box">', unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top:0; color:#0f172a;'>Nhập số tiền cần nạp</h3>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 10px 0 20px 0; border: 1px solid #f1f5f9;'>", unsafe_allow_html=True)
+        
+        amount_input = st.number_input("Nhập số tiền bạn cần nạp vào hệ thống (VNĐ)", 
+                                       value=st.session_state.get("deposit_amount", 100000), step=10000, min_value=0)
+        
+        col_pay, col_receive = st.columns(2)
+        col_pay.markdown(f"**Số tiền cần thanh toán**<br><h3 style='color:#2563eb; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
+        col_receive.markdown(f"**Số tiền nhận được**<br><h3 style='color:#ef4444; margin:0;'>{amount_input:,}</h3>", unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        bc1, bc2, bc3 = st.columns([5.5, 2, 2.5])
+        with bc2:
+            if st.button("Đóng", use_container_width=True):
+                st.session_state["show_deposit_form"] = False
+                st.session_state["show_qr"] = False
+                st.rerun()
+        with bc3:
+            if st.button("Tạo hoá đơn", type="primary", use_container_width=True):
                 if amount_input < 10000:
                     st.error("⚠️ Số tiền nạp tối thiểu là 10.000 VNĐ")
                 else:
-                    st.session_state["show_qr"] = True
                     st.session_state["deposit_amount"] = amount_input
+                    st.session_state["show_qr"] = True
                     st.session_state["qr_expire_time"] = time.time() + 600 # 10 phút = 600 giây
                     st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Hiện QR Code nếu khách đã bấm nút và chưa hết hạn
+        # Logic hiển thị QR Code Đếm ngược
         if st.session_state.get("show_qr"):
             time_left = int(st.session_state["qr_expire_time"] - time.time())
             
             if time_left <= 0:
-                st.warning("⏳ Mã QR đã hết hạn. Vui lòng nhập lại số tiền và bấm Tạo mã mới.")
+                st.warning("⏳ Mã QR đã hết hạn. Vui lòng bấm Tạo hoá đơn mới.")
                 st.session_state["show_qr"] = False
             else:
-                st.markdown("<hr style='margin: 15px 0; border: 1px dashed #cbd5e1;'>", unsafe_allow_html=True)
+                st.markdown("<div style='background-color: #fffbeb; border: 1px dashed #fca5a5; border-radius: 12px; padding: 20px; margin-bottom: 25px;'>", unsafe_allow_html=True)
                 col_qr, col_info = st.columns([1, 1.5], gap="large")
                 
-                # --- ĐIỀN THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY ---
-                SEPAY_ACC = "VQRQAHQHF1360" # ID tài khoản SePay của bạn
-                SEPAY_BANK = "MBBank"       # Tên Ngân hàng (Ví dụ: MBBank, Vietcombank)
+                # THÔNG TIN TÀI KHOẢN NGÂN HÀNG CỦA BẠN (SEPAY)
+                SEPAY_ACC = "VQRQAHQHF1360"
+                SEPAY_BANK = "MBBank"
                 MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON"
-                # ------------------------------------------------
-
+                
                 amount = st.session_state["deposit_amount"]
                 transfer_content = f"NAP {st.session_state['current_user']}"
                 transfer_content_url = transfer_content.replace(' ', '%20') 
                 
-                # Tạo link QR động chuẩn xác 100%
                 qr_url = f"https://qr.sepay.vn/img?acc={SEPAY_ACC}&bank={SEPAY_BANK}&amount={amount}&des={transfer_content_url}"
                 
                 with col_qr:
                     st.image(qr_url, width=250, caption="Mở App ngân hàng quét mã")
                     
-                    # Đồng hồ đếm ngược bằng Javascript (Chạy ngầm, không lag web)
+                    # Đồng hồ đếm ngược
                     components.html(f"""
                         <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ef4444; font-weight: 800; font-size: 15px; padding: 10px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
                             ⏳ Hết hạn sau: <span id="time">10:00</span>
@@ -358,10 +377,11 @@ else:
                     st.markdown("**📝 Nội dung chuyển khoản (Bấm biểu tượng 📋 ở góc phải để Copy):**")
                     st.code(transfer_content, language="text")
                     
-                    st.info("💡 Trạng thái: Hệ thống đang chờ thanh toán. Tiền sẽ tự động cộng vào số dư của bạn trong 1-3 phút.")
+                    st.info("💡 Trạng thái: Đang chờ thanh toán. Hệ thống sẽ tự động đối soát và cộng tiền trong 1-3 phút.")
                     
                     if st.button("🔄 Bấm vào đây để làm mới số dư", type="secondary", use_container_width=True):
                         st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
 
     # --- KHỐI CẤU HÌNH ---
     st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
@@ -498,7 +518,6 @@ else:
                 log.write("🔄 Đang cấu trúc lại hình ảnh để vượt tường lửa Google...")
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 
-                # Quét dọn mã độc
                 for tag in soup(["script", "style", "meta", "noscript", "iframe"]):
                     tag.decompose()
                     
