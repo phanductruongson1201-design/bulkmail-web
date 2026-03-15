@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage # Cần để gửi ảnh an toàn
+from email.mime.image import MIMEImage
 from email import encoders
 import time
 import requests
@@ -15,7 +15,7 @@ import random
 import base64
 import os
 import re 
-from bs4 import BeautifulSoup # Cần để vá link ảnh tự động
+from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
 # 1. Cấu hình trang Web (Giao diện rộng)
@@ -247,24 +247,39 @@ if not st.session_state["logged_in"]:
 # 2. DASHBOARD CHÍNH
 # ==========================================
 else:
-    head_col1, head_col2 = st.columns([5, 1])
+    # --- TẢI DỮ LIỆU ĐỂ KIỂM TRA SỐ DƯ ---
+    users_db = load_users()
+    current_user_data = users_db.get(st.session_state["current_user"], {})
+    
+    # Lấy số dư từ cột G của Google Sheet
+    balance = current_user_data.get("balance", 0)
+    try: balance = int(float(balance))
+    except: balance = 0
+
+    head_col1, head_col2 = st.columns([5, 1.5])
     with head_col1:
         st.markdown('<div class="gradient-text">BulkMail</div>', unsafe_allow_html=True)
         st.markdown('<p style="color:#64748b; font-size: 16px; margin-bottom: 20px;">Thiết lập và vận hành hàng ngàn email cá nhân hóa chỉ trong tích tắc.</p>', unsafe_allow_html=True)
     with head_col2:
-        st.markdown(f"<div style='text-align: right; padding-top: 10px; font-weight: bold; color: #1e40af;'>👤 {st.session_state['current_user']}</div>", unsafe_allow_html=True)
+        # HIỂN THỊ SỐ DƯ TẠI ĐÂY
+        st.markdown(f"""
+        <div style='text-align: right; padding-top: 5px;'>
+            <div style='font-weight: bold; color: #1e40af; font-size: 15px;'>👤 {st.session_state['current_user']}</div>
+            <div style='color: #047857; font-weight: 800; font-size: 14px; margin-bottom: 5px;'>💰 Số dư: {balance:,} VNĐ</div>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("🚪 Đăng xuất", use_container_width=True):
             st.session_state["logged_in"] = False
             st.rerun()
 
     # --- KHỐI TÍCH HỢP NẠP TIỀN API ---
     st.markdown('<div class="pill-header bg-orange">💎 NẠP TIỀN & KÍCH HOẠT VIP</div>', unsafe_allow_html=True)
-    with st.expander("Bấm vào đây để Nạp tiền / Gia hạn tài khoản tự động 24/7", expanded=False):
+    with st.expander("Bấm vào đây để Nạp tiền tự động 24/7", expanded=False):
         col_qr, col_info = st.columns([1, 2], gap="large")
         
         # BẠN HÃY SỬA THÔNG TIN NGÂN HÀNG CỦA BẠN TẠI ĐÂY
         MY_BANK = "MB"      # Ví dụ: MB, VCB, ACB, TPB...
-        MY_ACCOUNT_NO = "VQRQAHQHF1360" # Số tài khoản
+        MY_ACCOUNT_NO = "0123456789" # Số tài khoản
         MY_ACCOUNT_NAME = "PHAN DUC TRUONG SON" # Tên chủ thẻ (Không dấu)
         
         transfer_content = f"NAP {st.session_state['current_user']}"
@@ -281,7 +296,7 @@ else:
                 <li>Ngân hàng: <b>{MY_BANK}</b></li>
                 <li>Chủ tài khoản: <b>{MY_ACCOUNT_NAME}</b></li>
                 <li>Số tài khoản: <b>{MY_ACCOUNT_NO}</b></li>
-                <li>Số tiền nạp: <b>100,000 VNĐ</b></li>
+                <li>Số tiền nạp tối thiểu: <b>100,000 VNĐ</b></li>
                 <li>Nội dung chuyển khoản: <code style='color: #b91c1c; font-size: 18px; font-weight: bold; background: #fee2e2; padding: 2px 8px;'>{transfer_content}</code></li>
             </ul>
             <p style='color: #ef4444; font-size: 13px;'><i>⚠️ Bắt buộc nhập chính xác nội dung chuyển khoản để hệ thống tự động nhận diện!</i></p>
@@ -289,7 +304,6 @@ else:
             
             if st.button("🔄 Làm mới số dư & Trạng thái", type="secondary"):
                 st.rerun()
-    # ----------------------------------------
 
     st.markdown('<div class="pill-header bg-blue">⚙️ BƯỚC 1: CẤU HÌNH MÁY CHỦ & BÁO CÁO</div>', unsafe_allow_html=True)
     with st.expander("Bấm để mở rộng Cài đặt Máy chủ", expanded=True):
@@ -299,23 +313,10 @@ else:
             st.session_state["s_name"] = st.text_input("Tên người gửi (Ví dụ: Trường Sơn Marketing):", value=st.session_state["s_name"])
             st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
-            
-            with st.expander("❓ Bấm vào đây để xem Hướng dẫn lấy Mật khẩu ứng dụng (Rất dễ)"):
-                st.markdown("""
-                <div style="font-size: 14.5px; color: #334155; line-height: 1.6;">
-                    <b>Làm theo 4 bước sau (chỉ mất 1 phút):</b><br>
-                    <b>1.</b> Mở tab mới, truy cập link này: <a href="https://myaccount.google.com/security" target="_blank" style="color:#3b82f6; text-decoration:none;"><b>Bảo mật Tài khoản Google</b></a>.<br>
-                    <b>2.</b> Đảm bảo tính năng <b>Xác minh 2 bước</b> đã được <b>BẬT</b>.<br>
-                    <b>3.</b> Kéo lên trên cùng, tìm ô <b>Tìm kiếm</b> (biểu tượng kính lúp) ➔ Gõ chữ <b>"Mật khẩu ứng dụng"</b> (hoặc App Passwords) ➔ Bấm chọn kết quả hiện ra.<br>
-                    <b>4.</b> Gõ tên ứng dụng là <i>"BulkMail"</i> ➔ Bấm <b>Tạo</b>. Google sẽ cấp cho bạn một dải gồm <b>16 chữ cái</b>. Hãy copy và dán vào ô bên trên.
-                </div>
-                """, unsafe_allow_html=True)
-            
         with cfg_col2:
             st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
-            u_data = load_users().get(st.session_state["current_user"], {})
-            new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=u_data.get("tele_token", ""), type="password")
-            new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=u_data.get("tele_chat_id", ""))
+            new_tk = st.text_input("Bot Token Telegram (Tùy chọn):", value=current_user_data.get("tele_token", ""), type="password")
+            new_id = st.text_input("Chat ID Telegram (Tùy chọn):", value=current_user_data.get("tele_chat_id", ""))
             st.session_state["s_sign"] = st.text_area("Chữ ký mặc định cuối thư:", value=st.session_state["s_sign"], height=68)
             if st.button("💾 Lưu cấu hình Telegram"):
                 if save_config_api(st.session_state["current_user"], new_tk, new_id):
@@ -352,14 +353,12 @@ else:
         
         st.markdown("""
         <p style='font-size: 14px; font-weight: 600; color: #b91c1c; margin-bottom: 5px;'>
-        ⚠️ LƯU Ý: Vui lòng cuộn chuột từ trên xuống dưới bài viết trên Web cho ảnh hiện lên đầy đủ, SAU ĐÓ mới bôi đen Copy và Dán vào đây nhé.
+        ⚠️ LƯU Ý QUAN TRỌNG: Để tránh Google chặn thư rác, hãy HẠN CHẾ dán (paste) quá nhiều ảnh trực tiếp. Nên bôi đen COPY từ web để giữ nguyên link gốc.
         </p>
         """, unsafe_allow_html=True)
         
-        # --- SỬ DỤNG QUILL CHO PHÉP DÁN MỌI THỨ ---
-        raw_body = st_quill(placeholder="Bôi đen Copy/Paste trực tiếp từ Website vào đây...", html=True, key="quill_editor")
+        raw_body = st_quill(placeholder="Bôi đen Copy/Paste bài viết từ Website vào đây...", html=True, key="quill_editor")
         if not raw_body: raw_body = ""
-        # ------------------------------------------
         
         col_delay, col_blank = st.columns([1, 1])
         with col_delay:
@@ -416,28 +415,23 @@ else:
                 success_list = []
                 error_list = []
                 
-                # --- THUẬT TOÁN TỰ ĐỘNG VÁ LINK & LỌC ẢNH AN TOÀN ---
-                log.write("🔄 Đang dọn dẹp rác HTML và mã hóa hình ảnh...")
+                log.write("🔄 Đang cấu trúc lại hình ảnh để vượt tường lửa Google...")
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 
-                # Quét dọn các thẻ rác/mã độc khi copy từ web ngoài
+                # Quét dọn mã độc
                 for tag in soup(["script", "style", "meta", "noscript", "iframe"]):
                     tag.decompose()
                     
                 inline_images = []
                 img_counter = 0
-                total_size = 0
-                MAX_SIZE = 15 * 1024 * 1024 # Tránh quá tải dung lượng 25MB
                 
                 for img in soup.find_all("img"):
-                    # Quét tìm nguồn ảnh gốc, ưu tiên chống lazy-load
                     src = img.get("data-src") or img.get("data-lazy-src") or img.get("data-original") or img.get("src", "")
                     
                     if not src:
                         img.decompose()
                         continue
                     
-                    # Fix lỗi Link tương đối khi copy (Quan trọng nhất)
                     if src.startswith("//"):
                         src = "https:" + src
                     elif src.startswith("/") and not src.startswith("//"):
@@ -445,7 +439,7 @@ else:
                     elif not src.startswith("http") and not src.startswith("data:"):
                         src = "https://taynguyenfilm.com/" + src
 
-                    # 1. Nếu là Link web chuẩn: Giữ nguyên để Gmail tự load
+                    # Nếu là Link web chuẩn: Giữ nguyên để Gmail TỰ TẢI (Tránh lỗi 25MB)
                     if src.startswith("http"):
                         img.attrs = {
                             "src": src, 
@@ -453,14 +447,14 @@ else:
                             "alt": "Hình ảnh"
                         }
                     
-                    # 2. Nếu là ảnh chụp màn hình/dán từ máy tính (Base64)
+                    # Nếu là ảnh dán từ máy (Base64)
                     elif src.startswith("data:image"):
-                        try:
-                            header, encoded = src.split(",", 1)
-                            img_data = base64.b64decode(encoded)
-                            
-                            if total_size + len(img_data) <= MAX_SIZE:
-                                total_size += len(img_data)
+                        # CẦU CHÌ AN TOÀN: CHỈ CHO PHÉP NHÚNG TỐI ĐA 3 ẢNH ĐỂ TRÁNH LỖI 5.7.0
+                        if img_counter < 3:
+                            try:
+                                header, encoded = src.split(",", 1)
+                                img_data = base64.b64decode(encoded)
+                                
                                 img_counter += 1
                                 ext = "png"
                                 match = re.search(r"image/(.*?);", header)
@@ -474,24 +468,21 @@ else:
                                     "filename": f"image_{img_counter}.{ext}"
                                 })
                                 img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; height: auto; display: block; margin: 10px 0;"}
-                            else:
-                                img.decompose() 
-                        except:
+                            except:
+                                img.decompose()
+                        else:
+                            # TỪ ẢNH THỨ 4 TRỞ ĐI (DẠNG ĐÍNH KÈM) SẼ BỊ CẮT BỎ ĐỂ CỨU EMAIL KHỎI BỊ CHẶN
                             img.decompose()
-                    
-                    # Bỏ các ảnh rác/lỗi (image.png, blank.gif)
                     else:
                         img.decompose()
 
                 prepared_html_template = str(soup) 
-                log.write("✅ Cấu trúc ảnh đã hoàn hảo. Gmail sẽ tự động hiển thị sắc nét.")
-                # -------------------------------------------------------------
+                log.write(f"✅ Tối ưu thành công. Đã đóng gói {len(inline_images)} ảnh đính kèm (Để tránh spam).")
 
-                u_data_run = load_users().get(st.session_state["current_user"], {})
-                run_tk = u_data_run.get("tele_token", "")
-                run_id = u_data_run.get("tele_chat_id", "")
+                run_tk = current_user_data.get("tele_token", "")
+                run_id = current_user_data.get("tele_chat_id", "")
                 send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
-                
+
                 for index, row in df.iterrows():
                     try:
                         e_col = next((c for c in df.columns if c.lower() in ["email", "mail"]), None)
@@ -499,7 +490,6 @@ else:
                         n_col = next((c for c in df.columns if c.lower() in ["name", "tên"]), None)
                         target_name = str(row.get(n_col, "Khách hàng")) if n_col else "Khách hàng"
                         
-                        # --- Cấu trúc thư an toàn Multipart/Mixed ---
                         msg_root = MIMEMultipart("mixed") 
                         msg_root["From"] = f"{st.session_state['s_name']} <{st.session_state['s_email']}>"
                         msg_root["To"] = target_email
