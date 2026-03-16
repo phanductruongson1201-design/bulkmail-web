@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web (Để Sidebar mở mặc định)
+# 1. Cấu hình trang Web (Sidebar mở mặc định, đóng mở bằng tay)
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI TÊ LIỆT SIDEBAR
+# GIAO DIỆN CSS (ĐÃ FIX LỖI CLICK & SIDEBAR)
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,24 +103,30 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 KHẮC PHỤC LỖI TÊ LIỆT SIDEBAR VÀ ẨN GITHUB/SHARE */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        pointer-events: none !important; /* Xuyên thấu vùng trống để click được Ví tiền, Search */
-    }
-    header[data-testid="stHeader"] * {
-        pointer-events: auto !important; /* Giữ lại quyền click cho nút mở Sidebar */
+    /* 🌟 BƯỚC 1: XÓA SẠCH GITHUB, SHARE, MENU STREAMLIT */
+    [data-testid="stHeaderActionElements"], footer, #MainMenu {
+        display: none !important; 
     }
     
-    /* Ẩn sạch các nút rác của Streamlit ở góc phải */
-    [data-testid="stToolbar"], [data-testid="stHeaderActionElements"], .stDeployButton, .stAppDeployButton, #MainMenu, footer {
-        display: none !important; 
-        visibility: hidden !important;
+    /* 🌟 BƯỚC 2: LÀM HEADER XUYÊN THẤU ĐỂ BẤM ĐƯỢC CÁC NÚT BÊN DƯỚI */
+    [data-testid="stHeader"] {
+        background: transparent !important;
+        pointer-events: none !important; /* Quan trọng: Cho phép click xuyên qua */
+    }
+    
+    /* 🌟 BƯỚC 3: CỨU SỐNG NÚT MỞ MENU BÊN TRÁI (HAMBURGER) */
+    [data-testid="collapsedControl"] {
+        pointer-events: auto !important; /* Lấy lại quyền click */
+        background-color: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        margin: 10px !important;
+        z-index: 999999 !important; /* Luôn nổi lên trên cùng */
     }
     
     .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
-    /* 🌟 ĐỒNG BỘ CHIỀU CAO CÁC NÚT TRÊN TOPBAR (42px) */
+    /* 🌟 TOPBAR UI */
     .topbar-wallet { 
         border: 1px solid #3b82f6; color: #3b82f6; padding: 0 16px; border-radius: 6px; 
         font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; 
@@ -128,16 +134,10 @@ st.markdown("""
     }
     .topbar-wallet:hover { background: #eff6ff; }
     
-    /* Làm đẹp Selectbox Tìm Kiếm */
     div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        border: 1px solid #f97316 !important;
-        background-color: white !important;
-        border-radius: 6px !important;
-        min-height: 42px !important;
-        cursor: pointer;
+        border: 1px solid #f97316 !important; background-color: white !important; border-radius: 6px !important; min-height: 42px !important; cursor: pointer;
     }
     
-    /* Tùy chỉnh Nút Popover (User Profile) */
     button[data-testid="baseButton-popover"] { 
         border: 1px solid #e2e8f0 !important; background: white !important; 
         color: #1e293b !important; font-weight: 600 !important; font-size: 15px !important; 
@@ -146,25 +146,22 @@ st.markdown("""
     }
     button[data-testid="baseButton-popover"]:hover { border-color: #cbd5e1 !important; color: #2563eb !important;}
     
-    /* Giao diện Dropdown Menu (Popover Body) */
     div[data-testid="stPopoverBody"] { padding: 10px 0 !important; border-radius: 8px !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; width: 220px !important; }
     .dropdown-item { padding: 12px 20px; font-size: 15px; color: #334155; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #f1f5f9; }
     .dropdown-item:hover { background: #f8fafc; color: #2563eb; }
     .dropdown-item i { width: 20px; text-align: center; color: #64748b; font-size: 16px;}
     .dropdown-item:hover i { color: #2563eb; }
     
-    /* CSS cho nút Logout trong Popover */
     .logout-btn-container button { width: 100% !important; background: transparent !important; border: none !important; color: #475569 !important; text-align: left !important; padding: 12px 20px !important; font-size: 15px !important; font-weight: 500 !important; justify-content: flex-start !important; box-shadow: none !important; }
     .logout-btn-container button:hover { background: #f8fafc !important; color: #e11d48 !important; }
     .logout-btn-container button p { margin: 0; display: flex; align-items: center; gap: 12px; }
 
-    /* Layout Thẻ Sản phẩm (Store Grid) */
+    /* Layout Thẻ Sản phẩm */
     .store-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
     .store-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: #cbd5e1; transform: translateY(-3px); }
     .price-tag { border: 1px solid #ef4444; color: #ef4444; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 14px; display: inline-block; margin-top: 15px; margin-bottom: 10px; }
     .stock-tag { border: 1px solid #10b981; color: #10b981; padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 13px; display: inline-block; }
     
-    /* Nút Mua (Xanh dương) */
     .btn-buy { background: #3b82f6 !important; color: white !important; font-weight: 700 !important; border: none !important; border-radius: 4px !important; padding: 10px 20px !important; width: 100%; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2) !important; transition: all 0.2s; }
     .btn-buy:hover { background: #2563eb !important; box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3) !important; }
 
@@ -238,7 +235,7 @@ if not st.session_state["logged_in"]:
                 elif reg_user in users_db: st.error("Username đã tồn tại")
                 elif reg_pwd != reg_pwd_confirm: st.error("Mật khẩu không khớp")
                 else:
-                    save_user_api(reg_user, hash_password(reg_pwd), reg_email)
+                    save_user_api(reg_user, hash_password(reg_pwd), email=reg_email)
                     st.success("Đăng ký thành công! Vui lòng đăng nhập.")
 
         with tab_forgot:
@@ -264,7 +261,7 @@ else:
         st.session_state["show_deposit_form"] = False; st.session_state["show_qr"] = False
 
     # ========================================================
-    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH 
+    # THANH TOPBAR
     # ========================================================
     top1, top2, top3, top4 = st.columns([1.5, 4.5, 1, 2])
     
@@ -292,7 +289,7 @@ else:
     st.markdown('<hr style="margin: 0 0 20px 0; border: none; border-bottom: 2px solid #e2e8f0;">', unsafe_allow_html=True)
 
     # ========================================================
-    # SIDEBAR CỐ ĐỊNH
+    # SIDEBAR
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -307,7 +304,6 @@ else:
     # NỘI DUNG CHÍNH 
     # ========================================================
 
-    # 1. CỬA HÀNG DỊCH VỤ 
     if menu == "🏠 Cửa Hàng Dịch Vụ":
         st.markdown('<div style="background:#1e3a8a; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-solid fa-layer-group"></i> Dịch Vụ BulkMail Hệ Thống</div>', unsafe_allow_html=True)
         
