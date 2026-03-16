@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web (Giao diện rộng, sidebar mở sẵn)
+# 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -99,30 +99,25 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
-    /* TỔNG THỂ */
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
-    .stApp { background-color: #f8fafc; } /* Xám nhạt cực êm mắt */
+    .stApp { background-color: #f8fafc; } 
     #MainMenu, footer, header, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
     .block-container { padding-top: 2rem !important; padding-bottom: 3rem !important; max-width: 95% !important;}
     
-    /* TYPOGRAPHY */
     .gradient-text { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 36px; margin-bottom: 8px; letter-spacing: -0.5px; }
     h1, h2, h3, h4 { color: #0f172a; font-weight: 700; }
 
-    /* CARD LAYOUT & HOVER EFFECTS */
     .modern-card { background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; transition: all 0.3s ease-in-out; margin-bottom: 20px; }
     .modern-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1); border-color: #e2e8f0; }
 
-    /* MENU BÊN TRÁI (SIDEBAR) CHUYÊN NGHIỆP */
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 15px rgba(0,0,0,0.03); }
     div[role="radiogroup"] > label { padding: 14px 16px; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; }
     div[role="radiogroup"] > label:hover { background-color: #f8fafc; border-color: #e2e8f0; transform: translateX(4px); }
     div[role="radiogroup"] > label[data-checked="true"] { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px 12px 12px 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-    div[role="radiogroup"] > label > div:first-child { display: none; } /* Ẩn Radio dot */
+    div[role="radiogroup"] > label > div:first-child { display: none; } 
     div[role="radiogroup"] > label p { font-weight: 600 !important; color: #475569 !important; font-size: 15px !important; margin: 0 !important; }
     div[role="radiogroup"] > label[data-checked="true"] p { color: #1d4ed8 !important; font-weight: 700 !important; }
 
-    /* NÚT BẤM (BUTTONS) */
     .stButton>button[kind="primary"] { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; color: white !important; border-radius: 12px; font-weight: 700; font-size: 15px !important; padding: 12px 24px; border: none !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important; transition: all 0.2s ease; letter-spacing: 0.5px; }
     .stButton>button[kind="primary"]:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important; background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important; }
     .stButton>button[kind="primary"]:active { transform: translateY(0); }
@@ -130,19 +125,16 @@ st.markdown("""
     .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button { background: #ffffff !important; border-radius: 12px; border: 1px solid #cbd5e1 !important; color: #475569 !important; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover { border-color: #94a3b8 !important; color: #0f172a !important; background: #f8fafc !important; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-    /* THỐNG KÊ (METRICS) */
     div[data-testid="stMetric"] { background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; transition: transform 0.3s ease; }
     div[data-testid="stMetric"]:hover { transform: translateY(-3px); border-color: #bfdbfe; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1); }
     div[data-testid="stMetricValue"] { color: #1e40af !important; font-weight: 800 !important; font-size: 32px !important; margin-bottom: 4px;}
     div[data-testid="stMetricLabel"] { font-size: 13px !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* TABS (Trường hợp đăng nhập) */
     div[data-baseweb="tab-list"] { background: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 24px !important; }
     div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; border: none !important; color: #64748b !important; font-weight: 500 !important; font-size: 14px !important; padding: 10px 16px !important; margin: 0 !important; }
     div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #2563eb !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; font-weight: 600 !important;}
     div[data-baseweb="tab-highlight"] { display: none !important; }
 
-    /* HUY HIỆU VIP */
     .vip-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .badge-dong { background: #b45309; }
     .badge-bac { background: #94a3b8; }
@@ -150,18 +142,15 @@ st.markdown("""
     .badge-kimcuong { background: linear-gradient(135deg, #0ea5e9, #2563eb); animation: pulse-blue 2s infinite; }
     @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
 
-    /* TIÊU ĐỀ SECTION (Pill Header) */
     .pill-header { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; border-left: 4px solid; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #1e293b; }
     .bh-blue { border-color: #3b82f6; }
     .bh-purple { border-color: #8b5cf6; }
     .bh-green { border-color: #10b981; }
 
-    /* UPLOAD FILE & EXPANDER */
     div[data-testid="stFileUploader"] { background: #ffffff !important; border: 2px dashed #cbd5e1 !important; border-radius: 12px; padding: 24px; transition: all 0.3s; }
     div[data-testid="stFileUploader"]:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
     div[data-testid="stExpander"] { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
 
-    /* LOGO & ICONS */
     .logo-container { display: flex; justify-content: center; align-items: center; margin-bottom: 24px; }
     .logo-container img { width: 90px; height: 90px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border: 2px solid #ffffff; }
     .alt-logo { width: 90px; height: 90px; border-radius: 24px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 12px; text-align: center; box-shadow: 0 10px 20px rgba(37,99,235,0.2); border: 2px solid #ffffff; }
@@ -176,13 +165,11 @@ st.markdown("""
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "otp_verified" not in st.session_state: st.session_state["otp_verified"] = False
 if "otp_sent" not in st.session_state: st.session_state["otp_sent"] = False
-
 if "show_deposit_form" not in st.session_state: st.session_state["show_deposit_form"] = False
 if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
 if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None 
-
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
 if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
@@ -249,13 +236,11 @@ else:
     
     balance = int(float(current_user_data.get("balance", 0)))
     
-    # 🌟 CẤP BẬC VIP
     if balance < 100000: vip_class = "badge-dong"; vip_text = "Thành viên Đồng"
     elif balance < 500000: vip_class = "badge-bac"; vip_text = "Thành viên Bạc"
     elif balance < 2000000: vip_class = "badge-vang"; vip_text = "Thành viên Vàng"
     else: vip_class = "badge-kimcuong"; vip_text = "Đối tác Kim Cương"
 
-    # ÂM THANH & CỘNG TIỀN
     if st.session_state["previous_balance"] is None: st.session_state["previous_balance"] = balance
     elif balance > st.session_state["previous_balance"]:
         play_success_sound(); st.balloons()
@@ -287,27 +272,26 @@ else:
 
     # 1. TỔNG QUAN & NẠP TIỀN
     if menu == "🏠 Tổng Quan":
+        # KHÔNG THỤT LỀ HTML MARKDOWN Ở ĐÂY
         st.markdown(f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-            <div>
-                <div class="gradient-text" style="font-size: 28px;">Bảng Điều Khiển</div>
-                <div style="color:#64748b; font-size: 14px;">Theo dõi hoạt động và nạp quỹ tài khoản</div>
-            </div>
-            <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
-        </div>
-        """, unsafe_allow_html=True)
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+    <div>
+        <div class="gradient-text" style="font-size: 28px;">Bảng Điều Khiển</div>
+        <div style="color:#64748b; font-size: 14px;">Theo dõi hoạt động và nạp quỹ tài khoản</div>
+    </div>
+    <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
+</div>
+""", unsafe_allow_html=True)
 
         col_main, col_right = st.columns([7, 3], gap="large")
         
         with col_main:
-            # Thống kê
             m1, m2, m3 = st.columns(3)
             my_logs = [l for l in logs_db if st.session_state['current_user'].upper() in str(l.get('raw_data','')).upper() and "Thành công" in str(l.get('status',''))]
             m1.metric(label="Tổng số lần nạp", value=f"{len(my_logs)}")
             m2.metric(label="Hạng thẻ", value=vip_text.split(" ")[-1])
             m3.metric(label="Trạng thái", value="Hoạt động")
 
-            # Nạp tiền
             st.markdown('<div class="modern-card" style="margin-top: 24px;">', unsafe_allow_html=True)
             st.markdown('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;"><h3 style="margin:0; font-size: 18px; color:#0f172a;">💳 Cổng nạp tiền tự động 24/7</h3></div>', unsafe_allow_html=True)
             
@@ -356,26 +340,27 @@ else:
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
+            # SỬA LỖI HIỂN THỊ HTML CHO CỘT BẢNG TIN BẰNG CÁCH XÓA KHOẢNG TRẮNG ĐẦU DÒNG
             st.markdown("""
-            <div class="modern-card">
-                <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 16px;">🔔 Bảng tin hệ thống</h4>
-                
-                <div style="border-left: 3px solid #3b82f6; padding-left: 12px; margin-bottom: 16px;">
-                    <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Phiên bản mới</div>
-                    <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Cập nhật giao diện UI/UX chuẩn SaaS. Trải nghiệm mượt mà, tối ưu trên di động.</div>
-                </div>
-                
-                <div style="border-left: 3px solid #10b981; padding-left: 12px; margin-bottom: 16px;">
-                    <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Bảo mật</div>
-                    <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Nâng cấp hệ thống lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ vào Inbox cao nhất.</div>
-                </div>
-                
-                <div style="border-left: 3px solid #8b5cf6; padding-left: 12px;">
-                    <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Thanh toán</div>
-                    <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Hỗ trợ nạp tiền tự động qua QR Code 24/7. Tự động cấp Huy hiệu thẻ VIP.</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="modern-card">
+    <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 16px;">🔔 Bảng tin hệ thống</h4>
+    
+    <div style="border-left: 3px solid #3b82f6; padding-left: 12px; margin-bottom: 16px;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Phiên bản mới</div>
+        <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Cập nhật giao diện UI/UX chuẩn SaaS. Trải nghiệm mượt mà, tối ưu trên di động.</div>
+    </div>
+    
+    <div style="border-left: 3px solid #10b981; padding-left: 12px; margin-bottom: 16px;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Bảo mật</div>
+        <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Nâng cấp hệ thống lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ vào Inbox cao nhất.</div>
+    </div>
+    
+    <div style="border-left: 3px solid #8b5cf6; padding-left: 12px;">
+        <div style="font-size: 11px; color: #94a3b8; font-weight:600; text-transform:uppercase; margin-bottom: 4px;">Thanh toán</div>
+        <div style="font-size: 13px; color: #334155; font-weight: 500; line-height: 1.5;">Hỗ trợ nạp tiền tự động qua QR Code 24/7. Tự động cấp Huy hiệu thẻ VIP.</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # 2. CHIẾN DỊCH GỬI EMAIL
     elif menu == "✉️ Tạo Chiến Dịch":
@@ -421,71 +406,89 @@ else:
         full_email_content = f"<div style='font-family:Arial, sans-serif; line-height:1.6; color:#334155;'>{raw_body}<br><br><div style='color:#94a3b8; font-size:13px; border-top:1px solid #f1f5f9; padding-top:16px;'>{sign_html}</div></div>"
         
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚀 BẮT ĐẦU CHẠY CHIẾN DỊCH NGAY", type="primary", use_container_width=True):
-            if df is None or not subject: st.error("⚠️ Vui lòng cung cấp File danh sách và Tiêu đề!")
-            elif not SYS_EMAIL or not SYS_PWD: st.error("⚠️ Chưa cấu hình Email gửi ở mục Cài Đặt!")
-            else:
-                progress = st.progress(0); log = st.expander("📋 Nhật ký hệ thống", expanded=True)
-                
-                soup = BeautifulSoup(full_email_content, "html.parser")
-                for tag in soup(["script", "style", "meta", "noscript", "iframe"]): tag.decompose()
-                inline_images = []; img_counter = 0
-                
-                for img in soup.find_all("img"):
-                    src = img.get("src", "")
-                    if src.startswith("http"):
-                        img.attrs = {"src": src, "style": "max-width: 100%; display: block; border-radius:8px;"}
-                    elif src.startswith("data:image") and img_counter < 2:
-                        try:
-                            h, e = src.split(",", 1); img_data = base64.b64decode(e); img_counter += 1
-                            cid = f"img_inline_{img_counter}"; inline_images.append({"cid": cid, "data": img_data, "type": "png"})
-                            img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; display: block; border-radius:8px;"}
-                        except: img.decompose()
-                    else: img.decompose()
+        
+        # SỬA LỖI HIỂN THỊ HTML CHO BẢNG CẨM NANG AN TOÀN
+        col_action1, col_action2 = st.columns([1.5, 1])
+        with col_action1:
+            st.markdown("""
+<div style="background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    <h4 style="margin-top:0; color:#0f172a; font-size:16px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+        <tr style="border-bottom: 1px solid rgba(0,0,0,0.1); color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng an toàn / Ngày</th></tr>
+        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);"><td style="padding: 12px 0; font-weight: 600;">Gmail mới tạo</td><td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td></tr>
+        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);"><td style="padding: 12px 0; font-weight: 600;">Gmail dùng lâu</td><td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td></tr>
+        <tr><td style="padding: 12px 0; font-weight: 600;">Google Workspace</td><td style="padding: 12px 0; color: #3b82f6; font-weight: 700;">500 - 1000 mail</td></tr>
+    </table>
+</div>
+""", unsafe_allow_html=True)
 
-                prepared_html_template = str(soup) 
-                run_tk = current_user_data.get("tele_token", ""); run_id = current_user_data.get("tele_chat_id", "")
-                send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
-                
-                success_list, error_list = [], []
-
-                for index, row in df.iterrows():
-                    try:
-                        target_email = str(row.get(next((c for c in df.columns if c.lower() in ["email", "mail"]), None), row.iloc[0])).strip()
-                        target_name = str(row.get(next((c for c in df.columns if c.lower() in ["name", "tên"]), None), "Quý khách"))
-                        
-                        msg_root = MIMEMultipart("mixed") 
-                        msg_root["From"] = f"{st.session_state['s_name']} <{SYS_EMAIL}>"
-                        msg_root["To"] = target_email; msg_root["Subject"] = subject
-                        
-                        msg_related = MIMEMultipart("related"); msg_root.attach(msg_related)
-                        msg_related.attach(MIMEText(prepared_html_template.replace("{{name}}", target_name), "html", "utf-8"))
-                        
-                        for i in inline_images:
-                            ip = MIMEImage(i["data"], _subtype=i["type"]); ip.add_header("Content-ID", f"<{i['cid']}>"); msg_related.attach(ip)
-                        if attachments:
-                            for f in attachments:
-                                p = MIMEBase("application", "octet-stream"); p.set_payload(f.read())
-                                encoders.encode_base64(p); p.add_header("Content-Disposition", f"attachment; filename={f.name}")
-                                msg_root.attach(p); f.seek(0)
-                                
-                        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-                            server.starttls(); server.login(SYS_EMAIL, SYS_PWD); server.send_message(msg_root)
-                            
-                        success_list.append(target_email); log.write(f"✅ Giao thành công: {target_email}")
-                    except Exception as e:
-                        error_list.append(target_email); log.write(f"❌ Thất bại: {target_email}")
-                        
-                    progress.progress((index + 1) / len(df)); time.sleep(delay)
+        with col_action2:
+            st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 BẮT ĐẦU CHẠY CHIẾN DỊCH NGAY", type="primary", use_container_width=True):
+                if df is None or not subject: st.error("⚠️ Vui lòng cung cấp File danh sách và Tiêu đề!")
+                elif not SYS_EMAIL or not SYS_PWD: st.error("⚠️ Chưa cấu hình Email gửi ở mục Cài Đặt!")
+                else:
+                    progress = st.progress(0); log = st.expander("📋 Nhật ký hệ thống", expanded=True)
                     
-                play_success_sound()
-                st.success("Tất cả email đã được xử lý!")
-                
-                csv_buf = io.BytesIO()
-                pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)}).to_csv(csv_buf, index=False, encoding="utf-8-sig")
-                send_tele_msg(run_tk, run_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
-                send_tele_file(run_tk, run_id, csv_buf.getvalue(), "ket_qua.csv")
-                st.download_button("TẢI BÁO CÁO EXCEL (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
+                    soup = BeautifulSoup(full_email_content, "html.parser")
+                    for tag in soup(["script", "style", "meta", "noscript", "iframe"]): tag.decompose()
+                    inline_images = []; img_counter = 0
+                    
+                    for img in soup.find_all("img"):
+                        src = img.get("src", "")
+                        if src.startswith("http"):
+                            img.attrs = {"src": src, "style": "max-width: 100%; display: block; border-radius:8px;"}
+                        elif src.startswith("data:image") and img_counter < 2:
+                            try:
+                                h, e = src.split(",", 1); img_data = base64.b64decode(e); img_counter += 1
+                                cid = f"img_inline_{img_counter}"; inline_images.append({"cid": cid, "data": img_data, "type": "png"})
+                                img.attrs = {"src": f"cid:{cid}", "style": "max-width: 100%; display: block; border-radius:8px;"}
+                            except: img.decompose()
+                        else: img.decompose()
+
+                    prepared_html_template = str(soup) 
+                    run_tk = current_user_data.get("tele_token", ""); run_id = current_user_data.get("tele_chat_id", "")
+                    send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
+                    
+                    success_list, error_list = [], []
+
+                    for index, row in df.iterrows():
+                        try:
+                            target_email = str(row.get(next((c for c in df.columns if c.lower() in ["email", "mail"]), None), row.iloc[0])).strip()
+                            target_name = str(row.get(next((c for c in df.columns if c.lower() in ["name", "tên"]), None), "Quý khách"))
+                            
+                            msg_root = MIMEMultipart("mixed") 
+                            msg_root["From"] = f"{st.session_state['s_name']} <{SYS_EMAIL}>"
+                            msg_root["To"] = target_email; msg_root["Subject"] = subject
+                            
+                            msg_related = MIMEMultipart("related"); msg_root.attach(msg_related)
+                            msg_related.attach(MIMEText(prepared_html_template.replace("{{name}}", target_name), "html", "utf-8"))
+                            
+                            for i in inline_images:
+                                ip = MIMEImage(i["data"], _subtype=i["type"]); ip.add_header("Content-ID", f"<{i['cid']}>"); msg_related.attach(ip)
+                            if attachments:
+                                for f in attachments:
+                                    p = MIMEBase("application", "octet-stream"); p.set_payload(f.read())
+                                    encoders.encode_base64(p); p.add_header("Content-Disposition", f"attachment; filename={f.name}")
+                                    msg_root.attach(p); f.seek(0)
+                                    
+                            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                                server.starttls(); server.login(SYS_EMAIL, SYS_PWD); server.send_message(msg_root)
+                                
+                            success_list.append(target_email); log.write(f"✅ Giao thành công: {target_email}")
+                        except Exception as e:
+                            error_list.append(target_email); log.write(f"❌ Thất bại: {target_email}")
+                            
+                        progress.progress((index + 1) / len(df)); time.sleep(delay)
+                        
+                    play_success_sound()
+                    st.success("Tất cả email đã được xử lý!")
+                    
+                    csv_buf = io.BytesIO()
+                    pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)}).to_csv(csv_buf, index=False, encoding="utf-8-sig")
+                    send_tele_msg(run_tk, run_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
+                    send_tele_file(run_tk, run_id, csv_buf.getvalue(), "ket_qua.csv")
+                    st.download_button("TẢI BÁO CÁO EXCEL (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
     # 3. LỊCH SỬ NẠP TIỀN
     elif menu == "📊 Quản Lý Giao Dịch":
@@ -508,13 +511,14 @@ else:
                 h_list.append({"Thời gian": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
+            # SỬA LỖI TRẠNG THÁI RỖNG
             st.markdown("""
-            <div style='text-align:center; padding: 60px 20px;'>
-                <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
-                <div style='color:#334155; font-weight:600; font-size:18px; margin-bottom:8px;'>Chưa có dữ liệu giao dịch</div>
-                <div style='color:#94a3b8; font-size: 14px;'>Hãy thực hiện khoản nạp đầu tiên để kích hoạt thẻ VIP của hệ thống.</div>
-            </div>
-            """, unsafe_allow_html=True)
+<div style='text-align:center; padding: 60px 20px;'>
+    <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
+    <div style='color:#334155; font-weight:600; font-size:18px; margin-bottom:8px;'>Chưa có dữ liệu giao dịch</div>
+    <div style='color:#94a3b8; font-size: 14px;'>Hãy thực hiện khoản nạp đầu tiên để kích hoạt thẻ VIP của hệ thống.</div>
+</div>
+""", unsafe_allow_html=True)
         else:
             if chart_data:
                 st.markdown("<p style='font-size:14px; font-weight:600; color:#334155; margin-bottom:16px;'>📈 Lưu lượng nạp tiền gần đây</p>", unsafe_allow_html=True)
