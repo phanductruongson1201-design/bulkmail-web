@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI CLICK TOPBAR
+# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI ẨN MENU VÀ XÓA TOOLBAR
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,10 +103,16 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 KHẮC PHỤC LỖI KHÔNG CLICK ĐƯỢC: Cho phép click xuyên qua Header tàng hình */
-    #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
+    /* 🌟 KHẮC PHỤC LỖI KHÔNG CLICK ĐƯỢC VÀ XÓA SẠCH BIỂU TƯỢNG SHARE/GITHUB */
+    #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], 
+    [data-testid="stHeaderActionElements"], [data-testid="stToolbar"], [data-testid="stStatusWidget"],
+    iframe[title="Streamlit Toolbar"] {
+        display: none !important; 
+        visibility: hidden !important;
+    }
+    
     [data-testid="stHeader"] {background: transparent !important; pointer-events: none;} 
-    [data-testid="collapsedControl"] {pointer-events: auto; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);} /* Giữ nút mở Sidebar click được */
+    [data-testid="collapsedControl"] {pointer-events: auto; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);} 
     
     .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
@@ -216,7 +222,7 @@ if not st.session_state["logged_in"]:
                 if u_data and u_data.get("password") == hash_password(log_pwd):
                     st.session_state["current_user"] = log_user; st.session_state["logged_in"] = True; st.rerun()
                 else: 
-                    st.error("Thông tin đăng nhập chưa chính xác!")
+                    st.error("Thông খুন tin đăng nhập chưa chính xác!")
 
         with tab_reg:
             reg_user = st.text_input("Tên đăng nhập mới", key="reg_u")
@@ -256,13 +262,11 @@ else:
     # ========================================================
     # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH ĐÃ SỬA LỖI
     # ========================================================
-    # Điều chỉnh tỷ lệ cột để Popover hiển thị thoải mái
     top1, top2, top3, top4 = st.columns([1.5, 4.5, 1, 2])
     
     with top1:
         st.markdown(f'<div class="topbar-wallet"><i class="fa-solid fa-wallet"></i> Ví: {balance:,}</div>', unsafe_allow_html=True)
     with top2:
-        # Thay thế khối HTML giả bằng Selectbox thật của Streamlit
         st.selectbox("Tìm kiếm", ["TÌM KIẾM NHANH SẢN PHẨM...", "🔥 Gói Nạp 100K Hệ Thống", "🔥 Gói Nạp 500K Cấp Độ Bạc", "Tùy chọn số tiền nạp"], label_visibility="collapsed")
     with top3:
         st.markdown('<div style="display:flex; gap:15px; font-size:18px; color:#64748b; height:42px; align-items:center; justify-content:flex-end;"><i class="fa-solid fa-moon cursor-pointer hover:text-blue-500"></i><i class="fa-regular fa-bell cursor-pointer hover:text-blue-500"></i></div>', unsafe_allow_html=True)
