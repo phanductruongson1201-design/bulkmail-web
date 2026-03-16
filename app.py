@@ -98,7 +98,7 @@ def get_image_base64(path):
         with open(path, "rb") as img_file: return base64.b64encode(img_file.read()).decode("utf-8")
     except: return None
 
-# 🌟 ÂM THANH THÔNG BÁO (Ẩn)
+# 🌟 ÂM THANH THÔNG BÁO
 def play_success_sound():
     components.html("""
         <audio autoplay>
@@ -218,7 +218,7 @@ if not st.session_state["logged_in"]:
         
         tab_login, tab_reg, tab_forgot = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký", "🔑 Quên MK"])
         all_data = load_users()
-        users_db = all_data.get("users", all_data) # Tương thích code cũ/mới
+        users_db = all_data.get("users", all_data) 
 
         with tab_login:
             log_user = st.text_input("Tên đăng nhập", key="login_u")
@@ -330,11 +330,10 @@ else:
     # 🌟 DASHBOARD THỐNG KÊ (Visual Analytics)
     st.markdown("<br>", unsafe_allow_html=True)
     m1, m2, m3 = st.columns(3)
-    # Lọc số giao dịch thành công của User
     my_logs = [l for l in logs_db if st.session_state['current_user'].upper() in str(l.get('raw_data','')).upper() and "Thành công" in str(l.get('status',''))]
     
     m1.metric(label="Tổng số lần nạp", value=f"{len(my_logs)} Lần", delta="Hệ thống tự động")
-    m2.metric(label="Cấp bậc hiện tại", value=vip_text.split(" ")[1], delta="Tự động gia hạn")
+    m2.metric(label="Cấp bậc hiện tại", value=vip_text.split(" ")[1], delta="Tự động cập nhật")
     m3.metric(label="Hạn mức gửi Mail", value="Không giới hạn", delta="Bảo mật cấp cao")
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -347,7 +346,7 @@ else:
         # ========================================================
         btn_col1, btn_col2 = st.columns([6, 2])
         with btn_col2:
-            if st.button("💳 NẠP TIỀN TỰ ĐỘNG", type="primary", use_container_width=True):
+            if st.button("💳 NẠP TIỀN VÀO TÀI KHOẢN", type="primary", use_container_width=True):
                 st.session_state["show_deposit_form"] = True
                 st.session_state["show_qr"] = False
                 
@@ -441,29 +440,15 @@ else:
                 st.markdown("</div>", unsafe_allow_html=True)
 
         # ========================================================
-        # KHỐI GỬI EMAIL (Giữ nguyên toàn bộ logic cũ)
+        # KHỐI GỬI EMAIL 
         # ========================================================
         st.markdown('<div class="pill-header bg-purple">📁 DỮ LIỆU KHÁCH HÀNG</div>', unsafe_allow_html=True)
         col_data, col_content = st.columns([1, 1.2], gap="large")
         
         with col_data:
-            sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
-            try:
-                excel_buf = io.BytesIO(); 
-                with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer: sample_df.to_excel(writer, index=False, sheet_name="Danh_sach")
-                dl_data = excel_buf.getvalue()
-            except: dl_data = sample_df.to_csv(index=False).encode("utf-8-sig")
-                
-            st.download_button("📥 Tải File Mẫu (Excel)", data=dl_data, file_name="danh_sach_mau.xlsx", use_container_width=True)
-            
-            up = st.file_uploader("Tải tệp danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
-            df = None
-            if up:
-                df = pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up)
-                st.success(f"✅ Hợp lệ! Đã nhận {len(df)} địa chỉ email.")
-                
-            st.markdown('<div class="pill-header bg-purple" style="font-size: 13px; padding: 6px 18px; margin-bottom: 10px;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
-            attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
+            up = st.file_uploader("Tải tệp (.xlsx, .csv)", type=["csv", "xlsx"])
+            df = pd.read_excel(up) if up and up.name.endswith("xlsx") else (pd.read_csv(up) if up else None)
+            attachments = st.file_uploader("📎 Tệp đính kèm", accept_multiple_files=True)
             
             # 🌟 DỰ BÁO ETA BÊN DƯỚI FILE UPLOAD
             delay = st.number_input("⏳ Khoảng nghỉ giữa mỗi Mail (Giây):", value=15, min_value=5, help="Đề xuất: 15-30s.")
@@ -643,6 +628,33 @@ else:
             st.session_state["s_sign"] = st.text_area("Chữ ký cuối thư:", value=st.session_state["s_sign"])
             if st.button("💾 Lưu cấu hình"):
                 if save_config_api(st.session_state["current_user"], tk, cid): st.success("Đã lưu!")
+
+    # ==========================================
+    # CHÂN TRANG: LOGO VÀ GIỚI THIỆU ĐÃ ĐƯỢC KHÔI PHỤC
+    # ==========================================
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    logo_footer_b64 = get_image_base64(LOGO_URL)
+    if logo_footer_b64:
+        st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 150px; height: 150px; border-radius: 35%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
+            <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; 
+                        padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; background: white; 
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                <p style="font-size: 15px; line-height: 1.8; margin: 0;">
+                    <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
+                    Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
+                    Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
+                    giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
+                </p>
+            </div>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
 # NÚT LIÊN HỆ NỔI
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="35"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="35"></a></div>""", unsafe_allow_html=True)
