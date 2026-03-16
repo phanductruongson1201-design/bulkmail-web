@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web: Đặt sidebar tự động thu gọn (collapsed)
+# 1. Cấu hình trang Web: Đặt sidebar mặc định thu gọn
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="collapsed")
 
 # ==========================================
@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS HIỆN ĐẠI & HOVER SIDEBAR
+# GIAO DIỆN CSS MỚI - CHUẨN UI/UX HIỆN ĐẠI
 # ==========================================
 st.markdown("""
 <style>
@@ -115,14 +115,7 @@ st.markdown("""
     div[data-baseweb="input"], div[data-baseweb="textarea"] { border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; background-color: #f8fafc; }
     div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); background-color: #ffffff; }
 
-    /* 🌟 CSS CHO SIDEBAR TỰ ĐỘNG MỞ KHI HOVER */
-    [data-testid="stSidebar"] { 
-        background-color: #ffffff !important; 
-        border-right: 1px solid #f1f5f9; 
-        box-shadow: 4px 0 15px rgba(0,0,0,0.05); 
-        transition: width 0.3s ease-in-out !important; /* Mượt mà khi mở rộng */
-    }
-    
+    [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #f1f5f9; box-shadow: 4px 0 15px rgba(0,0,0,0.05); }
     div[role="radiogroup"] > label { padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; }
     div[role="radiogroup"] > label:hover { background-color: #f8fafc; transform: translateX(4px); }
     div[role="radiogroup"] > label[data-checked="true"] { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px 12px 12px 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
@@ -141,11 +134,6 @@ st.markdown("""
     div[data-testid="stMetricValue"] { color: #1e40af !important; font-weight: 800 !important; font-size: 36px !important; margin-bottom: 4px; font-family: 'Inter', sans-serif;}
     div[data-testid="stMetricLabel"] { font-size: 13px !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    div[data-baseweb="tab-list"] { background: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 24px !important; }
-    div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; border: none !important; color: #64748b !important; font-weight: 500 !important; font-size: 14px !important; padding: 10px 16px !important; margin: 0 !important; }
-    div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #2563eb !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; font-weight: 600 !important;}
-    div[data-baseweb="tab-highlight"] { display: none !important; }
-
     .vip-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); animation: shine 2s infinite; }
     .badge-dong { background: #b45309; }
     .badge-bac { background: #94a3b8; color: white; }
@@ -153,10 +141,6 @@ st.markdown("""
     .badge-kimcuong { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
     @keyframes shine { 0% { opacity: 0.9; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { opacity: 0.9; transform: scale(1); } }
 
-    .pill-header { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #0f172a; border-left: 4px solid #3b82f6;}
-    div[data-testid="stFileUploader"] { background: #ffffff !important; border: 2px dashed #cbd5e1 !important; border-radius: 16px; padding: 24px; transition: all 0.3s; }
-    div[data-testid="stFileUploader"]:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
-    
     .logo-container { display: flex; justify-content: center; align-items: center; margin-bottom: 24px; }
     .logo-container img { width: 90px; height: 90px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border: 2px solid #ffffff; }
     .alt-logo { width: 90px; height: 90px; border-radius: 24px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 12px; text-align: center; box-shadow: 0 10px 20px rgba(37,99,235,0.2); border: 2px solid #ffffff; }
@@ -166,24 +150,46 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Gắn script Javascript để tạo hiệu ứng Sidebar Hover
+# ==========================================
+# JAVASCRIPT: BÀN TAY ẢO TỰ ĐỘNG ĐÓNG/MỞ SIDEBAR
+# ==========================================
 components.html("""
 <script>
-    // Tìm thẻ chứa Sidebar
-    const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
-    
-    if(sidebar) {
-        // Khi chuột di chuyển vào khu vực cạnh trái màn hình hoặc vào Sidebar
-        window.parent.document.addEventListener('mousemove', function(e) {
-            if (e.clientX < 20 || sidebar.contains(e.target)) {
-                sidebar.setAttribute('aria-expanded', 'true');
-            } else {
-                sidebar.setAttribute('aria-expanded', 'false');
+    const doc = window.parent.document;
+    let lastActionTime = Date.now();
+
+    doc.addEventListener('mousemove', function(e) {
+        // Đợi 400ms giữa các lần thao tác để tránh giật lag animation
+        if (Date.now() - lastActionTime < 400) return;
+
+        // Nút mở Sidebar (khi đang đóng)
+        const openBtn = doc.querySelector('[data-testid="collapsedControl"]');
+        // Thẻ bọc Sidebar
+        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+
+        // 1. RÊ CHUỘT MỞ SIDEBAR
+        // Nếu có nút mở (Sidebar đang ẩn) VÀ chuột ở sát lề trái (<25px) -> Tự động bấm Mở
+        if (openBtn && e.clientX < 25) {
+            openBtn.click();
+            lastActionTime = Date.now();
+        }
+        
+        // 2. RÊ CHUỘT ĐÓNG SIDEBAR
+        // Nếu không có nút mở (Sidebar đang hiện) VÀ Sidebar tồn tại
+        if (!openBtn && sidebar) {
+            const sidebarRect = sidebar.getBoundingClientRect();
+            // Nếu chuột đưa ra khỏi vùng Sidebar (+15px dư dả) -> Tự động bấm nút Đóng (Nút X trong Sidebar)
+            if (e.clientX > sidebarRect.right + 15) {
+                const closeBtn = sidebar.querySelector('button');
+                if (closeBtn) {
+                    closeBtn.click();
+                    lastActionTime = Date.now();
+                }
             }
-        });
-    }
+        }
+    });
 </script>
-""", height=0)
+""", height=0, width=0)
 
 # Khởi tạo trạng thái Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
@@ -364,31 +370,31 @@ else:
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
-            # FIX LỖI RAW HTML BẢNG TIN 
-            html_news = f"""
-            <div class="modern-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
-                <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 20px;">🔔 Bảng tin hệ thống</h4>
-                <div style="border-left: 3px solid #3b82f6; padding-left: 16px; margin-bottom: 20px;">
-                    <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Phiên bản 3.0</div>
-                    <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Cập nhật giao diện UI/UX chuẩn SaaS. Trải nghiệm mượt mà, tối ưu trên mọi thiết bị.</div>
-                </div>
-                <div style="border-left: 3px solid #10b981; padding-left: 16px; margin-bottom: 20px;">
-                    <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Bảo mật</div>
-                    <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Nâng cấp hệ thống lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ vào Inbox cao nhất.</div>
-                </div>
-                <div style="border-left: 3px solid #8b5cf6; padding-left: 16px;">
-                    <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Thanh toán</div>
-                    <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Hỗ trợ nạp tiền tự động qua QR Code. Tự động cấp Huy hiệu VIP đẳng cấp.</div>
-                </div>
-            </div>
-            """
-            st.markdown(html_news, unsafe_allow_html=True)
+            st.markdown("""
+<div class="modern-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
+    <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 20px;">🔔 Bảng tin hệ thống</h4>
+    
+    <div style="border-left: 3px solid #3b82f6; padding-left: 16px; margin-bottom: 20px;">
+        <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Phiên bản 3.0</div>
+        <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Cập nhật giao diện UI/UX chuẩn SaaS. Trải nghiệm mượt mà, tối ưu trên mọi thiết bị.</div>
+    </div>
+    
+    <div style="border-left: 3px solid #10b981; padding-left: 16px; margin-bottom: 20px;">
+        <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Bảo mật</div>
+        <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Nâng cấp hệ thống lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ vào Inbox cao nhất.</div>
+    </div>
+    
+    <div style="border-left: 3px solid #8b5cf6; padding-left: 16px;">
+        <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom: 6px; letter-spacing:0.5px;">Thanh toán</div>
+        <div style="font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">Hỗ trợ nạp tiền tự động qua QR Code. Tự động cấp Huy hiệu VIP đẳng cấp.</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # 2. CHIẾN DỊCH GỬI EMAIL & TÍCH HỢP CẤU HÌNH
     elif menu == "✉️ Tạo Chiến Dịch":
         st.markdown('<div class="gradient-text" style="font-size: 28px;">Thiết Lập Chiến Dịch</div><div style="color:#64748b; font-size: 15px; margin-bottom: 24px;">Cấu hình nội dung, danh sách nhận và máy chủ gửi thư</div>', unsafe_allow_html=True)
         
-        # --- HÀNG 1: Dữ liệu và Nội dung ---
         col_data, col_content = st.columns([1, 1.2], gap="large")
         with col_data:
             st.markdown('<div class="modern-card">', unsafe_allow_html=True)
@@ -424,7 +430,7 @@ else:
             if not raw_body: raw_body = ""
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # --- HÀNG 2: CẤU HÌNH MÁY CHỦ
+        # --- CẤU HÌNH MÁY CHỦ
         st.markdown('<div class="modern-card">', unsafe_allow_html=True)
         st.markdown('<div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:20px;">⚙️ 3. Cấu Hình Máy Chủ & Thông Báo</div>', unsafe_allow_html=True)
         cfg1, cfg2 = st.columns(2, gap="large")
@@ -436,17 +442,15 @@ else:
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"], placeholder="abcd efgh ijkl mnop")
             
             with st.popover("❓ Bấm vào đây để xem cách lấy Mật khẩu ứng dụng"):
-                # FIX LỖI HTML POPOVER
-                html_popover = """
-                <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                    <b>Làm theo 4 bước sau:</b><br>
-                    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
-                    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
-                    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
-                    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
-                </div>
-                """
-                st.markdown(html_popover, unsafe_allow_html=True)
+                st.markdown("""
+<div style="font-size: 14px; color: #334155; line-height: 1.6;">
+    <b>Làm theo 4 bước sau:</b><br>
+    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
+    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
+    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
+    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
+</div>
+""", unsafe_allow_html=True)
 
         with cfg2:
             st.markdown('<div style="font-size:14px; font-weight:700; color:#1e40af; margin-bottom:12px;">🔔 Bot Telegram & Chữ Ký</div>', unsafe_allow_html=True)
@@ -463,22 +467,20 @@ else:
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
         full_email_content = f"<div style='font-family:\"Inter\", sans-serif; line-height:1.6; color:#334155;'>{raw_body}<br><br><div style='color:#94a3b8; font-size:13px; border-top:1px solid #f1f5f9; padding-top:16px;'>{sign_html}</div></div>"
         
-        # --- HÀNG 3: CẨM NANG VÀ NÚT GỬI ---
+        # --- NÚT GỬI ---
         col_action1, col_action2 = st.columns([1.5, 1])
         with col_action1:
-            # FIX LỖI HTML BẢNG CẨM NANG
-            html_guide = """
-            <div class="modern-card" style="padding:20px; margin-bottom: 0;">
-                <h4 style="margin-top:0; color:#0f172a; font-size:15px; margin-bottom:12px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
-                <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-                    <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng gửi an toàn / Ngày</th></tr>
-                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 500;">Gmail mới tạo</td><td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td></tr>
-                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 500;">Gmail dùng lâu</td><td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td></tr>
-                    <tr><td style="padding: 12px 0; font-weight: 500;">Google Workspace</td><td style="padding: 12px 0; color: #2563eb; font-weight: 700;">500 - 1000 mail</td></tr>
-                </table>
-            </div>
-            """
-            st.markdown(html_guide, unsafe_allow_html=True)
+            st.markdown("""
+<div class="modern-card" style="padding:20px; margin-bottom: 0;">
+    <h4 style="margin-top:0; color:#0f172a; font-size:15px; margin-bottom:12px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+        <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng gửi an toàn / Ngày</th></tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 500;">Gmail mới tạo</td><td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td></tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 500;">Gmail dùng lâu</td><td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td></tr>
+        <tr><td style="padding: 12px 0; font-weight: 500;">Google Workspace</td><td style="padding: 12px 0; color: #2563eb; font-weight: 700;">500 - 1000 mail</td></tr>
+    </table>
+</div>
+""", unsafe_allow_html=True)
 
         with col_action2:
             st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
@@ -570,15 +572,13 @@ else:
                 h_list.append({"Thời gian": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
-            # FIX LỖI HTML TRẠNG THÁI RỖNG
-            html_empty = """
-            <div style='text-align:center; padding: 60px 20px;'>
-                <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
-                <div style='color:#0f172a; font-weight:700; font-size:20px; margin-bottom:8px;'>Chưa có dữ liệu giao dịch</div>
-                <div style='color:#64748b; font-size: 15px;'>Hãy thực hiện khoản nạp đầu tiên để kích hoạt thẻ VIP của hệ thống.</div>
-            </div>
-            """
-            st.markdown(html_empty, unsafe_allow_html=True)
+            st.markdown("""
+<div style='text-align:center; padding: 60px 20px;'>
+    <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
+    <div style='color:#0f172a; font-weight:700; font-size:20px; margin-bottom:8px;'>Chưa có dữ liệu giao dịch</div>
+    <div style='color:#64748b; font-size: 15px;'>Hãy thực hiện khoản nạp đầu tiên để kích hoạt thẻ VIP của hệ thống.</div>
+</div>
+""", unsafe_allow_html=True)
         else:
             if chart_data:
                 st.markdown("<p style='font-size:15px; font-weight:700; color:#0f172a; margin-bottom:20px;'>📈 Lưu lượng nạp tiền gần đây</p>", unsafe_allow_html=True)
@@ -589,14 +589,13 @@ else:
             st.dataframe(pd.DataFrame(h_list), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# Footer và nút liên hệ
+# Footer
 st.markdown("<br><br>", unsafe_allow_html=True)
 logo_footer_b64 = get_image_base64(LOGO_URL)
 if logo_footer_b64:
     st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 120px; height: 120px; border-radius: 30%; object-fit: cover; border: 3px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
 
-# FIX LỖI HTML FOOTER
-html_footer = """
+st.markdown("""
 <div style="display: flex; justify-content: center; padding: 20px 0 40px 0;">
     <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Inter', sans-serif; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
         <p style="font-size: 14px; line-height: 1.8; margin: 0;">
@@ -607,7 +606,6 @@ html_footer = """
         </p>
     </div>
 </div>
-"""
-st.markdown(html_footer, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="28"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="28"></a></div>""", unsafe_allow_html=True)
