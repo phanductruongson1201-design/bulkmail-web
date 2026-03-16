@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from streamlit_quill import st_quill 
 
 # 1. Cấu hình trang Web
-st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
 # API CƠ SỞ DỮ LIỆU & HỆ THỐNG
@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS (ĐÃ SỬA LỖI ẨN HEADER BÊN TRÁI)
+# GIAO DIỆN CSS MỚI - CHUẨN UI/UX HIỆN ĐẠI
 # ==========================================
 st.markdown("""
 <style>
@@ -102,9 +102,8 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f8fafc; background-image: radial-gradient(at 0% 0%, hsla(220,100%,95%,0.6) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,95%,0.4) 0, transparent 50%); }
     
-    /* CHỈ ẨN CÁC PHẦN THỪA, GIỮ LẠI HEADER ĐỂ MỞ MENU SIDEBAR */
     #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
-    [data-testid="stHeader"] {background: transparent !important;} /* Làm trong suốt Header thay vì ẩn nó */
+    [data-testid="stHeader"] {background: transparent !important;} 
     
     .block-container { padding-top: 2rem !important; padding-bottom: 3rem !important; max-width: 95% !important;}
     
@@ -113,8 +112,8 @@ st.markdown("""
     .modern-card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; transition: all 0.3s ease; margin-bottom: 24px; }
     .modern-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.05), 0 8px 10px -6px rgba(37, 99, 235, 0.02); border-color: #e2e8f0; }
 
-    div[data-baseweb="input"] { border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; background-color: #f8fafc; }
-    div[data-baseweb="input"]:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); background-color: #ffffff; }
+    div[data-baseweb="input"], div[data-baseweb="textarea"] { border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; background-color: #f8fafc; }
+    div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); background-color: #ffffff; }
 
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #f1f5f9; box-shadow: 4px 0 15px rgba(0,0,0,0.02); }
     div[role="radiogroup"] > label { padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; }
@@ -127,6 +126,9 @@ st.markdown("""
     .stButton>button[kind="primary"] { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; color: white !important; border-radius: 12px; font-weight: 700; font-size: 15px !important; padding: 12px 28px; border: none !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important; transition: all 0.3s ease; letter-spacing: 0.5px; text-transform: uppercase; }
     .stButton>button[kind="primary"]:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important; background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important; }
     
+    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button { background: #ffffff !important; border-radius: 12px; border: 1px solid #cbd5e1 !important; color: #475569 !important; font-weight: 600; padding: 10px 24px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover { border-color: #3b82f6 !important; color: #1d4ed8 !important; background: #f8fafc !important; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(59,130,246,0.1); }
+
     div[data-testid="stMetric"] { background: #ffffff; padding: 24px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; transition: all 0.3s ease; }
     div[data-testid="stMetric"]:hover { transform: translateY(-4px); border-color: #bfdbfe; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1); }
     div[data-testid="stMetricValue"] { color: #1e40af !important; font-weight: 800 !important; font-size: 36px !important; margin-bottom: 4px; font-family: 'Inter', sans-serif;}
@@ -144,7 +146,7 @@ st.markdown("""
     .badge-kimcuong { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
     @keyframes shine { 0% { opacity: 0.9; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { opacity: 0.9; transform: scale(1); } }
 
-    .pill-header { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #0f172a; }
+    .pill-header { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #0f172a; border-left: 4px solid #3b82f6;}
     div[data-testid="stFileUploader"] { background: #ffffff !important; border: 2px dashed #cbd5e1 !important; border-radius: 16px; padding: 24px; transition: all 0.3s; }
     div[data-testid="stFileUploader"]:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
     
@@ -165,6 +167,7 @@ if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
 if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None 
+
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
 if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
@@ -222,7 +225,7 @@ if not st.session_state["logged_in"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH (Đã chia 2 cột Main/Right)
+# 2. DASHBOARD CHÍNH 
 # ==========================================
 else:
     all_data = load_users()
@@ -245,7 +248,7 @@ else:
         st.session_state["show_deposit_form"] = False; st.session_state["show_qr"] = False
 
     # ========================================================
-    # MENU BÊN TRÁI (SIDEBAR)
+    # MENU BÊN TRÁI (SIDEBAR) - Đã bỏ Menu Cài đặt
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -256,7 +259,7 @@ else:
         st.markdown(f"<div style='text-align:center; margin-bottom:24px;'><div style='font-size:16px; font-weight:700; color:#0f172a;'>{st.session_state['current_user']}</div><div style='color:#2563eb; font-weight:800; font-size:15px; margin-top:4px;'>Số dư: {balance:,}đ</div></div>", unsafe_allow_html=True)
         
         st.markdown("<p style='font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-bottom:8px; margin-left:12px; letter-spacing:1px;'>Menu Điều Hướng</p>", unsafe_allow_html=True)
-        menu = st.radio("", ["🏠 Tổng Quan", "✉️ Tạo Chiến Dịch", "📊 Quản Lý Giao Dịch", "⚙️ Cài Đặt Hệ Thống"], label_visibility="collapsed")
+        menu = st.radio("", ["🏠 Tổng Quan", "✉️ Tạo Chiến Dịch", "📊 Quản Lý Giao Dịch"], label_visibility="collapsed")
         
         st.markdown("<div style='margin-top: 100px;'></div>", unsafe_allow_html=True)
         if st.button("Đăng xuất tài khoản", use_container_width=True):
@@ -268,7 +271,7 @@ else:
 
     # 1. TỔNG QUAN & NẠP TIỀN
     if menu == "🏠 Tổng Quan":
-        # CHÚ Ý: MÃ HTML ĐƯỢC ÉP SÁT LỀ TRÁI ĐỂ KHÔNG BỊ HIỂN THỊ DẠNG RAW CODE
+        # MÃ HTML ÉP SÁT LỀ TRÁI ĐỂ KHÔNG BỊ LỖI
         st.markdown(f"""
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
     <div>
@@ -336,7 +339,7 @@ else:
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
-            # FIX LỖI HIỂN THỊ RAW HTML (Ép sát lề trái hoàn toàn)
+            # FIX LỖI HTML BẢNG TIN HỆ THỐNG
             st.markdown("""
 <div class="modern-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
     <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 20px;">🔔 Bảng tin hệ thống</h4>
@@ -358,10 +361,11 @@ else:
 </div>
 """, unsafe_allow_html=True)
 
-    # 2. CHIẾN DỊCH GỬI EMAIL
+    # 2. CHIẾN DỊCH GỬI EMAIL & TÍCH HỢP CẤU HÌNH
     elif menu == "✉️ Tạo Chiến Dịch":
-        st.markdown('<div class="gradient-text" style="font-size: 28px;">Thiết Lập Chiến Dịch</div><div style="color:#64748b; font-size: 15px; margin-bottom: 24px;">Cấu hình nội dung và danh sách người nhận</div>', unsafe_allow_html=True)
+        st.markdown('<div class="gradient-text" style="font-size: 28px;">Thiết Lập Chiến Dịch</div><div style="color:#64748b; font-size: 15px; margin-bottom: 24px;">Cấu hình nội dung, danh sách nhận và máy chủ gửi thư</div>', unsafe_allow_html=True)
         
+        # HÀNG 1: Dữ liệu và Nội dung
         col_data, col_content = st.columns([1, 1.2], gap="large")
         
         with col_data:
@@ -398,16 +402,34 @@ else:
             if not raw_body: raw_body = ""
             st.markdown('</div>', unsafe_allow_html=True)
 
+        # HÀNG 2: CẤU HÌNH NÂNG CAO (GỘP VÀO TỪ MENU CŨ)
+        st.markdown('<div class="modern-card">', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">⚙️ 3. Cấu Hình Máy Chủ & Thông Báo</div>', unsafe_allow_html=True)
+        cfg1, cfg2 = st.columns(2, gap="large")
+        
+        with cfg1:
+            st.session_state["s_name"] = st.text_input("Tên định danh người gửi:", value=st.session_state["s_name"])
+            st.session_state["s_sign"] = st.text_area("Cấu hình chữ ký cuối Email:", value=st.session_state["s_sign"], height=115)
+        with cfg2:
+            tk_input = st.text_input("Mã Bot Token (Telegram):", value=current_user_data.get("tele_token", ""), type="password")
+            cid_input = st.text_input("ID Đoạn chat (Chat ID):", value=current_user_data.get("tele_chat_id", ""))
+            st.markdown(f"<div style='font-size:13px; color:#475569; padding:12px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; margin-top:10px;'>Hệ thống SMTP mặc định liên kết với hòm thư Admin:<br><b style='color:#2563eb;'>{SYS_EMAIL}</b></div>", unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        # Nút lưu cấu hình nằm gọn trong Form
+        if st.button("Lưu Cấu Hình Mới", type="secondary"):
+            if save_config_api(st.session_state["current_user"], tk_input, cid_input): 
+                st.toast("Lưu cấu hình hệ thống thành công!", icon="✅")
+        st.markdown('</div>', unsafe_allow_html=True)
+
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
         full_email_content = f"<div style='font-family:\"Inter\", sans-serif; line-height:1.6; color:#334155;'>{raw_body}<br><br><div style='color:#94a3b8; font-size:13px; border-top:1px solid #f1f5f9; padding-top:16px;'>{sign_html}</div></div>"
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        
+        # HÀNG 3: CẨM NANG VÀ NÚT GỬI
         col_action1, col_action2 = st.columns([1.5, 1])
         with col_action1:
-            # FIX LỖI RAW HTML
             st.markdown("""
-<div class="modern-card" style="padding:20px;">
+<div class="modern-card" style="padding:20px; margin-bottom: 0;">
     <h4 style="margin-top:0; color:#0f172a; font-size:15px; margin-bottom:12px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
     <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
         <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng gửi an toàn / Ngày</th></tr>
@@ -422,7 +444,7 @@ else:
             st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
             if st.button("🚀 BẮT ĐẦU CHẠY CHIẾN DỊCH NGAY", type="primary", use_container_width=True):
                 if df is None or not subject: st.error("⚠️ Vui lòng cung cấp File danh sách và Tiêu đề!")
-                elif not SYS_EMAIL or not SYS_PWD: st.error("⚠️ Chưa cấu hình Email gửi ở mục Cài Đặt!")
+                elif not SYS_EMAIL or not SYS_PWD: st.error("⚠️ Chưa cấu hình Email gửi ở hệ thống Admin!")
                 else:
                     progress = st.progress(0); log = st.expander("📋 Nhật ký hệ thống", expanded=True)
                     
@@ -443,8 +465,8 @@ else:
                         else: img.decompose()
 
                     prepared_html_template = str(soup) 
-                    run_tk = current_user_data.get("tele_token", ""); run_id = current_user_data.get("tele_chat_id", "")
-                    send_tele_msg(run_tk, run_id, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
+                    # Lấy cấu hình Token trực tiếp từ Text Input để dùng luôn
+                    send_tele_msg(tk_input, cid_input, f"🚀 <b>BẮT ĐẦU CHIẾN DỊCH</b>\n👤 User: {st.session_state['current_user']}")
                     
                     success_list, error_list = [], []
 
@@ -482,8 +504,8 @@ else:
                     
                     csv_buf = io.BytesIO()
                     pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)}).to_csv(csv_buf, index=False, encoding="utf-8-sig")
-                    send_tele_msg(run_tk, run_id, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
-                    send_tele_file(run_tk, run_id, csv_buf.getvalue(), "ket_qua.csv")
+                    send_tele_msg(tk_input, cid_input, f"📊 <b>TỔNG KẾT</b>\n✅ Thành công: {len(success_list)}\n❌ Lỗi: {len(error_list)}")
+                    send_tele_file(tk_input, cid_input, csv_buf.getvalue(), "ket_qua.csv")
                     st.download_button("TẢI BÁO CÁO EXCEL (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
     # 3. LỊCH SỬ NẠP TIỀN
@@ -507,7 +529,6 @@ else:
                 h_list.append({"Thời gian": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
-            # FIX LỖI RAW HTML
             st.markdown("""
 <div style='text-align:center; padding: 60px 20px;'>
     <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
@@ -525,38 +546,12 @@ else:
             st.dataframe(pd.DataFrame(h_list), use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 4. CÀI ĐẶT HỆ THỐNG
-    elif menu == "⚙️ Cài Đặt Hệ Thống":
-        st.markdown('<div class="gradient-text" style="font-size: 28px;">Cấu Hình Nâng Cao</div><div style="color:#64748b; font-size: 15px; margin-bottom: 24px;">Quản lý kết nối API và chữ ký Email</div>', unsafe_allow_html=True)
-        
-        c1, c2 = st.columns(2, gap="large")
-        with c1:
-            st.markdown('<div class="modern-card">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">📧 Máy chủ Gửi thư</div>', unsafe_allow_html=True)
-            st.session_state["s_name"] = st.text_input("Tên định danh người gửi:", value=st.session_state["s_name"])
-            st.markdown(f"<div style='font-size:14px; color:#475569; padding:16px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; margin-top:16px;'>Hệ thống SMTP đang liên kết với hòm thư Admin:<br><b style='color:#2563eb;'>{SYS_EMAIL}</b></div>", unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-                
-        with c2:
-            st.markdown('<div class="modern-card">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">🔔 Thông báo Telegram & Chữ ký</div>', unsafe_allow_html=True)
-            tk = st.text_input("Mã Bot Token:", value=current_user_data.get("tele_token", ""), type="password")
-            cid = st.text_input("ID Đoạn chat (Chat ID):", value=current_user_data.get("tele_chat_id", ""))
-            st.session_state["s_sign"] = st.text_area("Cấu hình chữ ký cuối Email:", value=st.session_state["s_sign"], height=100)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Lưu thay đổi", type="primary", use_container_width=True):
-                if save_config_api(st.session_state["current_user"], tk, cid): 
-                    st.toast("Lưu cấu hình thành công", icon="✅")
-            st.markdown('</div>', unsafe_allow_html=True)
-
 # Footer và nút liên hệ
 st.markdown("<br><br>", unsafe_allow_html=True)
 logo_footer_b64 = get_image_base64(LOGO_URL)
 if logo_footer_b64:
     st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 120px; height: 120px; border-radius: 30%; object-fit: cover; border: 3px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
 
-# FIX LỖI RAW HTML
 st.markdown("""
 <div style="display: flex; justify-content: center; padding: 20px 0 40px 0;">
     <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Inter', sans-serif; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
