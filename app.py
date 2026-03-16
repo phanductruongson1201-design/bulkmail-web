@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web
+# 1. Cấu hình trang Web (Để Sidebar mở mặc định)
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -126,7 +126,7 @@ st.markdown("""
     .dropdown-item i { width: 20px; text-align: center; color: #64748b; font-size: 16px;}
     .dropdown-item:hover i { color: #2563eb; }
     
-    /* CSS cho nút Logout trong Popover (ẩn border của Streamlit) */
+    /* CSS cho nút Logout trong Popover */
     .logout-btn-container button { width: 100% !important; background: transparent !important; border: none !important; color: #475569 !important; text-align: left !important; padding: 12px 20px !important; font-size: 15px !important; font-weight: 500 !important; justify-content: flex-start !important; box-shadow: none !important; }
     .logout-btn-container button:hover { background: #f8fafc !important; color: #e11d48 !important; }
     .logout-btn-container button p { margin: 0; display: flex; align-items: center; gap: 12px; }
@@ -155,29 +155,6 @@ st.markdown("""
     .alt-logo { width: 70px; height: 70px; border-radius: 16px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 12px; text-align: center; box-shadow: 0 4px 10px rgba(37,99,235,0.2); border: 2px solid #ffffff; }
 </style>
 """, unsafe_allow_html=True)
-
-# Javascript Hover Sidebar
-components.html("""
-<script>
-    const doc = window.parent.document;
-    let lastActionTime = Date.now();
-    doc.addEventListener('mousemove', function(e) {
-        if (Date.now() - lastActionTime < 400) return;
-        const openBtn = doc.querySelector('[data-testid="collapsedControl"]');
-        const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-        if (openBtn && e.clientX < 25) {
-            openBtn.click(); lastActionTime = Date.now();
-        }
-        if (!openBtn && sidebar) {
-            const sidebarRect = sidebar.getBoundingClientRect();
-            if (e.clientX > sidebarRect.right + 15) {
-                const closeBtn = sidebar.querySelector('button');
-                if (closeBtn) { closeBtn.click(); lastActionTime = Date.now(); }
-            }
-        }
-    });
-</script>
-""", height=0, width=0)
 
 # Khởi tạo Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
@@ -289,7 +266,7 @@ else:
     st.markdown('<hr style="margin: 0 0 20px 0; border: none; border-bottom: 2px solid #e2e8f0;">', unsafe_allow_html=True)
 
     # ========================================================
-    # SIDEBAR
+    # SIDEBAR CỐ ĐỊNH CHUẨN (Không auto-hover)
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
