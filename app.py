@@ -31,12 +31,9 @@ SYS_EMAIL = st.secrets.get("SENDER_EMAIL", "")
 SYS_PWD = st.secrets.get("APP_PASSWORD", "")
 
 def load_users():
-    if not DB_URL: return {"users": {}, "logs": []}
-    try: 
-        res = requests.get(DB_URL).json()
-        if "users" in res: return res
-        return {"users": res, "logs": []}
-    except: return {"users": {}, "logs": []}
+    if not DB_URL: return {}
+    try: return requests.get(DB_URL).json()
+    except: return {}
 
 def save_user_api(username, password_hash, email):
     if not DB_URL: return
@@ -60,9 +57,11 @@ def save_config_api(username, tele_token, tele_chat_id):
         return res.get("status") == "success"
     except: return False
 
-def hash_password(password): return hashlib.sha256(password.encode()).hexdigest()
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-def generate_otp(length=6): return "".join(random.choices(string.digits, k=length))
+def generate_otp(length=6):
+    return "".join(random.choices(string.digits, k=length))
 
 def send_otp_email(to_email, username, otp_code):
     if not SYS_EMAIL or not SYS_PWD: return False
@@ -83,20 +82,25 @@ def send_otp_email(to_email, username, otp_code):
 
 def send_tele_msg(token, chat_id, message):
     if token and chat_id:
-        try: requests.post(f"https://api.telegram.org/bot{token}/sendMessage", data={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=5)
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            requests.post(url, data={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=5)
         except: pass
 
 def send_tele_file(token, chat_id, file_content, file_name):
     if token and chat_id:
         try:
+            url = f"https://api.telegram.org/bot{token}/sendDocument"
             files = {"document": (file_name, file_content)}
-            requests.post(f"https://api.telegram.org/bot{token}/sendDocument", data={"chat_id": chat_id}, files=files, timeout=10)
+            requests.post(url, data={"chat_id": chat_id}, files=files, timeout=10)
         except: pass
 
 def get_image_base64(path):
     try:
-        with open(path, "rb") as img_file: return base64.b64encode(img_file.read()).decode("utf-8")
-    except: return None
+        with open(path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    except:
+        return None
 
 # 🌟 ÂM THANH THÔNG BÁO
 def play_success_sound():
@@ -107,7 +111,7 @@ def play_success_sound():
     """, height=0)
 
 # ==========================================
-# GIAO DIỆN CSS & HIỆU ỨNG
+# GIAO DIỆN CSS & HIỆU ỨNG (GLASSMORPHISM)
 # ==========================================
 st.markdown("""
 <style>
@@ -115,7 +119,10 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
     #MainMenu, footer, header, .stDeployButton, [data-testid="manage-app-button"], [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"], iframe[src*="badge"] {display: none !important; visibility: hidden !important;}
     .block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; }
-    .stApp { background-color: #f8fafc; }
+    
+    /* Hình nền cho app để tôn lên hiệu ứng kính mờ */
+    .stApp { background-color: #f1f5f9; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%); }
+    
     .gradient-text { background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 46px; margin-bottom: 5px; letter-spacing: -1px; }
 
     /* 🌟 HUY HIỆU VIP LẤP LÁNH */
@@ -135,34 +142,40 @@ st.markdown("""
         100% { opacity: 0.8; transform: scale(1); } 
     }
 
-    div[data-baseweb="tab-list"] { background-color: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 20px !important; }
+    div[data-baseweb="tab-list"] { background: rgba(241, 245, 249, 0.7); backdrop-filter: blur(10px); border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 20px !important; }
     div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; border: none !important; color: #64748b !important; font-weight: 600 !important; font-size: 14px !important; padding: 8px 12px !important; margin: 0 !important; height: auto !important; }
     div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #1e40af !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important; }
-    div[data-baseweb="tab"][aria-selected="true"] p { color: #1e40af !important; font-weight: 800 !important; }
     div[data-baseweb="tab-highlight"] { display: none !important; }
        
-    div[data-testid="stExpander"] { background-color: #eff6ff !important; border: 2px solid #bfdbfe !important; border-radius: 16px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08); }
+    /* 🌟 GLASSMORPHISM CHO CÁC KHỐI */
+    .auth-box, .deposit-box, div[data-testid="stMetric"], div[data-testid="stExpander"], div[data-testid="stFileUploader"] { 
+        background: rgba(255, 255, 255, 0.7) !important; 
+        backdrop-filter: blur(16px) !important; 
+        -webkit-backdrop-filter: blur(16px) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.6) !important; 
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important; 
+    }
+    
+    div[data-testid="stExpander"] { border-radius: 16px; }
     div[data-testid="stExpander"] summary { background-color: transparent !important; }
 
-    div[data-testid="stFileUploader"] { background-color: #faf5ff !important; border: 2px solid #e9d5ff !important; border-radius: 16px; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.08); padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    div[data-testid="stFileUploader"]:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(168, 85, 247, 0.15); }
+    div[data-testid="stFileUploader"] { border-radius: 16px; padding: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    div[data-testid="stFileUploader"]:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(31, 38, 135, 0.1) !important; }
 
     .stButton>button[kind="primary"] { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; color: white !important; border-radius: 16px; font-weight: 900; font-size: 18px !important; padding: 15px 24px; border: none !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
     .stButton>button[kind="primary"]:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important; }
     
+    .auth-box { max-width: 440px; margin: 10px auto; padding: 35px; border-radius: 24px; }
     .auth-box .stButton>button[kind="primary"] { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important; font-size: 16px !important; padding: 10px 20px; }
     
-    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button { border-radius: 12px; border: 2px solid #cbd5e1 !important; color: #475569 !important; font-weight: 700; background-color: white !important; transition: all 0.3s ease; }
-    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover { border-color: #3b82f6 !important; color: #3b82f6 !important; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15); }
+    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button, div[data-testid="stPopover"]>button { border-radius: 12px; border: 2px solid #cbd5e1 !important; color: #475569 !important; font-weight: 700; background: rgba(255,255,255,0.8) !important; transition: all 0.3s ease; }
+    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover, div[data-testid="stPopover"]>button:hover { border-color: #3b82f6 !important; color: #3b82f6 !important; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15); }
 
     .pill-header { color: white; padding: 10px 24px; border-radius: 50px; font-size: 15px; font-weight: 800; margin-bottom: 20px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); border: 2px solid #93c5fd; }
-    .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); box-shadow: 0 6px 15px rgba(168, 85, 247, 0.4); border: 2px solid #d8b4fe; }
-    .bg-green { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); border: 2px solid #6ee7b7; }
-    .bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.4); border: 2px solid #fcd34d; }
+    .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); }
+    .bg-green { background: linear-gradient(135deg, #10b981, #047857); }
 
-    .auth-box { max-width: 440px; margin: 10px auto; padding: 35px; background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); }
-    
     .logo-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 20px; }
     .logo-container img { width: 120px; height: 120px; border-radius: 35%; object-fit: cover; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); border: 4px solid white;}
     .alt-logo { width: 120px; height: 120px; border-radius: 35%; background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 16px; text-align: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); }
@@ -172,10 +185,10 @@ st.markdown("""
     .float-btn:hover { transform: translateY(-5px); border-color: #3b82f6; }
     .float-btn img { width: 65%; height: 65%; object-fit: contain; }
     
-    .deposit-box { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 25px; }
+    .deposit-box { padding: 25px; border-radius: 16px; margin-bottom: 25px; }
 
-    /* 🌟 GIAO DIỆN METRIC THỐNG KÊ */
-    div[data-testid="stMetric"] { background: white; padding: 15px 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; }
+    /* Giao diện Metric */
+    div[data-testid="stMetric"] { border-radius: 16px; text-align: center; }
     div[data-testid="stMetricValue"] { color: #1e40af !important; font-weight: 900 !important; font-size: 28px !important; }
     div[data-testid="stMetricLabel"] { font-size: 14px !important; color: #64748b !important; font-weight: 700 !important; text-transform: uppercase; }
 </style>
@@ -230,7 +243,9 @@ if not st.session_state["logged_in"]:
                     st.session_state["current_user"] = log_user
                     st.session_state["logged_in"] = True
                     st.rerun()
-                else: st.error("❌ Thông tin đăng nhập chưa chính xác!")
+                else: 
+                    st.toast("Thông tin đăng nhập chưa chính xác!", icon="❌")
+                    st.error("❌ Thông tin đăng nhập chưa chính xác!")
 
         with tab_reg:
             reg_user = st.text_input("Tên đăng nhập mới", key="reg_u")
@@ -246,6 +261,7 @@ if not st.session_state["logged_in"]:
                     st.error("❌ Mật khẩu không khớp!")
                 else:
                     save_user_api(reg_user, hash_password(reg_pwd), reg_email)
+                    st.toast("Đăng ký thành công! Vui lòng đăng nhập.", icon="🎉")
                     st.success("✅ Đăng ký thành công!")
 
         with tab_forgot:
@@ -258,7 +274,7 @@ if not st.session_state["logged_in"]:
                         if reset_password_api(fg_user, fg_email, hash_password(otp), True):
                             if send_otp_email(fg_email, fg_user, otp):
                                 st.session_state["otp_sent"] = True
-                                st.success(f"✅ OTP đã gửi tới {fg_email}")
+                                st.toast(f"OTP đã được gửi tới {fg_email}", icon="✅")
                     else: st.error("❌ Thông tin không khớp!")
                 
                 if st.session_state.get("otp_sent"):
@@ -277,7 +293,7 @@ if not st.session_state["logged_in"]:
                     if reset_password_api(target, users_db[target]["email"], hash_password(new_p), False):
                         st.session_state["otp_verified"] = False
                         st.session_state["otp_sent"] = False
-                        st.success("✅ Đổi mật khẩu thành công!")
+                        st.toast("Đổi mật khẩu thành công!", icon="✅")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
@@ -307,7 +323,7 @@ else:
     elif balance > st.session_state["previous_balance"]:
         play_success_sound()
         st.balloons()
-        st.success(f"🎉 THANH TOÁN THÀNH CÔNG! Tài khoản của bạn vừa được cộng thêm {balance - st.session_state['previous_balance']:,} VNĐ.")
+        st.toast(f"🎉 Đã cộng {balance - st.session_state['previous_balance']:,} VNĐ vào tài khoản!", icon="💰")
         st.session_state["previous_balance"] = balance
         st.session_state["show_deposit_form"] = False
         st.session_state["show_qr"] = False
@@ -353,7 +369,7 @@ else:
         if st.session_state.get("show_deposit_form"):
             st.markdown('<div class="deposit-box">', unsafe_allow_html=True)
             st.markdown("<h3 style='margin-top:0; color:#0f172a;'>Nhập số tiền cần nạp</h3>", unsafe_allow_html=True)
-            st.markdown("<hr style='margin: 10px 0 20px 0; border: 1px solid #f1f5f9;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 10px 0 20px 0; border: 1px solid rgba(0,0,0,0.1);'>", unsafe_allow_html=True)
             
             amount_input = st.number_input("Nhập số tiền bạn cần nạp vào hệ thống (VNĐ)", 
                                            value=st.session_state.get("deposit_amount", 100000), step=10000, min_value=0)
@@ -372,6 +388,7 @@ else:
             with bc3:
                 if st.button("Tạo hoá đơn", type="primary", use_container_width=True):
                     if amount_input < 10000:
+                        st.toast("Số tiền nạp tối thiểu là 10.000 VNĐ", icon="⚠️")
                         st.error("⚠️ Số tiền nạp tối thiểu là 10.000 VNĐ")
                     else:
                         st.session_state["deposit_amount"] = amount_input
@@ -387,7 +404,7 @@ else:
                 st.warning("⏳ Mã QR đã hết hạn. Vui lòng bấm Tạo hoá đơn mới.")
                 st.session_state["show_qr"] = False
             else:
-                st.markdown("<div style='background-color: #fffbeb; border: 1px dashed #fca5a5; border-radius: 12px; padding: 20px; margin-bottom: 25px;'>", unsafe_allow_html=True)
+                st.markdown("<div style='background: rgba(255, 251, 235, 0.8); backdrop-filter: blur(10px); border: 1px dashed #fca5a5; border-radius: 12px; padding: 20px; margin-bottom: 25px;'>", unsafe_allow_html=True)
                 col_qr, col_info = st.columns([1, 1.5], gap="large")
                 
                 # THÔNG TIN TÀI KHOẢN NGÂN HÀNG CỦA BẠN (SEPAY)
@@ -404,7 +421,7 @@ else:
                     st.image(qr_url, width=250, caption="Mở App ngân hàng quét mã")
                     
                     components.html(f"""
-                        <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ef4444; font-weight: 800; font-size: 15px; padding: 10px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
+                        <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ef4444; font-weight: 800; font-size: 15px; padding: 10px; background: rgba(254, 226, 226, 0.8); border-radius: 8px; border: 1px solid #fca5a5;">
                             ⏳ Hết hạn sau: <span id="time">10:00</span>
                         </div>
                         <script>
@@ -433,7 +450,7 @@ else:
                     st.markdown("**📝 Nội dung chuyển khoản (Bấm biểu tượng 📋 ở góc phải để Copy):**")
                     st.code(transfer_content, language="text")
                     
-                    st.info("💡 Trạng thái: Đang chờ thanh toán. Sau khi chuyển xong, hệ thống sẽ tự động báo thành công.")
+                    st.info("💡 Trạng thái: Đang chờ thanh toán. Sau khi chuyển xong, hệ thống sẽ tự động đối soát và báo thành công.")
                     
                     if st.button("🔄 LÀM MỚI SỐ DƯ ĐỂ XÁC NHẬN", type="primary", use_container_width=True):
                         st.rerun()
@@ -446,9 +463,24 @@ else:
         col_data, col_content = st.columns([1, 1.2], gap="large")
         
         with col_data:
-            up = st.file_uploader("Tải tệp (.xlsx, .csv)", type=["csv", "xlsx"])
-            df = pd.read_excel(up) if up and up.name.endswith("xlsx") else (pd.read_csv(up) if up else None)
-            attachments = st.file_uploader("📎 Tệp đính kèm", accept_multiple_files=True)
+            sample_df = pd.DataFrame({"email": ["khachhang@gmail.com", "vidu@gmail.com"]})
+            try:
+                excel_buf = io.BytesIO(); 
+                with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer: sample_df.to_excel(writer, index=False, sheet_name="Danh_sach")
+                dl_data = excel_buf.getvalue()
+            except: dl_data = sample_df.to_csv(index=False).encode("utf-8-sig")
+                
+            st.download_button("📥 Tải File Mẫu (Excel)", data=dl_data, file_name="danh_sach_mau.xlsx", use_container_width=True)
+            
+            up = st.file_uploader("Tải tệp danh sách (.csv, .xlsx)", type=["csv", "xlsx"])
+            df = None
+            if up:
+                df = pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up)
+                st.toast(f"Hợp lệ! Đã nhận {len(df)} địa chỉ email.", icon="✅")
+                st.success(f"✅ Hợp lệ! Đã nhận {len(df)} địa chỉ email.")
+                
+            st.markdown('<div class="pill-header bg-purple" style="font-size: 13px; padding: 6px 18px; margin-bottom: 10px;">📎 TỆP ĐÍNH KÈM (TÙY CHỌN)</div>', unsafe_allow_html=True)
+            attachments = st.file_uploader("Kéo thả tài liệu vào đây", accept_multiple_files=True)
             
             # 🌟 DỰ BÁO ETA BÊN DƯỚI FILE UPLOAD
             delay = st.number_input("⏳ Khoảng nghỉ giữa mỗi Mail (Giây):", value=15, min_value=5, help="Đề xuất: 15-30s.")
@@ -480,7 +512,7 @@ else:
         
         with st.expander("👁️ Xem trước giao diện thực tế", expanded=False):
             example_name = str(df.iloc[0]["name"]) if df is not None and not df.empty and "name" in df.columns else "Quý khách"
-            st.markdown(f"<div style='padding:20px; background:white; border-radius: 8px; border: 1px solid #e2e8f0;'>{full_email_content.replace('{{name}}', f'<b style=\"color:#3b82f6;\">{example_name}</b>')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='padding:20px; background:rgba(255,255,255,0.7); border-radius: 8px; border: 1px solid rgba(255,255,255,0.5);'>{full_email_content.replace('{{name}}', f'<b style=\"color:#3b82f6;\">{example_name}</b>')}</div>", unsafe_allow_html=True)
 
         st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
 
@@ -488,12 +520,12 @@ else:
         col_action1, col_action2 = st.columns([1.5, 1])
         with col_action1:
             st.markdown("""
-            <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h4 style="margin-top:0; color:#0f172a; font-size:16px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
                 <table style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-                    <tr style="border-bottom: 1px solid #e2e8f0; color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng an toàn / Ngày</th></tr>
-                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 600;">Gmail mới tạo</td><td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td></tr>
-                    <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 12px 0; font-weight: 600;">Gmail dùng lâu</td><td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td></tr>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.1); color:#64748b;"><th style="padding: 10px 0;">Loại tài khoản</th><th style="padding: 10px 0;">Số lượng an toàn / Ngày</th></tr>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);"><td style="padding: 12px 0; font-weight: 600;">Gmail mới tạo</td><td style="padding: 12px 0; color: #f59e0b; font-weight: 700;">20 - 50 mail</td></tr>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);"><td style="padding: 12px 0; font-weight: 600;">Gmail dùng lâu</td><td style="padding: 12px 0; color: #10b981; font-weight: 700;">200 - 300 mail</td></tr>
                     <tr><td style="padding: 12px 0; font-weight: 600;">Google Workspace</td><td style="padding: 12px 0; color: #3b82f6; font-weight: 700;">500 - 1000 mail</td></tr>
                 </table>
             </div>
@@ -588,6 +620,7 @@ else:
                         
                     # 🌟 PHÁT ÂM THANH KHI XONG CHIẾN DỊCH
                     play_success_sound()
+                    st.toast(f"Hoàn tất gửi {len(success_list)} email thành công!", icon="🚀")
                     st.success("🎉 Chiến dịch hoàn tất!")
                     
                     csv_buf = io.BytesIO()
@@ -599,21 +632,45 @@ else:
 
     with tab_history:
         st.markdown('<div class="pill-header bg-blue">📜 NHẬT KÝ GIAO DỊCH</div>', unsafe_allow_html=True)
-        if not logs_db: st.info("Chưa có lịch sử giao dịch.")
+        h_list = []; cur_u = st.session_state['current_user'].upper()
+        chart_data = [] # Data cho biểu đồ
+
+        for l in logs_db:
+            if cur_u in str(l.get('raw_data','')).upper():
+                try:
+                    pld = json.loads(l.get('raw_data','{}'))
+                    val_int = int(pld.get('transferAmount', 0))
+                    amt = f"{val_int:,} VNĐ"
+                except: 
+                    val_int = 0
+                    amt = "---"
+                
+                status = str(l.get('status', ''))
+                if "Thành công" in status: 
+                    status = "✅ Thành công"
+                    if val_int > 0: chart_data.append({"Ngày nạp": l.get('time', ''), "Số tiền (VNĐ)": val_int})
+                elif "Lỗi" in status: status = "❌ " + status
+                
+                h_list.append({"Ngày nạp": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
+
+        # 🌟 TRẠNG THÁI TRỐNG DỄ THƯƠNG
+        if not h_list: 
+            st.markdown("""
+            <div style='text-align:center; padding: 50px; background: rgba(255,255,255,0.5); border-radius: 16px; border: 2px dashed #cbd5e1;'>
+                <h1 style='font-size: 80px; margin: 0; filter: grayscale(50%);'>🪹</h1>
+                <h3 style='color:#475569; margin-top: 15px;'>Chưa có giao dịch nào</h3>
+                <p style='color:#64748b; font-size: 15px;'>Bạn chưa thực hiện khoản nạp nào. Hãy nạp tiền để kích hoạt sức mạnh của hệ thống nhé!</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            h_list = []; cur_u = st.session_state['current_user'].upper()
-            for l in logs_db:
-                if cur_u in str(l.get('raw_data','')).upper():
-                    try:
-                        pld = json.loads(l.get('raw_data','{}'))
-                        amt = f"{pld.get('transferAmount', 0):,} VNĐ"
-                    except: amt = "---"
-                    status = str(l.get('status', ''))
-                    if "Thành công" in status: status = "✅ Thành công"
-                    elif "Lỗi" in status: status = "❌ " + status
-                    h_list.append({"Ngày nạp": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
-            if h_list: st.dataframe(pd.DataFrame(h_list), use_container_width=True)
-            else: st.write("Không tìm thấy giao dịch của bạn.")
+            # 🌟 BIỂU ĐỒ MINI CHART
+            if chart_data:
+                st.markdown("<b style='color:#1e40af;'>📈 Biểu đồ lịch sử nạp tiền</b>", unsafe_allow_html=True)
+                df_chart = pd.DataFrame(chart_data)
+                st.bar_chart(df_chart.set_index("Ngày nạp"), color="#3b82f6")
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+
+            st.dataframe(pd.DataFrame(h_list), use_container_width=True)
 
     with tab_config:
         st.markdown('<div class="pill-header bg-blue">⚙️ CÀI ĐẶT HỆ THỐNG</div>', unsafe_allow_html=True)
@@ -622,15 +679,29 @@ else:
             st.session_state["s_name"] = st.text_input("Tên hiển thị:", value=st.session_state["s_name"])
             st.session_state["s_email"] = st.text_input("Địa chỉ Gmail của bạn:", value=st.session_state["s_email"])
             st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
+            
+            # 🌟 POPOVER MENU ẨN HƯỚNG DẪN 
+            with st.popover("❓ Hướng dẫn lấy Mật khẩu ứng dụng (Bấm xem)"):
+                st.markdown("""
+                <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                    <b>Làm theo 4 bước sau:</b><br>
+                    <b>1.</b> Mở tab mới, truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Tài khoản Google</b></a>.<br>
+                    <b>2.</b> Đảm bảo tính năng <b>Xác minh 2 bước</b> đã được <b>BẬT</b>.<br>
+                    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>"Mật khẩu ứng dụng"</b> ➔ Bấm chọn kết quả hiện ra.<br>
+                    <b>4.</b> Gõ tên ứng dụng là <i>"BulkMail"</i> ➔ Bấm <b>Tạo</b>. Google sẽ cấp cho bạn <b>16 chữ cái</b>.
+                </div>
+                """, unsafe_allow_html=True)
+                
         with c2:
             tk = st.text_input("Bot Token Telegram:", value=current_user_data.get("tele_token", ""), type="password")
             cid = st.text_input("Chat ID Telegram:", value=current_user_data.get("tele_chat_id", ""))
             st.session_state["s_sign"] = st.text_area("Chữ ký cuối thư:", value=st.session_state["s_sign"])
             if st.button("💾 Lưu cấu hình"):
-                if save_config_api(st.session_state["current_user"], tk, cid): st.success("Đã lưu!")
+                if save_config_api(st.session_state["current_user"], tk, cid): 
+                    st.toast("Đã lưu cấu hình thành công!", icon="✅")
 
     # ==========================================
-    # CHÂN TRANG: LOGO VÀ GIỚI THIỆU ĐÃ ĐƯỢC KHÔI PHỤC
+    # CHÂN TRANG: LOGO VÀ GIỚI THIỆU
     # ==========================================
     st.markdown("<br><br>", unsafe_allow_html=True)
     
@@ -642,8 +713,8 @@ else:
         """
         <div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
             <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; 
-                        padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; background: white; 
-                        box-shadow: 0 10px 25px rgba(0,0,0,0.03);">
+                        padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
                 <p style="font-size: 15px; line-height: 1.8; margin: 0;">
                     <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
                     Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
