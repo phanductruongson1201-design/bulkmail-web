@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web (Mở mặc định, chỉ đóng mở bằng tay)
+# 1. Cấu hình trang Web (Mở mặc định)
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -103,41 +103,31 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 BƯỚC 1: XÓA SẠCH GITHUB, SHARE, MENU STREAMLIT */
-    [data-testid="stToolbar"], [data-testid="stHeaderActionElements"], .stAppToolbar, #MainMenu, footer {
-        display: none !important; visibility: hidden !important; opacity: 0 !important;
+    /* 🌟 BƯỚC 1: XÓA SẠCH BIỂU TƯỢNG SHARE/GITHUB BẰNG CÁCH ẨN CỤM BÊN PHẢI */
+    [data-testid="stHeaderActionElements"], footer, #MainMenu {
+        display: none !important; 
     }
     
-    /* 🌟 BƯỚC 2: KHÔNG CẤM CLICK NỮA, MÀ ÉP CHIỀU CAO HEADER VỀ 0 ĐỂ KHÔNG BỊ CHE */
+    /* 🌟 BƯỚC 2: HEADER XUYÊN THẤU ĐỂ KHÔNG CHẶN TOPBAR */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        height: 0px !important;
-        min-height: 0px !important;
+        pointer-events: none !important; 
     }
     
-    /* 🌟 BƯỚC 3: CỨU SỐNG VÀ LÀM ĐẸP NÚT MỞ MENU (SIDEBAR) BÊN TRÁI */
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+    /* 🌟 BƯỚC 3: CỨU SỐNG NÚT MỞ MENU TRÁI BẤT CHẤP MỌI PHIÊN BẢN STREAMLIT */
+    /* Quét toàn bộ button còn lại trên Header (chính là nút Menu) để kích hoạt */
+    header[data-testid="stHeader"] button, [data-testid="collapsedControl"] {
+        pointer-events: auto !important; 
         background-color: white !important;
         border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-        top: 12px !important;
-        left: 15px !important;
-        z-index: 999999 !important; 
-        padding: 4px !important;
-        transition: all 0.2s ease;
-    }
-    [data-testid="collapsedControl"]:hover {
-        background-color: #f8fafc !important;
-        border-color: #3b82f6 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+        color: #1e293b !important;
     }
     
     .block-container { padding-top: 1.5rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
-    /* 🌟 TOPBAR UI: ĐẨY VÍ TIỀN SANG PHẢI ĐỂ NHƯỜNG CHỖ CHO NÚT MENU */
+    /* 🌟 TOPBAR UI: ĐẨY VÍ TIỀN SANG PHẢI 50PX ĐỂ KHÔNG ĐÈ LÊN NÚT MENU */
     .topbar-wallet { 
         border: 1px solid #3b82f6; color: #3b82f6; padding: 0 16px; border-radius: 6px; 
         font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; 
@@ -146,12 +136,10 @@ st.markdown("""
     }
     .topbar-wallet:hover { background: #eff6ff; }
     
-    /* Làm đẹp Selectbox Tìm Kiếm */
     div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
         border: 1px solid #f97316 !important; background-color: white !important; border-radius: 6px !important; min-height: 42px !important; cursor: pointer;
     }
     
-    /* Tùy chỉnh Nút Popover (User Profile) */
     button[data-testid="baseButton-popover"] { 
         border: 1px solid #e2e8f0 !important; background: white !important; 
         color: #1e293b !important; font-weight: 600 !important; font-size: 15px !important; 
@@ -160,25 +148,22 @@ st.markdown("""
     }
     button[data-testid="baseButton-popover"]:hover { border-color: #cbd5e1 !important; color: #2563eb !important;}
     
-    /* Giao diện Dropdown Menu (Popover Body) */
     div[data-testid="stPopoverBody"] { padding: 10px 0 !important; border-radius: 8px !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; width: 220px !important; }
     .dropdown-item { padding: 12px 20px; font-size: 15px; color: #334155; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #f1f5f9; }
     .dropdown-item:hover { background: #f8fafc; color: #2563eb; }
     .dropdown-item i { width: 20px; text-align: center; color: #64748b; font-size: 16px;}
     .dropdown-item:hover i { color: #2563eb; }
     
-    /* CSS cho nút Logout trong Popover */
     .logout-btn-container button { width: 100% !important; background: transparent !important; border: none !important; color: #475569 !important; text-align: left !important; padding: 12px 20px !important; font-size: 15px !important; font-weight: 500 !important; justify-content: flex-start !important; box-shadow: none !important; }
     .logout-btn-container button:hover { background: #f8fafc !important; color: #e11d48 !important; }
     .logout-btn-container button p { margin: 0; display: flex; align-items: center; gap: 12px; }
 
-    /* Layout Thẻ Sản phẩm (Store Grid) */
+    /* Layout Thẻ Sản phẩm */
     .store-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
     .store-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: #cbd5e1; transform: translateY(-3px); }
     .price-tag { border: 1px solid #ef4444; color: #ef4444; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 14px; display: inline-block; margin-top: 15px; margin-bottom: 10px; }
     .stock-tag { border: 1px solid #10b981; color: #10b981; padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 13px; display: inline-block; }
     
-    /* Nút Mua (Xanh dương) */
     .btn-buy { background: #3b82f6 !important; color: white !important; font-weight: 700 !important; border: none !important; border-radius: 4px !important; padding: 10px 20px !important; width: 100%; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2) !important; transition: all 0.2s; }
     .btn-buy:hover { background: #2563eb !important; box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3) !important; }
 
