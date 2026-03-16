@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI NÚT MENU BỊ CHE
+# GIAO DIỆN CSS MỚI - FIX 100% LỖI MENU VÀ CLICK
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,35 +103,46 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 BƯỚC 1: XÓA SẠCH BIỂU TƯỢNG SHARE/GITHUB GÓC PHẢI */
+    /* 🌟 BƯỚC 1: XÓA SẠCH GITHUB, SHARE, MENU STREAMLIT */
     [data-testid="stToolbar"], [data-testid="stHeaderActionElements"], .stAppToolbar, #MainMenu, footer {
         display: none !important; visibility: hidden !important; opacity: 0 !important;
     }
     
-    /* 🌟 BƯỚC 2: HEADER XUYÊN THẤU ĐỂ KHÔNG CHẶN TOPBAR */
+    /* 🌟 BƯỚC 2: KHÔNG CẤM CLICK NỮA, MÀ ÉP CHIỀU CAO HEADER VỀ 0 ĐỂ KHÔNG BỊ CHE */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        pointer-events: none !important; 
+        height: 0px !important;
+        min-height: 0px !important;
     }
     
-    /* 🌟 BƯỚC 3: CỨU SỐNG VÀ LÀM ĐẸP NÚT MỞ MENU BÊN TRÁI */
+    /* 🌟 BƯỚC 3: CỨU SỐNG VÀ LÀM ĐẸP NÚT MỞ MENU (SIDEBAR) BÊN TRÁI */
     [data-testid="collapsedControl"] {
-        pointer-events: auto !important; 
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         background-color: white !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        top: 12px !important;
+        left: 15px !important;
         z-index: 999999 !important; 
+        padding: 4px !important;
+        transition: all 0.2s ease;
+    }
+    [data-testid="collapsedControl"]:hover {
+        background-color: #f8fafc !important;
+        border-color: #3b82f6 !important;
     }
     
-    .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
+    .block-container { padding-top: 1.5rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
-    /* 🌟 TOPBAR UI: ĐẨY VÍ TIỀN SANG PHẢI 55PX ĐỂ NHƯỜNG CHỖ CHO NÚT MENU */
+    /* 🌟 TOPBAR UI: ĐẨY VÍ TIỀN SANG PHẢI ĐỂ NHƯỜNG CHỖ CHO NÚT MENU */
     .topbar-wallet { 
         border: 1px solid #3b82f6; color: #3b82f6; padding: 0 16px; border-radius: 6px; 
         font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; 
         gap: 8px; background: white; cursor: pointer; transition: all 0.2s; height: 42px;
-        margin-left: 55px; 
+        margin-left: 50px; 
     }
     .topbar-wallet:hover { background: #eff6ff; }
     
@@ -295,7 +306,7 @@ else:
     st.markdown('<hr style="margin: 0 0 20px 0; border: none; border-bottom: 2px solid #e2e8f0;">', unsafe_allow_html=True)
 
     # ========================================================
-    # SIDEBAR
+    # SIDEBAR CỐ ĐỊNH CHUẨN
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -310,7 +321,6 @@ else:
     # NỘI DUNG CHÍNH TỪNG TRANG
     # ========================================================
 
-    # 1. CỬA HÀNG DỊCH VỤ
     if menu == "🏠 Cửa Hàng Dịch Vụ":
         st.markdown('<div style="background:#1e3a8a; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-solid fa-layer-group"></i> Dịch Vụ BulkMail Hệ Thống</div>', unsafe_allow_html=True)
         
