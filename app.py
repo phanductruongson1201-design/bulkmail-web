@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web (Để Sidebar mở mặc định)
+# 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI - MÔ PHỎNG ẢNH YÊU CẦU
+# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI CLICK TOPBAR
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,24 +103,41 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
+    /* 🌟 KHẮC PHỤC LỖI KHÔNG CLICK ĐƯỢC: Cho phép click xuyên qua Header tàng hình */
     #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
-    [data-testid="stHeader"] {background: transparent !important;} 
+    [data-testid="stHeader"] {background: transparent !important; pointer-events: none;} 
+    [data-testid="collapsedControl"] {pointer-events: auto; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);} /* Giữ nút mở Sidebar click được */
     
     .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
-    /* 🌟 TOPBAR (Thanh điều hướng trên cùng) */
-    .topbar-wallet { border: 1px solid #3b82f6; color: #3b82f6; padding: 6px 16px; border-radius: 6px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; background: white; cursor: pointer; transition: all 0.2s;}
+    /* 🌟 ĐỒNG BỘ CHIỀU CAO CÁC NÚT TRÊN TOPBAR (42px) */
+    .topbar-wallet { 
+        border: 1px solid #3b82f6; color: #3b82f6; padding: 0 16px; border-radius: 6px; 
+        font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; 
+        gap: 8px; background: white; cursor: pointer; transition: all 0.2s; height: 42px;
+    }
     .topbar-wallet:hover { background: #eff6ff; }
     
-    .topbar-search { border: 1px solid #f97316; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; color: #64748b; background: white; display: flex; justify-content: space-between; align-items: center;}
+    /* Làm đẹp Selectbox Tìm Kiếm */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        border: 1px solid #f97316 !important;
+        background-color: white !important;
+        border-radius: 6px !important;
+        min-height: 42px !important;
+        cursor: pointer;
+    }
     
     /* Tùy chỉnh Nút Popover (User Profile) */
-    button[data-testid="baseButton-popover"] { border: none !important; background: transparent !important; color: #1e293b !important; font-weight: 700 !important; font-size: 16px !important; box-shadow: none !important; padding: 5px 10px !important; }
-    button[data-testid="baseButton-popover"]:hover { color: #3b82f6 !important; background: transparent !important; }
+    button[data-testid="baseButton-popover"] { 
+        border: 1px solid #e2e8f0 !important; background: white !important; 
+        color: #1e293b !important; font-weight: 600 !important; font-size: 15px !important; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; padding: 0 16px !important; 
+        height: 42px !important; border-radius: 6px !important; transition: all 0.2s;
+    }
+    button[data-testid="baseButton-popover"]:hover { border-color: #cbd5e1 !important; color: #2563eb !important;}
     
     /* Giao diện Dropdown Menu (Popover Body) */
     div[data-testid="stPopoverBody"] { padding: 10px 0 !important; border-radius: 8px !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; width: 220px !important; }
-    
     .dropdown-item { padding: 12px 20px; font-size: 15px; color: #334155; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #f1f5f9; }
     .dropdown-item:hover { background: #f8fafc; color: #2563eb; }
     .dropdown-item i { width: 20px; text-align: center; color: #64748b; font-size: 16px;}
@@ -237,18 +254,19 @@ else:
         st.session_state["show_deposit_form"] = False; st.session_state["show_qr"] = False
 
     # ========================================================
-    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH
+    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH ĐÃ SỬA LỖI
     # ========================================================
-    top1, top2, top3, top4 = st.columns([2, 5, 1, 2])
+    # Điều chỉnh tỷ lệ cột để Popover hiển thị thoải mái
+    top1, top2, top3, top4 = st.columns([1.5, 4.5, 1, 2])
     
     with top1:
         st.markdown(f'<div class="topbar-wallet"><i class="fa-solid fa-wallet"></i> Ví: {balance:,}</div>', unsafe_allow_html=True)
     with top2:
-        st.markdown('<div class="topbar-search">TÌM KIẾM NHANH DỊCH VỤ <i class="fa-solid fa-caret-down"></i></div>', unsafe_allow_html=True)
+        # Thay thế khối HTML giả bằng Selectbox thật của Streamlit
+        st.selectbox("Tìm kiếm", ["TÌM KIẾM NHANH SẢN PHẨM...", "🔥 Gói Nạp 100K Hệ Thống", "🔥 Gói Nạp 500K Cấp Độ Bạc", "Tùy chọn số tiền nạp"], label_visibility="collapsed")
     with top3:
-        st.markdown('<div style="display:flex; gap:15px; font-size:18px; color:#64748b; padding-top:8px; justify-content:flex-end;"><i class="fa-solid fa-moon cursor-pointer hover:text-blue-500"></i><i class="fa-regular fa-bell cursor-pointer hover:text-blue-500"></i></div>', unsafe_allow_html=True)
+        st.markdown('<div style="display:flex; gap:15px; font-size:18px; color:#64748b; height:42px; align-items:center; justify-content:flex-end;"><i class="fa-solid fa-moon cursor-pointer hover:text-blue-500"></i><i class="fa-regular fa-bell cursor-pointer hover:text-blue-500"></i></div>', unsafe_allow_html=True)
     with top4:
-        # 🌟 MENU DROPDOWN CHUẨN XÁC ẢNH YÊU CẦU
         with st.popover(f"👨🏻‍💼 {st.session_state['current_user']}"):
             st.markdown("""
             <div class="dropdown-item"><i class="fa-regular fa-circle-user"></i> Trang cá nhân <span style="margin-left:auto; color:#facc15;"><i class="fa-solid fa-crown"></i></span></div>
@@ -266,7 +284,7 @@ else:
     st.markdown('<hr style="margin: 0 0 20px 0; border: none; border-bottom: 2px solid #e2e8f0;">', unsafe_allow_html=True)
 
     # ========================================================
-    # SIDEBAR CỐ ĐỊNH CHUẨN (Không auto-hover)
+    # SIDEBAR
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -281,11 +299,10 @@ else:
     # NỘI DUNG CHÍNH 
     # ========================================================
 
-    # 1. CỬA HÀNG DỊCH VỤ (Mô phỏng ảnh Store ChatGPT)
+    # 1. CỬA HÀNG DỊCH VỤ (Mô phỏng ảnh Store)
     if menu == "🏠 Cửa Hàng Dịch Vụ":
         st.markdown('<div style="background:#1e3a8a; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-solid fa-layer-group"></i> Dịch Vụ BulkMail Hệ Thống</div>', unsafe_allow_html=True)
         
-        # Hàng 1
         c1, c2, c3 = st.columns(3, gap="medium")
         with c1:
             st.markdown("""
@@ -329,7 +346,6 @@ else:
             if st.button("🛒 NHẬP SỐ TIỀN KHÁC", key="btn3"):
                 st.session_state["show_deposit_form"] = True; st.rerun()
 
-        # Hiển thị Form nhập tay hoặc QR
         if st.session_state.get("show_deposit_form"):
             st.markdown('<hr><div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; width:50%;">', unsafe_allow_html=True)
             st.markdown('<h4 style="margin-top:0;">Nhập số tiền muốn nạp</h4>', unsafe_allow_html=True)
@@ -365,7 +381,7 @@ else:
                     if st.button("🔄 Đã chuyển khoản xong - Làm mới số dư", type="primary"): st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-    # 2. GỬI MAIL (Giữ nguyên form Cấu hình trong trang Gửi)
+    # 2. GỬI MAIL 
     elif menu == "✉️ Gửi Mail Hàng Loạt":
         col_data, col_content = st.columns([1, 1.2], gap="large")
         with col_data:
