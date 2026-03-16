@@ -20,7 +20,7 @@ import json
 from bs4 import BeautifulSoup 
 from streamlit_quill import st_quill 
 
-# 1. Cấu hình trang Web
+# 1. Cấu hình trang Web (Để Sidebar mở mặc định)
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI ẨN MENU VÀ XÓA TOOLBAR
+# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI TÊ LIỆT SIDEBAR
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,16 +103,20 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 KHẮC PHỤC LỖI KHÔNG CLICK ĐƯỢC VÀ XÓA SẠCH BIỂU TƯỢNG SHARE/GITHUB */
-    #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], 
-    [data-testid="stHeaderActionElements"], [data-testid="stToolbar"], [data-testid="stStatusWidget"],
-    iframe[title="Streamlit Toolbar"] {
+    /* 🌟 KHẮC PHỤC LỖI TÊ LIỆT SIDEBAR VÀ ẨN GITHUB/SHARE */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        pointer-events: none !important; /* Xuyên thấu vùng trống để click được Ví tiền, Search */
+    }
+    header[data-testid="stHeader"] * {
+        pointer-events: auto !important; /* Giữ lại quyền click cho nút mở Sidebar */
+    }
+    
+    /* Ẩn sạch các nút rác của Streamlit ở góc phải */
+    [data-testid="stToolbar"], [data-testid="stHeaderActionElements"], .stDeployButton, .stAppDeployButton, #MainMenu, footer {
         display: none !important; 
         visibility: hidden !important;
     }
-    
-    [data-testid="stHeader"] {background: transparent !important; pointer-events: none;} 
-    [data-testid="collapsedControl"] {pointer-events: auto; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);} 
     
     .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
     
@@ -222,7 +226,7 @@ if not st.session_state["logged_in"]:
                 if u_data and u_data.get("password") == hash_password(log_pwd):
                     st.session_state["current_user"] = log_user; st.session_state["logged_in"] = True; st.rerun()
                 else: 
-                    st.error("Thông খুন tin đăng nhập chưa chính xác!")
+                    st.error("Thông tin đăng nhập chưa chính xác!")
 
         with tab_reg:
             reg_user = st.text_input("Tên đăng nhập mới", key="reg_u")
@@ -260,7 +264,7 @@ else:
         st.session_state["show_deposit_form"] = False; st.session_state["show_qr"] = False
 
     # ========================================================
-    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH ĐÃ SỬA LỖI
+    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH 
     # ========================================================
     top1, top2, top3, top4 = st.columns([1.5, 4.5, 1, 2])
     
@@ -288,7 +292,7 @@ else:
     st.markdown('<hr style="margin: 0 0 20px 0; border: none; border-bottom: 2px solid #e2e8f0;">', unsafe_allow_html=True)
 
     # ========================================================
-    # SIDEBAR
+    # SIDEBAR CỐ ĐỊNH
     # ========================================================
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -303,7 +307,7 @@ else:
     # NỘI DUNG CHÍNH 
     # ========================================================
 
-    # 1. CỬA HÀNG DỊCH VỤ (Mô phỏng ảnh Store)
+    # 1. CỬA HÀNG DỊCH VỤ 
     if menu == "🏠 Cửa Hàng Dịch Vụ":
         st.markdown('<div style="background:#1e3a8a; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-solid fa-layer-group"></i> Dịch Vụ BulkMail Hệ Thống</div>', unsafe_allow_html=True)
         
