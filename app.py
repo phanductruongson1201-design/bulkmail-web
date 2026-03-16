@@ -93,13 +93,17 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI (SIDEBAR & GLASSMORPHISM)
+# GIAO DIỆN CSS MỚI ĐÃ SỬA LỖI ẨN MENU
 # ==========================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-    #MainMenu, footer, header, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
+    
+    /* CHỈ ẨN CÁC NÚT THỪA, GIỮ LẠI HEADER ĐỂ CÓ NÚT MỞ MENU SIDEBAR */
+    #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
+    header {visibility: visible !important; background: transparent !important;}
+    
     .block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; max-width: 95% !important;}
     
     .stApp { background-color: #f8fafc; background-image: radial-gradient(at 0% 0%, hsla(220,100%,95%,0.5) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,95%,0.5) 0, transparent 50%); }
@@ -131,11 +135,6 @@ st.markdown("""
     .stButton>button[kind="primary"] { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; color: white !important; border-radius: 12px; font-weight: 900; padding: 12px 24px; border: none !important; box-shadow: 0 6px 20px rgba(59,130,246,0.3) !important; transition: all 0.3s ease; text-transform: uppercase; }
     .stButton>button[kind="primary"]:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(59,130,246,0.4) !important; }
     
-    .pill-header { color: white; padding: 8px 20px; border-radius: 50px; font-size: 14px; font-weight: 800; margin-bottom: 15px; margin-top: 10px; text-transform: uppercase; display: inline-block; }
-    .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-    .bg-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); }
-    .bg-green { background: linear-gradient(135deg, #10b981, #047857); }
-
     .logo-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 15px; }
     .logo-container img { width: 100px; height: 100px; border-radius: 30%; object-fit: cover; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2); }
     .alt-logo { width: 100px; height: 100px; border-radius: 30%; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 14px; text-align: center; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2); }
@@ -158,6 +157,7 @@ if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
 if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None 
+
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
 if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
@@ -171,7 +171,7 @@ LOGO_URL = "logo_moi.png"
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
-        st.markdown('<div class="glass-box" style="padding: 35px;">', unsafe_allow_html=True)
+        st.markdown('<div class="glass-box" style="padding: 35px; margin-top:20px;">', unsafe_allow_html=True)
         logo_b64 = get_image_base64(LOGO_URL)
         if logo_b64: st.markdown(f'<div class="logo-container"><img src="data:image/png;base64,{logo_b64}"></div>', unsafe_allow_html=True)
         else: st.markdown('<div class="logo-container"><div class="alt-logo">TRƯỜNG SƠN<br>MARKETING</div></div>', unsafe_allow_html=True)
@@ -224,13 +224,11 @@ else:
     
     balance = int(float(current_user_data.get("balance", 0)))
     
-    # 🌟 CẤP BẬC VIP TỰ ĐỘNG
     if balance < 100000: vip_class = "badge-dong"; vip_text = "🥉 Đồng"
     elif balance < 500000: vip_class = "badge-bac"; vip_text = "🥈 Bạc"
     elif balance < 2000000: vip_class = "badge-vang"; vip_text = "🥇 Vàng"
     else: vip_class = "badge-kimcuong"; vip_text = "💎 Kim Cương"
 
-    # ÂM THANH & PHÁO HOA KHI CỘNG TIỀN
     if st.session_state["previous_balance"] is None: st.session_state["previous_balance"] = balance
     elif balance > st.session_state["previous_balance"]:
         play_success_sound(); st.balloons()
@@ -263,11 +261,11 @@ else:
     # 1. BẢNG ĐIỀU KHIỂN & NẠP TIỀN
     if menu == "🏠 Bảng Điều Khiển":
         st.markdown(f"""
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-    <div><div class="gradient-text" style="font-size: 32px;">Trang Chủ & Dịch Vụ</div><span style="color:#64748b;">Tổng quan hệ thống của bạn</span></div>
-    <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
-</div>
-""", unsafe_allow_html=True)
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <div><div class="gradient-text" style="font-size: 32px;">Trang Chủ & Dịch Vụ</div><span style="color:#64748b;">Tổng quan hệ thống của bạn</span></div>
+            <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
+        </div>
+        """, unsafe_allow_html=True)
 
         col_main, col_right = st.columns([7, 3], gap="large")
         
@@ -281,9 +279,10 @@ else:
             st.markdown("<br>", unsafe_allow_html=True)
 
             # Nạp tiền
-            st.markdown('<div class="pill-header bg-blue">💳 NẠP TIỀN TỰ ĐỘNG 24/7</div>', unsafe_allow_html=True)
+            st.markdown('---')
+            st.markdown('<h3 style="color:#1e40af; font-weight:800; margin-bottom:10px;">💳 CỔNG NẠP TIỀN TỰ ĐỘNG 24/7</h3>', unsafe_allow_html=True)
             if not st.session_state.get("show_deposit_form") and not st.session_state.get("show_qr"):
-                st.info("Hệ thống tự động cộng tiền trong 1-3 phút. Bấm nút bên dưới để lấy QR code thanh toán.")
+                st.info("💡 Hệ thống tự động cộng tiền trong 1-3 phút. Bấm nút bên dưới để lấy QR code thanh toán.")
                 if st.button("TẠO HOÁ ĐƠN NẠP TIỀN", type="primary"): 
                     st.session_state["show_deposit_form"] = True; st.rerun()
 
@@ -323,28 +322,31 @@ else:
                     st.markdown("</div>", unsafe_allow_html=True)
 
         with col_right:
-            # 🌟 BẢNG TIN (CẬP NHẬT MỚI) - Đã sửa lỗi hiển thị Markdown
             st.markdown("""
-<div class="news-panel">
-    <h4 style="margin-top:0; color:#0f172a; display:flex; align-items:center; gap:8px;">🔔 Cập Nhật Mới</h4>
-    <hr style="margin: 10px 0;">
-    <div class="news-item">
-        <div class="news-date">⏳ Hôm nay</div>
-        <div class="news-title">🚀 Cập nhật giao diện Dashboard SaaS chuẩn Quốc tế. Thêm Huy hiệu VIP tự động.</div>
-    </div>
-    <div class="news-item">
-        <div class="news-date">⏳ Hôm qua</div>
-        <div class="news-title">🛠 Tối ưu thuật toán lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ Inbox 99%.</div>
-    </div>
-    <div class="news-item">
-        <div class="news-date">⏳ Tuần trước</div>
-        <div class="news-title">✅ Tích hợp API SePay nạp tiền tự động bằng QR Code siêu tốc độ.</div>
-    </div>
-    <div style="text-align:center; margin-top: 20px;">
-        <a href="#" style="font-size:13px; color:#3b82f6; font-weight:600; text-decoration:none;">Xem tất cả</a>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+            <div class="news-panel">
+                <h4 style="margin-top:0; color:#0f172a; display:flex; align-items:center; gap:8px;">🔔 Cập Nhật Mới</h4>
+                <hr style="margin: 10px 0;">
+                
+                <div class="news-item">
+                    <div class="news-date">⏳ Hôm nay</div>
+                    <div class="news-title">🚀 Cập nhật giao diện Dashboard SaaS chuẩn Quốc tế. Thêm Huy hiệu VIP tự động.</div>
+                </div>
+                
+                <div class="news-item">
+                    <div class="news-date">⏳ Hôm qua</div>
+                    <div class="news-title">🛠 Tối ưu thuật toán lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ Inbox 99%.</div>
+                </div>
+                
+                <div class="news-item">
+                    <div class="news-date">⏳ Tuần trước</div>
+                    <div class="news-title">✅ Tích hợp API SePay nạp tiền tự động bằng QR Code siêu tốc độ.</div>
+                </div>
+                
+                <div style="text-align:center; margin-top: 20px;">
+                    <a href="#" style="font-size:13px; color:#3b82f6; font-weight:600; text-decoration:none;">Xem tất cả</a>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
     # 2. CHIẾN DỊCH GỬI EMAIL
     elif menu == "✉️ Chiến Dịch Email":
@@ -471,14 +473,13 @@ else:
                 h_list.append({"Ngày giờ": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
-            # 🌟 TRẠNG THÁI TRỐNG DỄ THƯƠNG ĐÃ SỬA LỖI MARKDOWN
             st.markdown("""
-<div style='text-align:center; padding: 50px; background: rgba(255,255,255,0.5); border-radius: 16px; border: 2px dashed #cbd5e1;'>
-    <h1 style='font-size: 80px; margin: 0; filter: grayscale(50%);'>🪹</h1>
-    <h3 style='color:#475569; margin-top: 15px;'>Chưa có giao dịch nào</h3>
-    <p style='color:#64748b; font-size: 15px;'>Bạn chưa thực hiện khoản nạp nào. Quay lại Trang chủ để nạp tiền nhé!</p>
-</div>
-""", unsafe_allow_html=True)
+            <div style='text-align:center; padding: 50px; background: rgba(255,255,255,0.5); border-radius: 16px; border: 2px dashed #cbd5e1;'>
+                <h1 style='font-size: 80px; margin: 0; filter: grayscale(50%);'>🪹</h1>
+                <h3 style='color:#475569; margin-top: 15px;'>Chưa có giao dịch nào</h3>
+                <p style='color:#64748b; font-size: 15px;'>Bạn chưa thực hiện khoản nạp nào. Quay lại Trang chủ để nạp tiền nhé!</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
             if chart_data:
                 st.markdown("<b style='color:#1e40af;'>📈 Biểu đồ lưu lượng nạp tiền</b>", unsafe_allow_html=True)
@@ -499,16 +500,15 @@ else:
             st.info(f"Hệ thống đang sử dụng hòm thư Admin: **{SYS_EMAIL}**")
             
             with st.popover("❓ Bấm vào đây để xem cách lấy Mật khẩu ứng dụng Gmail"):
-                # 🌟 POPOVER ĐÃ SỬA LỖI MARKDOWN
                 st.markdown("""
-<div style="font-size: 14px; color: #334155; line-height: 1.6;">
-    <b>Làm theo 4 bước sau:</b><br>
-    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
-    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
-    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
-    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
-</div>
-""", unsafe_allow_html=True)
+                <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                    <b>Làm theo 4 bước sau:</b><br>
+                    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
+                    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
+                    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
+                    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
+                </div>
+                """, unsafe_allow_html=True)
                 
         with c2:
             st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
@@ -521,23 +521,5 @@ else:
                 if save_config_api(st.session_state["current_user"], tk, cid): 
                     st.toast("Đã lưu cấu hình thành công!", icon="✅")
 
-# 🌟 FOOTER ĐÃ SỬA LỖI MARKDOWN VÀ LIÊN HỆ NỔI
-st.markdown("<br><br>", unsafe_allow_html=True)
-logo_footer_b64 = get_image_base64(LOGO_URL)
-if logo_footer_b64:
-    st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 150px; height: 150px; border-radius: 35%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
-
-st.markdown("""
-<div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
-    <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-        <p style="font-size: 15px; line-height: 1.8; margin: 0;">
-            <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
-            Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
-            Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
-            giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
-        </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
+# NÚT LIÊN HỆ NỔI (Zalo & Telegram)
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="30"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="30"></a></div>""", unsafe_allow_html=True)
