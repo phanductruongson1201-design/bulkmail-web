@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from streamlit_quill import st_quill 
 
 # 1. Cấu hình trang Web
-st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="BulkMail Pro - Trường Sơn", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
 
 # ==========================================
 # API CƠ SỞ DỮ LIỆU & HỆ THỐNG
@@ -93,34 +93,29 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS MỚI - CHUẨN UI/UX HIỆN ĐẠI (TAILWIND VIBE)
+# GIAO DIỆN CSS (ĐÃ SỬA LỖI ẨN HEADER BÊN TRÁI)
 # ==========================================
 st.markdown("""
 <style>
-    /* Nhúng Font Inter chuẩn hiện đại */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
-    
-    /* Background nền Xám nhạt siêu mượt */
     .stApp { background-color: #f8fafc; background-image: radial-gradient(at 0% 0%, hsla(220,100%,95%,0.6) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,95%,0.4) 0, transparent 50%); }
     
-    #MainMenu, footer, header, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
-    .block-container { padding-top: 2.5rem !important; padding-bottom: 3rem !important; max-width: 95% !important;}
+    /* CHỈ ẨN CÁC PHẦN THỪA, GIỮ LẠI HEADER ĐỂ MỞ MENU SIDEBAR */
+    #MainMenu, footer, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
+    [data-testid="stHeader"] {background: transparent !important;} /* Làm trong suốt Header thay vì ẩn nó */
     
-    /* Text Gradient chuẩn Startup */
+    .block-container { padding-top: 2rem !important; padding-bottom: 3rem !important; max-width: 95% !important;}
+    
     .gradient-text { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 34px; margin-bottom: 4px; letter-spacing: -0.5px; }
 
-    /* Box & Card Model */
     .modern-card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; transition: all 0.3s ease; margin-bottom: 24px; }
     .modern-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.05), 0 8px 10px -6px rgba(37, 99, 235, 0.02); border-color: #e2e8f0; }
 
-    /* Input Fields mượt mà */
     div[data-baseweb="input"] { border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; background-color: #f8fafc; }
     div[data-baseweb="input"]:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); background-color: #ffffff; }
-    div[data-baseweb="base-input"] { background-color: transparent !important; }
 
-    /* Sidebar UI/UX */
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #f1f5f9; box-shadow: 4px 0 15px rgba(0,0,0,0.02); }
     div[role="radiogroup"] > label { padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; }
     div[role="radiogroup"] > label:hover { background-color: #f8fafc; transform: translateX(4px); }
@@ -129,40 +124,30 @@ st.markdown("""
     div[role="radiogroup"] > label p { font-weight: 600 !important; color: #64748b !important; font-size: 15px !important; margin: 0 !important; }
     div[role="radiogroup"] > label[data-checked="true"] p { color: #1d4ed8 !important; font-weight: 700 !important; }
 
-    /* Buttons (Primary & Secondary) */
-    .stButton>button[kind="primary"] { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; color: white !important; border-radius: 9999px; font-weight: 700; font-size: 15px !important; padding: 12px 28px; border: none !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important; transition: all 0.3s ease; letter-spacing: 0.5px; text-transform: uppercase; }
+    .stButton>button[kind="primary"] { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; color: white !important; border-radius: 12px; font-weight: 700; font-size: 15px !important; padding: 12px 28px; border: none !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important; transition: all 0.3s ease; letter-spacing: 0.5px; text-transform: uppercase; }
     .stButton>button[kind="primary"]:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important; background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important; }
     
-    .stButton>button[kind="secondary"], div[data-testid="stDownloadButton"]>button { background: #ffffff !important; border-radius: 9999px; border: 1px solid #cbd5e1 !important; color: #475569 !important; font-weight: 600; padding: 10px 24px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .stButton>button[kind="secondary"]:hover, div[data-testid="stDownloadButton"]>button:hover { border-color: #94a3b8 !important; color: #0f172a !important; background: #f8fafc !important; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-
-    /* Thống Kê (Metrics) - Card bóng đổ chuẩn SaaS */
     div[data-testid="stMetric"] { background: #ffffff; padding: 24px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; text-align: center; transition: all 0.3s ease; }
     div[data-testid="stMetric"]:hover { transform: translateY(-4px); border-color: #bfdbfe; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1); }
     div[data-testid="stMetricValue"] { color: #1e40af !important; font-weight: 800 !important; font-size: 36px !important; margin-bottom: 4px; font-family: 'Inter', sans-serif;}
     div[data-testid="stMetricLabel"] { font-size: 13px !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Tabs cho các phần nhỏ */
     div[data-baseweb="tab-list"] { background: #f1f5f9 !important; border-radius: 12px !important; padding: 4px !important; gap: 4px !important; border-bottom: none !important; margin-bottom: 24px !important; }
     div[data-baseweb="tab"] { background-color: transparent !important; border-radius: 8px !important; border: none !important; color: #64748b !important; font-weight: 500 !important; font-size: 14px !important; padding: 10px 16px !important; margin: 0 !important; }
     div[data-baseweb="tab"][aria-selected="true"] { background-color: #ffffff !important; color: #2563eb !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; font-weight: 600 !important;}
     div[data-baseweb="tab-highlight"] { display: none !important; }
 
-    /* Huy Hiệu VIP Lấp lánh */
     .vip-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); animation: shine 2s infinite; }
-    .badge-dong { background: linear-gradient(135deg, #cd7f32, #8b5a2b); }
-    .badge-bac { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #1e293b; }
-    .badge-vang { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fffbeb; }
+    .badge-dong { background: #b45309; }
+    .badge-bac { background: #94a3b8; color: white; }
+    .badge-vang { background: #eab308; color: #422006; }
     .badge-kimcuong { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
     @keyframes shine { 0% { opacity: 0.9; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { opacity: 0.9; transform: scale(1); } }
 
-    /* Pill Header & Upload Area */
     .pill-header { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #0f172a; }
     div[data-testid="stFileUploader"] { background: #ffffff !important; border: 2px dashed #cbd5e1 !important; border-radius: 16px; padding: 24px; transition: all 0.3s; }
     div[data-testid="stFileUploader"]:hover { border-color: #3b82f6 !important; background: #f8fafc !important; }
-    div[data-testid="stExpander"] { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-
-    /* Logos & Floating Buttons */
+    
     .logo-container { display: flex; justify-content: center; align-items: center; margin-bottom: 24px; }
     .logo-container img { width: 90px; height: 90px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border: 2px solid #ffffff; }
     .alt-logo { width: 90px; height: 90px; border-radius: 24px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 12px; text-align: center; box-shadow: 0 10px 20px rgba(37,99,235,0.2); border: 2px solid #ffffff; }
@@ -237,7 +222,7 @@ if not st.session_state["logged_in"]:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD CHÍNH
+# 2. DASHBOARD CHÍNH (Đã chia 2 cột Main/Right)
 # ==========================================
 else:
     all_data = load_users()
@@ -247,13 +232,11 @@ else:
     
     balance = int(float(current_user_data.get("balance", 0)))
     
-    # 🌟 CẤP BẬC VIP
     if balance < 100000: vip_class = "badge-dong"; vip_text = "Thành viên Đồng"
     elif balance < 500000: vip_class = "badge-bac"; vip_text = "Thành viên Bạc"
     elif balance < 2000000: vip_class = "badge-vang"; vip_text = "Thành viên Vàng"
     else: vip_class = "badge-kimcuong"; vip_text = "Đối tác Kim Cương"
 
-    # ÂM THANH & CỘNG TIỀN
     if st.session_state["previous_balance"] is None: st.session_state["previous_balance"] = balance
     elif balance > st.session_state["previous_balance"]:
         play_success_sound(); st.balloons()
@@ -276,42 +259,41 @@ else:
         menu = st.radio("", ["🏠 Tổng Quan", "✉️ Tạo Chiến Dịch", "📊 Quản Lý Giao Dịch", "⚙️ Cài Đặt Hệ Thống"], label_visibility="collapsed")
         
         st.markdown("<div style='margin-top: 100px;'></div>", unsafe_allow_html=True)
-        if st.button("Đăng xuất", use_container_width=True):
+        if st.button("Đăng xuất tài khoản", use_container_width=True):
             st.session_state["logged_in"] = False; st.rerun()
 
     # ========================================================
-    # NỘI DUNG CHÍNH
+    # NỘI DUNG CHÍNH TỪNG TRANG
     # ========================================================
 
     # 1. TỔNG QUAN & NẠP TIỀN
     if menu == "🏠 Tổng Quan":
+        # CHÚ Ý: MÃ HTML ĐƯỢC ÉP SÁT LỀ TRÁI ĐỂ KHÔNG BỊ HIỂN THỊ DẠNG RAW CODE
         st.markdown(f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-            <div>
-                <div class="gradient-text">Bảng Điều Khiển</div>
-                <div style="color:#64748b; font-size: 15px;">Theo dõi hoạt động và nạp quỹ tài khoản</div>
-            </div>
-            <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
-        </div>
-        """, unsafe_allow_html=True)
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+    <div>
+        <div class="gradient-text">Bảng Điều Khiển</div>
+        <div style="color:#64748b; font-size: 15px;">Theo dõi hoạt động và nạp quỹ tài khoản</div>
+    </div>
+    <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
+</div>
+""", unsafe_allow_html=True)
 
         col_main, col_right = st.columns([7, 3], gap="large")
         
         with col_main:
-            # Thống kê
             m1, m2, m3 = st.columns(3)
             my_logs = [l for l in logs_db if st.session_state['current_user'].upper() in str(l.get('raw_data','')).upper() and "Thành công" in str(l.get('status',''))]
-            m1.metric(label="Lượt nạp thành công", value=f"{len(my_logs)}")
+            m1.metric(label="Tổng số lần nạp", value=f"{len(my_logs)}")
             m2.metric(label="Hạng thẻ", value=vip_text.split(" ")[-1])
-            m3.metric(label="Hạn mức Mail", value="Vô hạn")
+            m3.metric(label="Trạng thái", value="Hoạt động")
 
-            # Nạp tiền
             st.markdown('<div class="modern-card" style="margin-top: 24px;">', unsafe_allow_html=True)
             st.markdown('<div style="display:flex; align-items:center; margin-bottom: 8px;"><h3 style="margin:0; font-size: 18px; color:#0f172a;">💳 Cổng nạp tiền tự động 24/7</h3></div>', unsafe_allow_html=True)
             
             if not st.session_state.get("show_deposit_form") and not st.session_state.get("show_qr"):
-                st.markdown("<p style='color:#64748b; font-size:14px; margin-bottom: 20px; line-height:1.6;'>Thanh toán an toàn qua mã QR. Hệ thống tự động đối soát và cộng tiền ngay lập tức sau 1-3 phút.</p>", unsafe_allow_html=True)
-                if st.button("Bắt đầu Nạp tiền", type="primary"): 
+                st.markdown("<p style='color:#64748b; font-size:14px; margin-bottom: 20px; line-height:1.6;'>Nạp tiền thông qua quét mã QR Code. Hệ thống tự động đối soát và cộng tiền trong 1-3 phút.</p>", unsafe_allow_html=True)
+                if st.button("BẮT ĐẦU NẠP TIỀN", type="primary"): 
                     st.session_state["show_deposit_form"] = True; st.rerun()
 
             if st.session_state.get("show_deposit_form"):
@@ -320,7 +302,7 @@ else:
                 bc1, bc2 = st.columns(2)
                 if bc1.button("Hủy bỏ", use_container_width=True): 
                     st.session_state["show_deposit_form"] = False; st.rerun()
-                if bc2.button("Tiếp tục", type="primary", use_container_width=True):
+                if bc2.button("Tạo mã QR thanh toán", type="primary", use_container_width=True):
                     if amount_input < 10000: st.toast("Tối thiểu nạp 10.000 VNĐ", icon="⚠️")
                     else:
                         st.session_state["deposit_amount"] = amount_input
@@ -354,6 +336,7 @@ else:
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_right:
+            # FIX LỖI HIỂN THỊ RAW HTML (Ép sát lề trái hoàn toàn)
             st.markdown("""
 <div class="modern-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
     <h4 style="margin-top:0; color:#0f172a; font-size:16px; margin-bottom: 20px;">🔔 Bảng tin hệ thống</h4>
@@ -422,6 +405,7 @@ else:
         
         col_action1, col_action2 = st.columns([1.5, 1])
         with col_action1:
+            # FIX LỖI RAW HTML
             st.markdown("""
 <div class="modern-card" style="padding:20px;">
     <h4 style="margin-top:0; color:#0f172a; font-size:15px; margin-bottom:12px;">🛡️ Cẩm nang An toàn Tài khoản</h4>
@@ -523,6 +507,7 @@ else:
                 h_list.append({"Thời gian": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
+            # FIX LỖI RAW HTML
             st.markdown("""
 <div style='text-align:center; padding: 60px 20px;'>
     <div style='font-size: 60px; margin-bottom:16px;'>🪹</div>
@@ -565,5 +550,24 @@ else:
                     st.toast("Lưu cấu hình thành công", icon="✅")
             st.markdown('</div>', unsafe_allow_html=True)
 
-# NÚT LIÊN HỆ NỔI (Zalo & Telegram)
+# Footer và nút liên hệ
+st.markdown("<br><br>", unsafe_allow_html=True)
+logo_footer_b64 = get_image_base64(LOGO_URL)
+if logo_footer_b64:
+    st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 120px; height: 120px; border-radius: 30%; object-fit: cover; border: 3px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
+
+# FIX LỖI RAW HTML
+st.markdown("""
+<div style="display: flex; justify-content: center; padding: 20px 0 40px 0;">
+    <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Inter', sans-serif; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <p style="font-size: 14px; line-height: 1.8; margin: 0;">
+            <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 20px; font-weight: 800;">BulkMail Pro</b><br><br> 
+            Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
+            Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
+            giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="28"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="28"></a></div>""", unsafe_allow_html=True)
