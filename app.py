@@ -102,12 +102,10 @@ st.markdown("""
     #MainMenu, footer, header, .stDeployButton, [data-testid="viewerBadge"], iframe[title="Streamlit Toolbar"] {display: none !important; visibility: hidden !important;}
     .block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; max-width: 95% !important;}
     
-    /* Hình nền cho app */
     .stApp { background-color: #f8fafc; background-image: radial-gradient(at 0% 0%, hsla(220,100%,95%,0.5) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,95%,0.5) 0, transparent 50%); }
     
     .gradient-text { background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 38px; margin-bottom: 5px; letter-spacing: -1px; }
 
-    /* 🌟 HUY HIỆU VIP */
     .vip-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; color: white; margin-left: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); text-transform: uppercase; animation: shine 2s infinite; }
     .badge-dong { background: linear-gradient(135deg, #cd7f32, #8b5a2b); }
     .badge-bac { background: linear-gradient(135deg, #c0c0c0, #808080); color: #333; }
@@ -115,17 +113,14 @@ st.markdown("""
     .badge-kimcuong { background: linear-gradient(135deg, #00f2fe, #4facfe); }
     @keyframes shine { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.6); } 100% { opacity: 0.8; transform: scale(1); } }
 
-    /* 🌟 TÙY CHỈNH SIDEBAR CHUẨN SAAS */
     [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 1px solid #e2e8f0; box-shadow: 2px 0 10px rgba(0,0,0,0.02); }
-    /* Định dạng Radio Button thành Menu */
     div[role="radiogroup"] > label { padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; transition: all 0.3s ease; border: 1px solid transparent; cursor: pointer; }
     div[role="radiogroup"] > label:hover { background-color: #f1f5f9; border-color: #e2e8f0; transform: translateX(5px); }
     div[role="radiogroup"] > label[data-checked="true"] { background: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%); border-left: 4px solid #3b82f6; border-radius: 4px 12px 12px 4px; box-shadow: 0 2px 5px rgba(59,130,246,0.1); }
-    div[role="radiogroup"] > label > div:first-child { display: none; /* Ẩn cái chấm tròn mặc định */ }
+    div[role="radiogroup"] > label > div:first-child { display: none; }
     div[role="radiogroup"] > label p { font-weight: 700 !important; color: #334155 !important; font-size: 15px !important; margin: 0 !important; }
     div[role="radiogroup"] > label[data-checked="true"] p { color: #1e40af !important; }
     
-    /* GLASSMORPHISM CHO CÁC KHỐI */
     .glass-box, div[data-testid="stMetric"], div[data-testid="stExpander"], div[data-testid="stFileUploader"] { background: rgba(255, 255, 255, 0.8) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 8px 20px 0 rgba(31, 38, 135, 0.05) !important; border-radius: 16px; }
     
     .news-panel { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -163,7 +158,6 @@ if "show_qr" not in st.session_state: st.session_state["show_qr"] = False
 if "deposit_amount" not in st.session_state: st.session_state["deposit_amount"] = 100000
 if "qr_expire_time" not in st.session_state: st.session_state["qr_expire_time"] = 0
 if "previous_balance" not in st.session_state: st.session_state["previous_balance"] = None 
-
 if "s_name" not in st.session_state: st.session_state["s_name"] = "Trường Sơn Marketing"
 if "s_email" not in st.session_state: st.session_state["s_email"] = ""
 if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
@@ -172,7 +166,7 @@ if "s_sign" not in st.session_state: st.session_state["s_sign"] = "Trân trọng
 LOGO_URL = "logo_moi.png"
 
 # ==========================================
-# 1. HỆ THỐNG ĐĂNG NHẬP (Giữ nguyên)
+# 1. HỆ THỐNG ĐĂNG NHẬP
 # ==========================================
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([1, 1.2, 1])
@@ -215,7 +209,6 @@ if not st.session_state["logged_in"]:
                     st.success("✅ Đăng ký thành công!")
 
         with tab_forgot:
-            # Code quên MK giữ nguyên...
             st.info("Vui lòng liên hệ Admin qua Zalo ở góc màn hình để được cấp lại mật khẩu.")
             
         st.markdown("</div>", unsafe_allow_html=True)
@@ -270,11 +263,11 @@ else:
     # 1. BẢNG ĐIỀU KHIỂN & NẠP TIỀN
     if menu == "🏠 Bảng Điều Khiển":
         st.markdown(f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <div><div class="gradient-text" style="font-size: 32px;">Trang Chủ & Dịch Vụ</div><span style="color:#64748b;">Tổng quan hệ thống của bạn</span></div>
-            <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
-        </div>
-        """, unsafe_allow_html=True)
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+    <div><div class="gradient-text" style="font-size: 32px;">Trang Chủ & Dịch Vụ</div><span style="color:#64748b;">Tổng quan hệ thống của bạn</span></div>
+    <div><span class="vip-badge {vip_class}">{vip_text}</span></div>
+</div>
+""", unsafe_allow_html=True)
 
         col_main, col_right = st.columns([7, 3], gap="large")
         
@@ -330,32 +323,28 @@ else:
                     st.markdown("</div>", unsafe_allow_html=True)
 
         with col_right:
-            # BẢNG TIN (CẬP NHẬT MỚI) Y HỆT ẢNH MẪU
+            # 🌟 BẢNG TIN (CẬP NHẬT MỚI) - Đã sửa lỗi hiển thị Markdown
             st.markdown("""
-            <div class="news-panel">
-                <h4 style="margin-top:0; color:#0f172a; display:flex; align-items:center; gap:8px;">🔔 Cập Nhật Mới</h4>
-                <hr style="margin: 10px 0;">
-                
-                <div class="news-item">
-                    <div class="news-date">⏳ Hôm nay</div>
-                    <div class="news-title">🚀 Cập nhật giao diện Dashboard SaaS chuẩn Quốc tế. Thêm Huy hiệu VIP tự động.</div>
-                </div>
-                
-                <div class="news-item">
-                    <div class="news-date">⏳ Hôm qua</div>
-                    <div class="news-title">🛠 Tối ưu thuật toán lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ Inbox 99%.</div>
-                </div>
-                
-                <div class="news-item">
-                    <div class="news-date">⏳ Tuần trước</div>
-                    <div class="news-title">✅ Tích hợp API SePay nạp tiền tự động bằng QR Code siêu tốc độ.</div>
-                </div>
-                
-                <div style="text-align:center; margin-top: 20px;">
-                    <a href="#" style="font-size:13px; color:#3b82f6; font-weight:600; text-decoration:none;">Xem tất cả</a>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="news-panel">
+    <h4 style="margin-top:0; color:#0f172a; display:flex; align-items:center; gap:8px;">🔔 Cập Nhật Mới</h4>
+    <hr style="margin: 10px 0;">
+    <div class="news-item">
+        <div class="news-date">⏳ Hôm nay</div>
+        <div class="news-title">🚀 Cập nhật giao diện Dashboard SaaS chuẩn Quốc tế. Thêm Huy hiệu VIP tự động.</div>
+    </div>
+    <div class="news-item">
+        <div class="news-date">⏳ Hôm qua</div>
+        <div class="news-title">🛠 Tối ưu thuật toán lách firewall Gmail 5.7.0. Đảm bảo tỷ lệ Inbox 99%.</div>
+    </div>
+    <div class="news-item">
+        <div class="news-date">⏳ Tuần trước</div>
+        <div class="news-title">✅ Tích hợp API SePay nạp tiền tự động bằng QR Code siêu tốc độ.</div>
+    </div>
+    <div style="text-align:center; margin-top: 20px;">
+        <a href="#" style="font-size:13px; color:#3b82f6; font-weight:600; text-decoration:none;">Xem tất cả</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # 2. CHIẾN DỊCH GỬI EMAIL
     elif menu == "✉️ Chiến Dịch Email":
@@ -380,7 +369,6 @@ else:
             st.markdown('<div class="pill-header bg-green">✍️ SOẠN THÔNG ĐIỆP</div>', unsafe_allow_html=True)
             subject = st.text_input("Tiêu đề Email:")
             
-            # Thư viện mẫu
             templates = {
                 "📝 Tự soạn mới": "",
                 "🎁 Báo Khuyến Mãi": f"Kính chào {{{{name}}}},<br><br>Chúng tôi dành tặng bạn voucher giảm giá đặc biệt. Xem ngay bên dưới.",
@@ -401,7 +389,6 @@ else:
             else:
                 progress = st.progress(0); log = st.expander("📋 Trình giám sát hệ thống (Live)", expanded=True)
                 
-                # --- THUẬT TOÁN TỐI ƯU CỐT LÕI 5.7.0 ---
                 soup = BeautifulSoup(full_email_content, "html.parser")
                 for tag in soup(["script", "style", "meta", "noscript", "iframe"]): tag.decompose()
                 inline_images = []; img_counter = 0
@@ -484,13 +471,14 @@ else:
                 h_list.append({"Ngày giờ": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
 
         if not h_list: 
+            # 🌟 TRẠNG THÁI TRỐNG DỄ THƯƠNG ĐÃ SỬA LỖI MARKDOWN
             st.markdown("""
-            <div style='text-align:center; padding: 50px; background: rgba(255,255,255,0.5); border-radius: 16px; border: 2px dashed #cbd5e1;'>
-                <h1 style='font-size: 80px; margin: 0; filter: grayscale(50%);'>🪹</h1>
-                <h3 style='color:#475569; margin-top: 15px;'>Chưa có giao dịch nào</h3>
-                <p style='color:#64748b; font-size: 15px;'>Bạn chưa thực hiện khoản nạp nào. Quay lại Trang chủ để nạp tiền nhé!</p>
-            </div>
-            """, unsafe_allow_html=True)
+<div style='text-align:center; padding: 50px; background: rgba(255,255,255,0.5); border-radius: 16px; border: 2px dashed #cbd5e1;'>
+    <h1 style='font-size: 80px; margin: 0; filter: grayscale(50%);'>🪹</h1>
+    <h3 style='color:#475569; margin-top: 15px;'>Chưa có giao dịch nào</h3>
+    <p style='color:#64748b; font-size: 15px;'>Bạn chưa thực hiện khoản nạp nào. Quay lại Trang chủ để nạp tiền nhé!</p>
+</div>
+""", unsafe_allow_html=True)
         else:
             if chart_data:
                 st.markdown("<b style='color:#1e40af;'>📈 Biểu đồ lưu lượng nạp tiền</b>", unsafe_allow_html=True)
@@ -511,15 +499,16 @@ else:
             st.info(f"Hệ thống đang sử dụng hòm thư Admin: **{SYS_EMAIL}**")
             
             with st.popover("❓ Bấm vào đây để xem cách lấy Mật khẩu ứng dụng Gmail"):
+                # 🌟 POPOVER ĐÃ SỬA LỖI MARKDOWN
                 st.markdown("""
-                <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                    <b>Làm theo 4 bước sau:</b><br>
-                    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
-                    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
-                    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
-                    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
-                </div>
-                """, unsafe_allow_html=True)
+<div style="font-size: 14px; color: #334155; line-height: 1.6;">
+    <b>Làm theo 4 bước sau:</b><br>
+    <b>1.</b> Truy cập link này: <a href="https://myaccount.google.com/security" target="_blank"><b>Bảo mật Google</b></a>.<br>
+    <b>2.</b> Bật <b>Xác minh 2 bước</b>.<br>
+    <b>3.</b> Tìm ô <b>Tìm kiếm</b> ➔ Gõ chữ <b>Mật khẩu ứng dụng</b> ➔ Chọn kết quả.<br>
+    <b>4.</b> Gõ tên <i>BulkMail</i> ➔ Bấm <b>Tạo</b> để lấy 16 chữ cái.
+</div>
+""", unsafe_allow_html=True)
                 
         with c2:
             st.markdown("<b style='color:#1e40af;'>🔔 Báo cáo Telegram & Chữ ký</b>", unsafe_allow_html=True)
@@ -532,5 +521,23 @@ else:
                 if save_config_api(st.session_state["current_user"], tk, cid): 
                     st.toast("Đã lưu cấu hình thành công!", icon="✅")
 
-# NÚT LIÊN HỆ NỔI (Zalo & Telegram)
+# 🌟 FOOTER ĐÃ SỬA LỖI MARKDOWN VÀ LIÊN HỆ NỔI
+st.markdown("<br><br>", unsafe_allow_html=True)
+logo_footer_b64 = get_image_base64(LOGO_URL)
+if logo_footer_b64:
+    st.markdown(f"""<div style="display: flex; justify-content: center; padding-top: 20px;"><img src="data:image/png;base64,{logo_footer_b64}" style="width: 150px; height: 150px; border-radius: 35%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);"></div>""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style="display: flex; justify-content: center; padding: 25px 0 50px 0;">
+    <div style="max-width: 800px; text-align: center; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+        <p style="font-size: 15px; line-height: 1.8; margin: 0;">
+            <b style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 900;">BulkMail Pro</b><br><br> 
+            Là công cụ gửi thư tự động được phát triển bởi <b>Trường Sơn Marketing</b>. 
+            Chúng tôi mang đến giải pháp giúp bạn kết nối với hàng ngàn khách hàng chỉ trong tích tắc, 
+            giúp tiết kiệm thời gian và tăng hiệu quả bán hàng. <br>Với tiêu chí: <b>Dễ dùng - An toàn - Hiệu quả</b>.
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""<div class="floating-container"><a href="https://zalo.me/0935748199" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" width="30"></a><a href="https://t.me/BulkMail_Pro" target="_blank" class="float-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="30"></a></div>""", unsafe_allow_html=True)
