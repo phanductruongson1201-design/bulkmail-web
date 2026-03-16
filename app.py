@@ -93,7 +93,7 @@ def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
 # ==========================================
-# GIAO DIỆN CSS (ĐÃ FIX LỖI CLICK & SIDEBAR)
+# GIAO DIỆN CSS (ĐÃ FIX LỖI TOOLBAR SHARE/GITHUB)
 # ==========================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,25 +103,33 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; color: #334155; }
     .stApp { background-color: #f4f7fe; } 
     
-    /* 🌟 BƯỚC 1: XÓA SẠCH GITHUB, SHARE, MENU STREAMLIT */
-    [data-testid="stHeaderActionElements"], footer, #MainMenu {
+    /* 🌟 BƯỚC 1: XÓA TẬN GỐC GITHUB, SHARE, MENU CỦA MỌI PHIÊN BẢN STREAMLIT */
+    [data-testid="stToolbar"], 
+    [data-testid="stHeaderActionElements"], 
+    [data-testid="stStatusWidget"],
+    .stAppToolbar, 
+    .stToolbar, 
+    #MainMenu, 
+    footer {
         display: none !important; 
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
     /* 🌟 BƯỚC 2: LÀM HEADER XUYÊN THẤU ĐỂ BẤM ĐƯỢC CÁC NÚT BÊN DƯỚI */
     [data-testid="stHeader"] {
         background: transparent !important;
-        pointer-events: none !important; /* Quan trọng: Cho phép click xuyên qua */
+        pointer-events: none !important; 
     }
     
     /* 🌟 BƯỚC 3: CỨU SỐNG NÚT MỞ MENU BÊN TRÁI (HAMBURGER) */
     [data-testid="collapsedControl"] {
-        pointer-events: auto !important; /* Lấy lại quyền click */
+        pointer-events: auto !important; 
         background-color: white !important;
         border-radius: 8px !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
         margin: 10px !important;
-        z-index: 999999 !important; /* Luôn nổi lên trên cùng */
+        z-index: 999999 !important; 
     }
     
     .block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; max-width: 98% !important;}
@@ -261,7 +269,7 @@ else:
         st.session_state["show_deposit_form"] = False; st.session_state["show_qr"] = False
 
     # ========================================================
-    # THANH TOPBAR
+    # THANH TOPBAR ĐIỀU HƯỚNG CHUẨN ẢNH
     # ========================================================
     top1, top2, top3, top4 = st.columns([1.5, 4.5, 1, 2])
     
