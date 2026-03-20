@@ -24,7 +24,7 @@ import streamlit.components.v1 as components
 # CẤU HÌNH FACEBOOK API (BẠN ĐIỀN VÀO ĐÂY)
 # ==========================================
 FB_APP_ID = '385078767129314'
-FB_APP_SECRET = 'NHAP_KHOA_BI_MAT_CUA_BAN_VAO_DAY'
+FB_APP_SECRET = 'f9d18c2c52c07ad7fede00f56243cfc6'
 # ĐIỀN CHÍNH XÁC ĐƯỜNG LINK TRANG WEB BULKMAIL CỦA BẠN VÀO ĐÂY (KHÔNG CÓ DẤU #):
 FB_REDIRECT_URI = 'https://builmail.streamlit.app/'
 
