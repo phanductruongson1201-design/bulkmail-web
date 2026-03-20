@@ -486,37 +486,20 @@ else:
                 send_tele_file(tk_input, cid_input, csv_buf.getvalue(), "ket_qua.csv")
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
-    # ========================================================
-    # 3. AUTO FACEBOOK (NHÚNG TỪ RENDER SANG BẰNG IFRAME)
+   # ========================================================
+    # 3. AUTO FACEBOOK (SỬA LẠI THÀNH NÚT MỞ TAB MỚI AN TOÀN)
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
-        st.info("💡 Hệ thống Auto Facebook được thiết lập chạy ngầm trên Server vệ tinh độc lập để bảo vệ an toàn 100% cho tiến trình gửi Mail.")
+        st.warning("🔒 Do chính sách bảo mật khắt khe của Facebook (chống đánh cắp tài khoản), quá trình đăng nhập và điều khiển không thể thực hiện bên trong khung nhúng (Iframe).")
         
-        # Lệnh này sẽ mở một cửa sổ nhỏ để hiển thị web Render ngay giữa trang BulkMail
-        components.iframe("https://he-thong-dang-bai.onrender.com/", height=900, scrolling=True)
-
-    # 4. LỊCH SỬ
-    elif menu == "📊 Lịch Sử Giao Dịch":
-        st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0;">', unsafe_allow_html=True)
-        st.markdown('<h3 style="margin-top:0; color:#1e40af;">Nhật ký Nạp tiền</h3>', unsafe_allow_html=True)
-        h_list = []; chart_data = []; cur_u = st.session_state['current_user'].upper()
-        
-        for l in logs_db:
-            if cur_u in str(l.get('raw_data','')).upper():
-                try: pld = json.loads(l.get('raw_data','{}')); val_int = int(pld.get('transferAmount', 0)); amt = f"{val_int:,}đ"
-                except: val_int = 0; amt = "---"
-                status = str(l.get('status', ''))
-                if "Thành công" in status: 
-                    status = "✅ Thành công"
-                    if val_int > 0: chart_data.append({"Ngày": l.get('time', '').split(" ")[0], "VND": val_int})
-                elif "Lỗi" in status: status = "❌ " + status
-                h_list.append({"Thời gian": l.get('time', ''), "Số tiền": amt, "Trạng thái": status})
-
-        if not h_list: st.info("Bạn chưa có giao dịch nào.")
-        else:
-            if chart_data:
-                df_chart = pd.DataFrame(chart_data).groupby("Ngày").sum()
-                st.bar_chart(df_chart, color="#3b82f6", use_container_width=True)
-            st.dataframe(pd.DataFrame(h_list), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('''
+        <div style="text-align: center; margin-top: 50px; margin-bottom: 50px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png" width="80" style="margin-bottom: 20px;">
+            <br>
+            <a href="https://he-thong-dang-bai.onrender.com/" target="_blank" style="background-color: #1877f2; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(24, 119, 242, 0.3);">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> TRUY CẬP CỔNG AUTO FACEBOOK
+            </a>
+            <p style="margin-top: 20px; color: #64748b; font-size: 14px; font-weight: 500;">(Hệ thống sẽ mở trong một Tab trình duyệt mới để đảm bảo kết nối an toàn)</p>
+        </div>
+        ''', unsafe_allow_html=True)
