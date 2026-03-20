@@ -314,7 +314,6 @@ else:
         st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-top:20px;"><h4 style="margin-top:0;"><i class="fa-solid fa-gears text-purple-500"></i> Cấu Hình SMTP</h4>', unsafe_allow_html=True)
         cfg1, cfg2 = st.columns(2, gap="large")
         
-        # BỔ SUNG HƯỚNG DẪN LẤY MẬT KHẨU MAIL
         with cfg1:
             st.session_state["s_name"] = st.text_input("Tên người gửi:", value=st.session_state["s_name"])
             st.session_state["s_email"] = st.text_input("Tài khoản Gmail:", value=st.session_state["s_email"])
@@ -330,7 +329,7 @@ else:
                 """, unsafe_allow_html=True)
 
         with cfg2:
-            st.session_state["s_sign"] = text_area_sign = st.text_area("Chữ ký cuối Email:", value=st.session_state["s_sign"])
+            st.session_state["s_sign"] = st.text_area("Chữ ký cuối Email:", value=st.session_state["s_sign"])
         st.markdown('</div>', unsafe_allow_html=True)
 
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
@@ -391,7 +390,7 @@ else:
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua_mail.csv")
 
     # ========================================================
-    # 3. AUTO FACEBOOK VỚI KHỐI GIAO DIỆN (UI) VÀ FILE BÁO CÁO CSV
+    # 3. AUTO FACEBOOK ĐÃ HOÀN THIỆN
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
@@ -400,11 +399,8 @@ else:
             # Giao diện mời Đăng nhập
             scope = "public_profile,pages_show_list,pages_read_engagement,pages_manage_posts"
             current_u = st.session_state.get('current_user', '')
-            
-            # Gắn thêm gói hành lý chứa tên đăng nhập (state) vào link
             login_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&scope={scope}&state={current_u}"
             
-            # Gom toàn bộ Giao diện vào 1 khối HTML duy nhất để chống vỡ khung Streamlit
             html_invite = f"""
             <div style="background:white; padding:40px; border-radius:8px; border:1px solid #e2e8f0; text-align:center; margin-top:15px;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png" width="65" style="margin-bottom: 15px;">
@@ -418,14 +414,12 @@ else:
             st.markdown(html_invite, unsafe_allow_html=True)
 
         else:
-            # Khi đã có Token (Đăng nhập thành công)
             col_a, col_b = st.columns([8, 2])
             col_a.success("✅ Bạn đã kết nối hệ thống Facebook thành công!")
             if col_b.button("🚪 Hủy kết nối FB", use_container_width=True):
                 del st.session_state["fb_access_token"]
                 st.rerun()
             
-            # Giao diện điều khiển
             st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-top:15px;">', unsafe_allow_html=True)
             fb_excel = st.file_uploader("Tệp danh sách link Fanpage (.xlsx)", type=["xlsx"])
             fb_imgs = st.file_uploader("Hình ảnh đính kèm (Có thể bôi đen nhiều ảnh)", accept_multiple_files=True, type=["png", "jpg", "jpeg"])
@@ -444,17 +438,18 @@ else:
                     
                     master_token = st.session_state["fb_access_token"]
                     uploaded_images_data = [{'name': img.name, 'bytes': img.read()} for img in fb_imgs]
+                    fb_report_data = [] 
                     
-                    fb_report_data = [] # <--- Khởi tạo giỏ chứa dữ liệu báo cáo FB
-                    
-                    # Lấy Token của các Fanpage
+                    # CƠ CHẾ LẤY TOKEN MỚI (Hỗ trợ cả ID và Username)
                     page_tokens = {}
                     try:
-                        acc_url = f"https://graph.facebook.com/v19.0/me/accounts?access_token={master_token}"
+                        acc_url = f"https://graph.facebook.com/v19.0/me/accounts?fields=id,username,access_token&access_token={master_token}"
                         acc_res = requests.get(acc_url).json()
                         if 'data' in acc_res:
                             for page in acc_res['data']:
                                 page_tokens[page['id']] = page['access_token']
+                                if 'username' in page:
+                                    page_tokens[page['username']] = page['access_token']
                     except: pass
                     
                     df_fb = pd.read_excel(fb_excel)
@@ -476,7 +471,7 @@ else:
                                 if 'id' in res_data: target_id = res_data['id']
                             except: pass
                             
-                        active_token = page_tokens.get(target_id, master_token)
+                        active_token = page_tokens.get(target_id) or page_tokens.get(raw_id) or master_token
                         
                         # THUẬT TOÁN ĐĂNG BÀI
                         try:
@@ -550,7 +545,6 @@ else:
                     play_success_sound()
                     st.success("Tất cả tiến trình đã hoàn thành!")
                     
-                    # TẠO NÚT TẢI BÁO CÁO SAU KHI CHẠY XONG
                     if fb_report_data:
                         df_report = pd.DataFrame(fb_report_data)
                         csv_buf_fb = io.BytesIO()
