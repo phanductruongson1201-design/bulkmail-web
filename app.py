@@ -26,7 +26,7 @@ import streamlit.components.v1 as components
 FB_APP_ID = '385078767129314'
 FB_APP_SECRET = 'f9d18c2c52c07ad7fede00f56243cfc6'
 # ĐIỀN CHÍNH XÁC ĐƯỜNG LINK TRANG WEB BULKMAIL CỦA BẠN VÀO ĐÂY:
-FB_REDIRECT_URI = 'https://builmail.streamlit.app/#bulkmail-pro'
+FB_REDIRECT_URI = 'https://builmail.streamlit.app/'
 
 # 1. Cấu hình trang Web
 st.set_page_config(page_title="BulkMail Pro - Bứt Phá Doanh Thu", page_icon="🚀", layout="wide", initial_sidebar_state="expanded")
