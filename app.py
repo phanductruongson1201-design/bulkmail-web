@@ -313,12 +313,24 @@ else:
 
         st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-top:20px;"><h4 style="margin-top:0;"><i class="fa-solid fa-gears text-purple-500"></i> Cấu Hình SMTP</h4>', unsafe_allow_html=True)
         cfg1, cfg2 = st.columns(2, gap="large")
+        
+        # BỔ SUNG HƯỚNG DẪN LẤY MẬT KHẨU MAIL
         with cfg1:
             st.session_state["s_name"] = st.text_input("Tên người gửi:", value=st.session_state["s_name"])
             st.session_state["s_email"] = st.text_input("Tài khoản Gmail:", value=st.session_state["s_email"])
-            st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng:", type="password", value=st.session_state["s_pwd"])
+            st.session_state["s_pwd"] = st.text_input("Mật khẩu ứng dụng (16 ký tự):", type="password", value=st.session_state["s_pwd"])
+            
+            with st.expander("❓ Hướng dẫn lấy Mật khẩu ứng dụng (App Password)"):
+                st.markdown("""
+                **Bước 1:** Truy cập [Quản lý Tài khoản Google](https://myaccount.google.com/) -> Chọn tab **Bảo mật** (Security).
+                <br>**Bước 2:** Kéo xuống mục Đăng nhập vào Google, đảm bảo **Xác minh 2 bước** đã được BẬT.
+                <br>**Bước 3:** Gõ vào thanh tìm kiếm ở trên cùng chữ: `Mật khẩu ứng dụng` (hoặc App Passwords).
+                <br>**Bước 4:** Ở ô Tên ứng dụng, nhập tên bất kỳ (VD: *BulkMail*) và bấm nút **Tạo**.
+                <br>**Bước 5:** Copy dải **16 chữ cái** màu vàng (copy liền nhau, không chứa khoảng trắng) và dán vào ô Mật khẩu bên trên.
+                """, unsafe_allow_html=True)
+
         with cfg2:
-            st.session_state["s_sign"] = st.text_area("Chữ ký cuối Email:", value=st.session_state["s_sign"])
+            st.session_state["s_sign"] = text_area_sign = st.text_area("Chữ ký cuối Email:", value=st.session_state["s_sign"])
         st.markdown('</div>', unsafe_allow_html=True)
 
         sign_html = st.session_state["s_sign"].replace("\n", "<br>")
@@ -376,10 +388,10 @@ else:
                 st.success("Hoàn tất chiến dịch!")
                 csv_buf = io.BytesIO()
                 pd.DataFrame({"Email": success_list + error_list, "Kết quả": ["Thành công"] * len(success_list) + ["Lỗi"] * len(error_list)}).to_csv(csv_buf, index=False, encoding="utf-8-sig")
-                st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
+                st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua_mail.csv")
 
     # ========================================================
-    # 3. AUTO FACEBOOK VỚI KHỐI GIAO DIỆN (UI) ĐÃ ĐƯỢC GỘP CHUẨN
+    # 3. AUTO FACEBOOK VỚI KHỐI GIAO DIỆN (UI) VÀ FILE BÁO CÁO CSV
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
@@ -413,7 +425,7 @@ else:
                 del st.session_state["fb_access_token"]
                 st.rerun()
             
-            # Giao diện điều khiển (Y hệt tool Mail)
+            # Giao diện điều khiển
             st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-top:15px;">', unsafe_allow_html=True)
             fb_excel = st.file_uploader("Tệp danh sách link Fanpage (.xlsx)", type=["xlsx"])
             fb_imgs = st.file_uploader("Hình ảnh đính kèm (Có thể bôi đen nhiều ảnh)", accept_multiple_files=True, type=["png", "jpg", "jpeg"])
@@ -433,6 +445,8 @@ else:
                     master_token = st.session_state["fb_access_token"]
                     uploaded_images_data = [{'name': img.name, 'bytes': img.read()} for img in fb_imgs]
                     
+                    fb_report_data = [] # <--- Khởi tạo giỏ chứa dữ liệu báo cáo FB
+                    
                     # Lấy Token của các Fanpage
                     page_tokens = {}
                     try:
@@ -449,7 +463,9 @@ else:
                     for i, item in enumerate(target_list):
                         raw_id = extract_target_id(item)
                         if not raw_id:
-                            log_fb.write(f"❌ Không bóc tách được ID từ: {item}")
+                            msg = f"❌ Không bóc tách được ID từ: {item}"
+                            log_fb.write(msg)
+                            fb_report_data.append({"Mục Tiêu": item, "Trạng Thái": "Lỗi", "Chi Tiết": "Không bóc tách được ID"})
                             continue
                             
                         target_id = raw_id
@@ -489,7 +505,9 @@ else:
                                         for k, media_id in enumerate(media_ids): payload[f'attached_media[{k}]'] = f'{{"media_fbid":"{media_id}"}}'
                                         response = requests.post(url, data=payload)
                                     else:
-                                        log_fb.write(f"❌ Lỗi ảnh mục tiêu {raw_id}: {upload_error}")
+                                        msg = f"❌ Lỗi ảnh mục tiêu {raw_id}: {upload_error}"
+                                        log_fb.write(msg)
+                                        fb_report_data.append({"Mục Tiêu": raw_id, "Trạng Thái": "Lỗi", "Chi Tiết": f"Lỗi ảnh: {upload_error}"})
                                         time.sleep(fb_delay)
                                         continue
                             else:
@@ -501,26 +519,43 @@ else:
                             if 'id' in data or 'post_id' in data:
                                 published_id = data.get('post_id', data.get('id'))
                                 status_msg = f"✅ Đăng thành công ({published_id})"
+                                detail_msg = f"Đã đăng bài (ID: {published_id})"
                                 
                                 # Auto Cmt
                                 if fb_cmt.strip():
                                     cmt_url = f"https://graph.facebook.com/v19.0/{published_id}/comments"
                                     cmt_payload = {'message': fb_cmt, 'access_token': active_token}
                                     cmt_res = requests.post(cmt_url, data=cmt_payload).json()
-                                    if 'id' in cmt_res: status_msg += " 💬 Đã Cmt"
-                                    else: status_msg += f" ⚠️ Lỗi Cmt"
+                                    if 'id' in cmt_res: 
+                                        status_msg += " 💬 Đã Cmt"
+                                        detail_msg += " + Đã bình luận"
+                                    else: 
+                                        err_cmt = cmt_res.get('error', {}).get('message', 'Không rõ')
+                                        status_msg += " ⚠️ Lỗi Cmt"
+                                        detail_msg += f" + Lỗi Cmt: {err_cmt}"
                                         
                                 log_fb.write(f"{status_msg} trên trang: {raw_id}")
+                                fb_report_data.append({"Mục Tiêu": raw_id, "Trạng Thái": "Thành công", "Chi Tiết": detail_msg})
                             else:
-                                log_fb.write(f"❌ Bị từ chối ({raw_id}): {data.get('error', {}).get('message')}")
+                                err_msg = data.get('error', {}).get('message')
+                                log_fb.write(f"❌ Bị từ chối ({raw_id}): {err_msg}")
+                                fb_report_data.append({"Mục Tiêu": raw_id, "Trạng Thái": "Lỗi", "Chi Tiết": err_msg})
                         except Exception as e:
                             log_fb.write(f"❌ Lỗi kết nối ({raw_id}): {str(e)}")
+                            fb_report_data.append({"Mục Tiêu": raw_id, "Trạng Thái": "Lỗi", "Chi Tiết": f"Lỗi hệ thống: {str(e)}"})
                             
                         progress_fb.progress((i + 1) / len(target_list))
                         time.sleep(fb_delay)
                         
                     play_success_sound()
                     st.success("Tất cả tiến trình đã hoàn thành!")
+                    
+                    # TẠO NÚT TẢI BÁO CÁO SAU KHI CHẠY XONG
+                    if fb_report_data:
+                        df_report = pd.DataFrame(fb_report_data)
+                        csv_buf_fb = io.BytesIO()
+                        df_report.to_csv(csv_buf_fb, index=False, encoding="utf-8-sig")
+                        st.download_button("📥 TẢI BÁO CÁO FACEBOOK (.CSV)", data=csv_buf_fb.getvalue(), file_name="bao_cao_facebook.csv", type="primary")
 
     # 4. LỊCH SỬ
     elif menu == "📊 Lịch Sử Giao Dịch":
