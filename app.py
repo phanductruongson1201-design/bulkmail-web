@@ -24,7 +24,7 @@ import streamlit.components.v1 as components
 # CẤU HÌNH FACEBOOK API (BẠN ĐIỀN VÀO ĐÂY)
 # ==========================================
 FB_APP_ID = '385078767129314'
-FB_APP_SECRET = 'f9d18c2c52c07ad7fede00f56243cfc6'
+FB_APP_SECRET = 'NHAP_KHOA_BI_MAT_CUA_BAN_VAO_DAY'
 # ĐIỀN CHÍNH XÁC ĐƯỜNG LINK TRANG WEB BULKMAIL CỦA BẠN VÀO ĐÂY (KHÔNG CÓ DẤU #):
 FB_REDIRECT_URI = 'https://builmail.streamlit.app/'
 
@@ -379,7 +379,7 @@ else:
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
     # ========================================================
-    # 3. AUTO FACEBOOK ĐÃ ĐƯỢC FIX LUỒNG CHẠY TRƠN TRU 100%
+    # 3. AUTO FACEBOOK VỚI KHỐI GIAO DIỆN (UI) ĐÃ ĐƯỢC GỘP CHUẨN
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
@@ -389,17 +389,21 @@ else:
             scope = "public_profile,pages_show_list,pages_read_engagement,pages_manage_posts"
             current_u = st.session_state.get('current_user', '')
             
-            # Đã gắn thêm gói hành lý chứa tên đăng nhập (state) vào link
+            # Gắn thêm gói hành lý chứa tên đăng nhập (state) vào link
             login_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&scope={scope}&state={current_u}"
             
-            st.markdown('<div style="background:white; padding:40px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">', unsafe_allow_html=True)
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png", width=60)
-            st.markdown('<h3 style="color:#1e293b; margin-top:15px;">Kết Nối Tài Khoản Trực Tiếp</h3>', unsafe_allow_html=True)
-            st.markdown('<p style="color:#64748b; margin-bottom:25px;">Hệ thống đã được tích hợp bản địa an toàn 100%.</p>', unsafe_allow_html=True)
-            
-            # CẤU HÌNH NÚT BẤM (Mở cùng Tab cực mượt)
-            st.markdown(f'<a href="{login_url}" target="_blank" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">Đăng Nhập Bằng Facebook</a>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+            # Gom toàn bộ Giao diện vào 1 khối HTML duy nhất để chống vỡ khung Streamlit
+            html_invite = f"""
+            <div style="background:white; padding:40px; border-radius:8px; border:1px solid #e2e8f0; text-align:center; margin-top:15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png" width="65" style="margin-bottom: 15px;">
+                <h3 style="color:#1e293b; margin-top:0;">Kết Nối Tài Khoản Trực Tiếp</h3>
+                <p style="color:#64748b; margin-bottom:25px;">Hệ thống đã được tích hợp bản địa an toàn 100%.</p>
+                <a href="{login_url}" target="_blank" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">
+                    Đăng Nhập Bằng Facebook
+                </a>
+            </div>
+            """
+            st.markdown(html_invite, unsafe_allow_html=True)
 
         else:
             # Khi đã có Token (Đăng nhập thành công)
