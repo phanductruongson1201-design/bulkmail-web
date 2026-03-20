@@ -300,7 +300,9 @@ else:
         else: st.markdown('<h3 style="text-align:center; color:#1e40af; font-weight:800;">BULKMAIL</h3>', unsafe_allow_html=True)
         
         st.markdown("<p style='font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-bottom:8px; margin-left:12px;'>Quản lý</p>", unsafe_allow_html=True)
-        menu = st.radio("", ["🏠 Cửa Hàng Dịch Vụ", "✉️ Gửi Mail Hàng Loạt", "📊 Lịch Sử Giao Dịch"], label_visibility="collapsed")
+        
+        # CHỈ THÊM ĐÚNG 1 DÒNG NÀY ĐỂ MỞ MENU MỚI
+        menu = st.radio("", ["🏠 Cửa Hàng Dịch Vụ", "✉️ Gửi Mail Hàng Loạt", "🌐 Auto Facebook", "📊 Lịch Sử Giao Dịch"], label_visibility="collapsed")
 
     # ========================================================
     # NỘI DUNG CHÍNH TỪNG TRANG
@@ -484,7 +486,17 @@ else:
                 send_tele_file(tk_input, cid_input, csv_buf.getvalue(), "ket_qua.csv")
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
-    # 3. LỊCH SỬ
+    # ========================================================
+    # 3. AUTO FACEBOOK (NHÚNG TỪ RENDER SANG BẰNG IFRAME)
+    # ========================================================
+    elif menu == "🌐 Auto Facebook":
+        st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
+        st.info("💡 Hệ thống Auto Facebook được thiết lập chạy ngầm trên Server vệ tinh độc lập để bảo vệ an toàn 100% cho tiến trình gửi Mail.")
+        
+        # Lệnh này sẽ mở một cửa sổ nhỏ để hiển thị web Render ngay giữa trang BulkMail
+        components.iframe("https://he-thong-dang-bai.onrender.com/", height=900, scrolling=True)
+
+    # 4. LỊCH SỬ
     elif menu == "📊 Lịch Sử Giao Dịch":
         st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0;">', unsafe_allow_html=True)
         st.markdown('<h3 style="margin-top:0; color:#1e40af;">Nhật ký Nạp tiền</h3>', unsafe_allow_html=True)
