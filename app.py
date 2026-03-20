@@ -137,7 +137,7 @@ if "s_sign" not in st.session_state: st.session_state["s_sign"] = "Trân trọng
 LOGO_URL = "logo_moi.png"
 
 # ==========================================
-# CƠ CHẾ BẮT LẠI TRÍ NHỚ TỪ FACEBOOK VỀ (TỰ ĐỘNG ĐĂNG NHẬP)
+# CƠ CHẾ BẮT LẠI TRÍ NHỚ TỪ FACEBOOK VỀ
 # ==========================================
 if "state" in st.query_params:
     st.session_state["current_user"] = st.query_params.get("state")
@@ -247,6 +247,7 @@ else:
     # ========================================================
 
     if menu == "🏠 Cửa Hàng Dịch Vụ":
+        # ... (Phần Cửa hàng giữ nguyên) ...
         st.markdown('<div style="background:#1e3a8a; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-solid fa-layer-group"></i> Dịch Vụ BulkMail Hệ Thống</div>', unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3, gap="medium")
         with c1:
@@ -293,6 +294,7 @@ else:
                 st.markdown("</div>", unsafe_allow_html=True)
 
     elif menu == "✉️ Gửi Mail Hàng Loạt":
+        # ... (Phần Gửi Mail giữ nguyên) ...
         col_data, col_content = st.columns([1, 1.2], gap="large")
         with col_data:
             st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:20px;"><h4 style="margin-top:0;"><i class="fa-solid fa-file-excel text-blue-500"></i> Dữ liệu khách hàng</h4>', unsafe_allow_html=True)
@@ -390,13 +392,12 @@ else:
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua_mail.csv")
 
     # ========================================================
-    # 3. AUTO FACEBOOK ĐÃ HOÀN THIỆN
+    # 3. AUTO FACEBOOK ĐÃ TÍCH HỢP "MÁY QUÉT CHÌA KHÓA"
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
         
         if "fb_access_token" not in st.session_state:
-            # Giao diện mời Đăng nhập
             scope = "public_profile,pages_show_list,pages_read_engagement,pages_manage_posts"
             current_u = st.session_state.get('current_user', '')
             login_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&scope={scope}&state={current_u}"
@@ -419,6 +420,32 @@ else:
             if col_b.button("🚪 Hủy kết nối FB", use_container_width=True):
                 del st.session_state["fb_access_token"]
                 st.rerun()
+                
+            # ==========================================
+            # MÁY QUÉT CHÌA KHÓA FANPAGE
+            # ==========================================
+            master_token = st.session_state["fb_access_token"]
+            page_tokens = {}
+            authorized_pages = []
+            try:
+                acc_url = f"https://graph.facebook.com/v19.0/me/accounts?fields=id,name,username,access_token&access_token={master_token}"
+                acc_res = requests.get(acc_url).json()
+                if 'data' in acc_res:
+                    for page in acc_res['data']:
+                        page_tokens[page['id']] = page['access_token']
+                        if 'username' in page:
+                            page_tokens[page['username'].lower()] = page['access_token']
+                        authorized_pages.append(f"{page.get('name', 'Không tên')} (ID: {page['id']})")
+            except: pass
+            
+            with st.expander("🔑 BẤM VÀO ĐÂY ĐỂ XEM DANH SÁCH FANPAGE ĐÃ LẤY ĐƯỢC CHÌA KHÓA"):
+                st.markdown("*(Nếu ID trang bạn muốn đăng không có trong danh sách này, Facebook sẽ báo lỗi chặn #200)*")
+                if authorized_pages:
+                    for p in authorized_pages:
+                        st.info(f"✔️ {p}")
+                else:
+                    st.error("⚠️ Hệ thống KHÔNG TÌM THẤY chìa khóa Fanpage nào! Bạn hãy Hủy kết nối FB và đăng nhập lại, nhớ tick chọn TẤT CẢ các trang.")
+            # ==========================================
             
             st.markdown('<div style="background:white; padding:20px; border-radius:8px; border:1px solid #e2e8f0; margin-top:15px;">', unsafe_allow_html=True)
             fb_excel = st.file_uploader("Tệp danh sách link Fanpage (.xlsx)", type=["xlsx"])
@@ -436,21 +463,8 @@ else:
                     progress_fb = st.progress(0)
                     log_fb = st.expander("Nhật ký chạy Facebook", expanded=True)
                     
-                    master_token = st.session_state["fb_access_token"]
                     uploaded_images_data = [{'name': img.name, 'bytes': img.read()} for img in fb_imgs]
                     fb_report_data = [] 
-                    
-                    # CƠ CHẾ LẤY TOKEN MỚI (Hỗ trợ cả ID và Username)
-                    page_tokens = {}
-                    try:
-                        acc_url = f"https://graph.facebook.com/v19.0/me/accounts?fields=id,username,access_token&access_token={master_token}"
-                        acc_res = requests.get(acc_url).json()
-                        if 'data' in acc_res:
-                            for page in acc_res['data']:
-                                page_tokens[page['id']] = page['access_token']
-                                if 'username' in page:
-                                    page_tokens[page['username']] = page['access_token']
-                    except: pass
                     
                     df_fb = pd.read_excel(fb_excel)
                     target_list = df_fb.iloc[:, 0].dropna().astype(str).tolist()
@@ -471,7 +485,7 @@ else:
                                 if 'id' in res_data: target_id = res_data['id']
                             except: pass
                             
-                        active_token = page_tokens.get(target_id) or page_tokens.get(raw_id) or master_token
+                        active_token = page_tokens.get(target_id) or page_tokens.get(str(raw_id).lower()) or master_token
                         
                         # THUẬT TOÁN ĐĂNG BÀI
                         try:
