@@ -403,7 +403,7 @@ else:
                 st.markdown('<h3 style="color:#1e293b; margin-top:15px;">Kết Nối Tài Khoản Trực Tiếp</h3>', unsafe_allow_html=True)
                 st.markdown('<p style="color:#64748b; margin-bottom:25px;">Hệ thống đã được tích hợp bản địa an toàn 100%.</p>', unsafe_allow_html=True)
                 # ĐÃ SỬA THÀNH _top ĐỂ PHÁ VỠ IFRAME CỦA STREAMLIT CLOUD
-st.markdown(f'<a href="{login_url}" target="_blank" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">Đăng Nhập Bằng Facebook</a>', unsafe_allow_html=True)                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f'<a href="{login_url}" target="_blank" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">Đăng Nhập Bằng Facebook</a>', unsafe_allow_html=True)                st.markdown('</div>', unsafe_allow_html=True)
 
         else:
             # Khi đã có Token (Đăng nhập thành công)
