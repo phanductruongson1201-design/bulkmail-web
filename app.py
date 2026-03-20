@@ -25,7 +25,7 @@ import streamlit.components.v1 as components
 # ==========================================
 FB_APP_ID = '385078767129314'
 FB_APP_SECRET = 'f9d18c2c52c07ad7fede00f56243cfc6'
-# ĐIỀN CHÍNH XÁC ĐƯỜNG LINK TRANG WEB BULKMAIL CỦA BẠN VÀO ĐÂY:
+# ĐIỀN CHÍNH XÁC ĐƯỜNG LINK TRANG WEB BULKMAIL CỦA BẠN VÀO ĐÂY (KHÔNG CÓ DẤU #):
 FB_REDIRECT_URI = 'https://builmail.streamlit.app/'
 
 # 1. Cấu hình trang Web
@@ -60,23 +60,6 @@ def save_config_api(username, tele_token, tele_chat_id):
 
 def hash_password(password): return hashlib.sha256(password.encode()).hexdigest()
 
-def send_tele_msg(token, chat_id, message):
-    if token and chat_id:
-        try: requests.post(f"https://api.telegram.org/bot{token}/sendMessage", data={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=5)
-        except: pass
-
-def send_tele_file(token, chat_id, file_content, file_name):
-    if token and chat_id:
-        try:
-            files = {"document": (file_name, file_content)}
-            requests.post(f"https://api.telegram.org/bot{token}/sendDocument", data={"chat_id": chat_id}, files=files, timeout=10)
-        except: pass
-
-def get_image_base64(path):
-    try:
-        with open(path, "rb") as img_file: return base64.b64encode(img_file.read()).decode("utf-8")
-    except: return None
-
 def play_success_sound():
     components.html("""<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" type="audio/ogg"></audio>""", height=0)
 
@@ -92,6 +75,11 @@ def extract_target_id(input_str):
         name = vanity_match.group(1)
         if name not in ['groups', 'profile.php', 'pages']: return name
     return None
+
+def get_image_base64(path):
+    try:
+        with open(path, "rb") as img_file: return base64.b64encode(img_file.read()).decode("utf-8")
+    except: return None
 
 # ==========================================
 # GIAO DIỆN CSS MỚI
@@ -147,6 +135,25 @@ if "s_pwd" not in st.session_state: st.session_state["s_pwd"] = ""
 if "s_sign" not in st.session_state: st.session_state["s_sign"] = "Trân trọng,\nTrường Sơn Marketing"
 
 LOGO_URL = "logo_moi.png"
+
+# ==========================================
+# CƠ CHẾ BẮT LẠI TRÍ NHỚ TỪ FACEBOOK VỀ (TỰ ĐỘNG ĐĂNG NHẬP)
+# ==========================================
+if "state" in st.query_params:
+    st.session_state["current_user"] = st.query_params.get("state")
+    st.session_state["logged_in"] = True
+    
+    if "code" in st.query_params:
+        code = st.query_params.get("code")
+        token_url = f"https://graph.facebook.com/v19.0/oauth/access_token?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&client_secret={FB_APP_SECRET}&code={code}"
+        try:
+            res = requests.get(token_url).json()
+            if 'access_token' in res:
+                st.session_state["fb_access_token"] = res['access_token']
+        except: pass
+        
+    st.query_params.clear()
+    st.rerun()
 
 # ==========================================
 # 1. ĐĂNG NHẬP BULKMAIL
@@ -372,41 +379,27 @@ else:
                 st.download_button("TẢI BÁO CÁO (.CSV)", data=csv_buf.getvalue(), file_name="ket_qua.csv")
 
     # ========================================================
-    # 3. AUTO FACEBOOK VỚI NÚT MỞ TAB MỚI (_blank)
+    # 3. AUTO FACEBOOK ĐÃ ĐƯỢC FIX LUỒNG CHẠY TRƠN TRU 100%
     # ========================================================
     elif menu == "🌐 Auto Facebook":
         st.markdown('<div style="background:#2563eb; color:white; padding:15px 20px; font-size:18px; font-weight:700; border-radius:8px 8px 0 0; margin-bottom:20px;"><i class="fa-brands fa-facebook"></i> Hệ Thống Auto Facebook Đăng Bài & Comment</div>', unsafe_allow_html=True)
         
-        # Kiểm tra trạng thái đăng nhập Facebook
         if "fb_access_token" not in st.session_state:
-            # Bắt mã Code trả về từ Facebook trên thanh URL
-            if "code" in st.query_params:
-                code = st.query_params.get("code")
-                token_url = f"https://graph.facebook.com/v19.0/oauth/access_token?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&client_secret={FB_APP_SECRET}&code={code}"
-                try:
-                    res = requests.get(token_url).json()
-                    if 'access_token' in res:
-                        st.session_state["fb_access_token"] = res['access_token']
-                        st.query_params.clear() # Xóa mã code rác trên thanh địa chỉ
-                        st.rerun()
-                    else:
-                        st.error(f"Lỗi xác thực Token: {res}")
-                except Exception as e:
-                    st.error(f"Lỗi kết nối Meta: {e}")
-            else:
-                # Giao diện mời Đăng nhập
-                scope = "pages_show_list,pages_read_engagement,pages_manage_posts"
-                login_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&scope={scope}"
-                
-                st.markdown('<div style="background:white; padding:40px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">', unsafe_allow_html=True)
-                st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png", width=60)
-                st.markdown('<h3 style="color:#1e293b; margin-top:15px;">Kết Nối Tài Khoản Trực Tiếp</h3>', unsafe_allow_html=True)
-                st.markdown('<p style="color:#64748b; margin-bottom:25px;">Hệ thống đã được tích hợp bản địa an toàn 100%.</p>', unsafe_allow_html=True)
-                
-                # NÚT BẤM ĐÃ ĐƯỢC CẬP NHẬT TẠI ĐÂY (target="_blank")
-                st.markdown(f'<a href="{login_url}" target="_blank" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">Đăng Nhập Bằng Facebook</a>', unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+            # Giao diện mời Đăng nhập
+            scope = "public_profile,pages_show_list,pages_read_engagement,pages_manage_posts"
+            current_u = st.session_state.get('current_user', '')
+            
+            # Đã gắn thêm gói hành lý chứa tên đăng nhập (state) vào link
+            login_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={FB_REDIRECT_URI}&scope={scope}&state={current_u}"
+            
+            st.markdown('<div style="background:white; padding:40px; border-radius:8px; border:1px solid #e2e8f0; text-align:center;">', unsafe_allow_html=True)
+            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/1024px-2021_Facebook_icon.svg.png", width=60)
+            st.markdown('<h3 style="color:#1e293b; margin-top:15px;">Kết Nối Tài Khoản Trực Tiếp</h3>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#64748b; margin-bottom:25px;">Hệ thống đã được tích hợp bản địa an toàn 100%.</p>', unsafe_allow_html=True)
+            
+            # CẤU HÌNH NÚT BẤM (Mở cùng Tab cực mượt)
+            st.markdown(f'<a href="{login_url}" target="_top" style="background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(24, 119, 242, 0.3);">Đăng Nhập Bằng Facebook</a>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         else:
             # Khi đã có Token (Đăng nhập thành công)
